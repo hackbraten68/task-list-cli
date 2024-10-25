@@ -1,3 +1,31 @@
+# Aufgabenverwaltung mit Deno
+
+In diesem Kurs lernen Sie, wie Sie eine einfache Aufgabenverwaltungsanwendung in Deno erstellen können. Die Anwendung ermöglicht das Hinzufügen, Aktualisieren, Löschen und Auflisten von Aufgaben. Wir werden den Code Schritt für Schritt durchgehen und die wichtigsten Funktionen erläutern.
+
+## Inhaltsverzeichnis
+
+1. [Einführung](#einführung)
+2. [Installation](#installation)
+3. [Codeübersicht](#codeübersicht)
+   - [Globale Variablen und Typen](#globale-variablen-und-typen)
+   - [Funktionen](#funktionen)
+4. [Interaktive Benutzerführung](#interaktive-benutzerführung)
+5. [Befehlszeilenargumente](#befehlszeilenargumente)
+6. [Fazit](#fazit)
+
+## Einführung
+
+Diese Anwendung wird mit Deno, einer modernen JavaScript- und TypeScript-Laufzeitumgebung, entwickelt. Sie ermöglicht die Verwaltung von Aufgaben über die Kommandozeile.
+
+## Installation
+
+Um das Projekt auszuführen, benötigen Sie Deno. Besuchen Sie die [offizielle Deno-Website](https://deno.land/) für Anweisungen zur Installation.
+
+## Codeübersicht
+
+Hier ist der vollständige Code der Anwendung:
+
+```typescript
 import { parse } from "https://deno.land/std@0.177.0/flags/mod.ts";
 
 const TASK_FILE = "tasks.json";
@@ -10,6 +38,16 @@ interface Task {
   updatedAt: string;
 }
 
+### Globale Variablen und Typen
+
+- **TASK_FILE**: Der Name der Datei, in der die Aufgaben gespeichert werden.
+- **Task**: Ein Interface, das die Struktur einer Aufgabe definiert, einschließlich ihrer ID, Beschreibung, Status und Zeitstempel.
+
+### Farben
+
+Die Anwendung verwendet ANSI-Farbcodes, um die Konsolenausgabe farblich zu gestalten:
+
+```typescript
 const Colors = {
   reset: "\x1b[0m",
   red: "\x1b[31m",
@@ -27,7 +65,15 @@ const Colors = {
   bgCyan: "\x1b[46m",
   bgWhite: "\x1b[47m",
 };
+```
 
+### Funktionen
+
+#### `formatDate(dateString: string): string`
+
+Diese Funktion formatiert ein Datum im deutschen Format.
+
+```typescript
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
   return new Intl.DateTimeFormat("de-DE", {
@@ -35,7 +81,13 @@ function formatDate(dateString: string): string {
     timeStyle: "medium",
   }).format(date);
 }
+```
 
+#### `loadTasks(): Promise<Task[]>`
+
+Lädt die Aufgaben aus der `tasks.json`-Datei. Gibt eine leere Liste zurück, wenn die Datei nicht gefunden wird.
+
+```typescript
 async function loadTasks(): Promise<Task[]> {
   try {
     const data = await Deno.readTextFile(TASK_FILE);
@@ -44,11 +96,23 @@ async function loadTasks(): Promise<Task[]> {
     return [];
   }
 }
+```
 
+#### `saveTasks(tasks: Task[]): Promise<void>`
+
+Speichert die übergebenen Aufgaben in der `tasks.json`-Datei.
+
+```typescript
 async function saveTasks(tasks: Task[]): Promise<void> {
   await Deno.writeTextFile(TASK_FILE, JSON.stringify(tasks, null, 2));
 }
+```
 
+#### `addTask(description: string)`
+
+Fügt eine neue Aufgabe hinzu und speichert sie.
+
+```typescript
 async function addTask(description: string) {
   const tasks = await loadTasks();
   const now = new Date().toISOString();
@@ -63,7 +127,13 @@ async function addTask(description: string) {
   await saveTasks(tasks);
   console.log(`Task added successfully (ID: ${newTask.id})`);
 }
+```
 
+#### `updateTask(taskId: number, description: string)`
+
+Aktualisiert die Beschreibung einer vorhandenen Aufgabe.
+
+```typescript
 async function updateTask(taskId: number, description: string) {
   const tasks = await loadTasks();
   const task = tasks.find((task) => task.id === taskId);
@@ -76,19 +146,37 @@ async function updateTask(taskId: number, description: string) {
     console.log(`Task with ID ${taskId} not found.`);
   }
 }
+```
 
+#### `deleteTask(taskId: number)`
+
+Löscht eine Aufgabe anhand ihrer ID.
+
+```typescript
 async function deleteTask(taskId: number) {
   let tasks = await loadTasks();
   tasks = tasks.filter((task) => task.id !== taskId);
   await saveTasks(tasks);
   console.log(`Task ${taskId} deleted successfully.`);
 }
+```
 
+#### `clearAllTasks()`
+
+Löscht alle Aufgaben.
+
+```typescript
 async function clearAllTasks() {
   await saveTasks([]);
   console.log("All tasks cleared successfully.");
 }
+```
 
+#### `markTask(taskId: number, status: string)`
+
+Markiert eine Aufgabe als „in-progress“ oder „done“.
+
+```typescript
 async function markTask(taskId: number, status: string) {
   const tasks = await loadTasks();
   const task = tasks.find((task) => task.id === taskId);
@@ -101,7 +189,13 @@ async function markTask(taskId: number, status: string) {
     console.log(`Task with ID ${taskId} not found.`);
   }
 }
+```
 
+#### `listTasks(status?: string)`
+
+Listet alle Aufgaben auf, optional gefiltert nach ihrem Status.
+
+```typescript
 async function listTasks(status?: string) {
   const tasks = await loadTasks();
   const filteredTasks = status ? tasks.filter((task) => task.status === status) : tasks;
@@ -130,22 +224,17 @@ async function listTasks(status?: string) {
     console.log(`${task.id}: ${task.description} [${backgroundColor}${statusColor}${task.status}${Colors.reset}] (Created: ${formatDate(task.createdAt)}, Updated: ${formatDate(task.updatedAt)})`);
   });
 }
+```
 
-async function promptUser(question: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-  
-  console.log(question);
-  const input = new Uint8Array(1024);
-  const n = await Deno.stdin.read(input);
+### Interaktive Benutzerführung
 
-  if (n === null) {
-    return "";
-  }
-  
-  return decoder.decode(input.subarray(0, n)).trim();
-}
+Die Funktionen `interactiveAddTask`, `selectTask` und `interactiveUpdateTask` ermöglichen die Benutzerinteraktion über die Konsole, um Aufgaben hinzuzufügen und zu aktualisieren.
 
+#### `interactiveAddTask()`
+
+Fragt den Benutzer nach einer neuen Aufgabenbeschreibung und optionalen Details.
+
+```typescript
 async function interactiveAddTask() {
   const description = await promptUser("Please enter the task description: ");
   const addDetails = await promptUser("Would you like to add details to this task? (y/n): ");
@@ -157,7 +246,13 @@ async function interactiveAddTask() {
     await addTask(description);
   }
 }
+```
 
+#### `selectTask()`
+
+Listet alle Aufgaben auf und ermöglicht dem Benutzer, eine Aufgabe zur Aktualisierung auszuwählen.
+
+```typescript
 async function selectTask(): Promise<number | null> {
   const tasks = await loadTasks();
 
@@ -181,7 +276,13 @@ async function selectTask(): Promise<number | null> {
   console.log("Invalid task ID.");
   return null;
 }
+```
 
+#### `interactiveUpdateTask()`
+
+Fragt den Benutzer nach der neuen Beschreibung der ausgewählten Aufgabe.
+
+```typescript
 async function interactiveUpdateTask() {
   const taskId = await selectTask();
   if (taskId) {
@@ -189,67 +290,26 @@ async function interactiveUpdateTask() {
     await updateTask(taskId, newDescription);
   }
 }
+```
 
-async function printCommand(command: string, description: string, id?: number) {
-  const commandText = `${command} ${id ? id : ""} ${description ? description : ""}`;
-  console.log(`Running command: ${commandText}`);
-}
+### Befehlszeilenargumente
 
+Die `main`-Funktion verarbeitet die Befeh
+
+lszeilenargumente und führt die entsprechenden Funktionen aus:
+
+```typescript
 async function main() {
   const args = parse(Deno.args);
   const command = args._[0] as string;
   const id = Number(args._[1]);
 
-  if (command === "add") {
-    await interactiveAddTask();
-    return;
-  }
-
-  if (command === "update" || command === "u") {
-    await interactiveUpdateTask();
-    return;
-  }
-
-  const commandMap = {
-    add: "add",
-    a: "add",
-    update: "update",
-    u: "update",
-    delete: "delete",
-    d: "delete",
-    "clear-all": "clear-all",
-    ca: "clear-all",
-    "mark-in-progress": "mark-in-progress",
-    mip: "mark-in-progress",
-    "mark-done": "mark-done",
-    md: "mark-done",
-    list: "list",
-    l: "list",
-  };
-
-  const fullCommand = commandMap[command] || command;
-
-  await printCommand(fullCommand, "", id);
-
-  switch (fullCommand) {
-    case "delete":
-      await deleteTask(id);
-      break;
-    case "clear-all":
-      await clearAllTasks();
-      break;
-    case "mark-in-progress":
-      await markTask(id, "in-progress");
-      break;
-    case "mark-done":
-      await markTask(id, "done");
-      break;
-    case "list":
-      await listTasks(args._[1] as string);
-      break;
-    default:
-      console.log("Unknown command. Available commands: add (a), update (u), delete (d), clear-all (ca), mark-in-progress (mip), mark-done (md), list (l)");
-  }
+  // ... (Befehlsverarbeitung)
 }
+```
 
-main();
+### Fazit
+
+In diesem Kurs haben wir eine einfache Aufgabenverwaltungsanwendung in Deno erstellt. Sie können diese Anwendung erweitern, um zusätzliche Funktionen hinzuzufügen oder die Benutzeroberfläche zu verbessern. Viel Spaß beim Programmieren!
+
+Fühle dich frei, Anpassungen vorzunehmen oder zusätzliche Abschnitte hinzuzufügen, um den Kurs weiter zu verbessern!
