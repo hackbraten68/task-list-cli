@@ -2,9 +2,40 @@
 
 Welcome to the Task Management CLI! This application allows you to manage tasks via the command line. You can add, update, delete, and change the status of tasks. Tasks are stored in a JSON file (`tasks.json`).
 
+## Prerequisites
+
+Before using this application, you need to have [Deno](https://deno.land/) installed on your system.
+
+### How to Install Deno
+
+To install Deno, follow the instructions for your operating system:
+
+- **On macOS and Linux**: Use Homebrew
+  ```bash
+  brew install deno
+  ```
+
+- **On macOS (alternative)**: Use the Shell command
+  ```bash
+  curl -fsSL https://deno.land/install.sh | sh
+  ```
+
+- **On Windows**: Use PowerShell
+  ```powershell
+  iwr https://deno.land/install.ps1 -useb | iex
+  ```
+
+For more detailed installation instructions and options, refer to the [Deno installation page](https://deno.land/manual/getting_started/installation).
+
+Once Deno is installed, you can confirm it by running:
+
+```bash
+deno --version
+```
+
 ## How to Use the Task-List CLI
 
-The application runs on Deno and provides several commands to manage your tasks.
+This application runs on Deno and provides several commands to manage your tasks.
 
 ### Commands
 
@@ -89,10 +120,11 @@ This will show you all the tasks in your list, along with their status and times
 You can also list all tasks with a specific status. Specify the desired status, such as `todo`, `in-progress`, or `done`.
 
 ```bash
-deno task list <STATUS> // todo, in-progress, done
+deno task list <STATUS>
 ```
 
 **Example:** To list only the tasks that are still in the "todo" status:
 
 ```bash
 deno task list todo
+```
