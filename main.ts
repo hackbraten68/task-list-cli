@@ -19,6 +19,13 @@ const Colors = {
   magenta: "\x1b[35m",
   cyan: "\x1b[36m",
   white: "\x1b[37m",
+  bgRed: "\x1b[41m",
+  bgGreen: "\x1b[42m",
+  bgYellow: "\x1b[43m",
+  bgBlue: "\x1b[44m",
+  bgMagenta: "\x1b[45m",
+  bgCyan: "\x1b[46m",
+  bgWhite: "\x1b[47m",
 };
 
 // Datumsformatierungsfunktion
@@ -78,6 +85,11 @@ async function deleteTask(taskId: number) {
   console.log(`Task ${taskId} deleted successfully.`);
 }
 
+async function clearAllTasks() {
+  await saveTasks([]); // Leeres Array speichern
+  console.log("All tasks cleared successfully.");
+}
+
 async function markTask(taskId: number, status: string) {
   const tasks = await loadTasks();
   const task = tasks.find((task) => task.id === taskId);
@@ -97,22 +109,27 @@ async function listTasks(status?: string) {
 
   filteredTasks.forEach((task) => {
     let statusColor = Colors.reset; // Standardfarbe
+    let backgroundColor = Colors.reset; // Standard Hintergrundfarbe
 
     switch (task.status) {
       case "todo":
-        statusColor = Colors.red; // Rot für "todo"
+        statusColor = Colors.white; // Weißer Text für "todo"
+        backgroundColor = Colors.bgRed; // Roter Hintergrund für "todo"
         break;
       case "in-progress":
-        statusColor = Colors.yellow; // Gelb für "in-progress"
+        statusColor = Colors.white; // Schwarzer Text für "in-progress"
+        backgroundColor = Colors.bgYellow; // Gelber Hintergrund für "in-progress"
         break;
       case "done":
-        statusColor = Colors.green; // Grün für "done"
+        statusColor = Colors.white; // Weißer Text für "done"
+        backgroundColor = Colors.bgGreen; // Grüner Hintergrund für "done"
         break;
       default:
         break;
     }
 
-    console.log(`${task.id}: ${task.description} [${statusColor}${task.status}${Colors.reset}] (Erstellt: ${formatDate(task.createdAt)}, Aktualisiert: ${formatDate(task.updatedAt)})`);
+    // Hier wird der Status-Tag mit Hintergrundfarbe umgeben
+    console.log(`${task.id}: ${task.description} [${backgroundColor}${statusColor}${task.status}${Colors.reset}] (Erstellt: ${formatDate(task.createdAt)}, Aktualisiert: ${formatDate(task.updatedAt)})`);
   });
 }
 
@@ -120,7 +137,21 @@ async function main() {
   const args = parse(Deno.args);
   const command = args._[0] as string;
   const id = Number(args._[1]);
-  const description = args._.slice(1).join(" ");
+
+  // Beschreibung erfassen
+  const descriptionParts = [];
+  for (let i = 2; i < args._.length; i++) {
+    descriptionParts.push(args._[i]);
+  }
+
+  const description = descriptionParts.join(" "); // Zusammensetzen der Beschreibung
+
+  if (command === "add" || command === "update") {
+    if (!description) {
+      console.log("Description is required.");
+      return;
+    }
+  }
 
   const commandMap = {
     add: "add",
@@ -129,6 +160,8 @@ async function main() {
     u: "update",
     delete: "delete",
     d: "delete",
+    "clear-all": "clear-all", // Clear all tasks command
+    ca: "clear-all", // Alias für clear all
     "mark-in-progress": "mark-in-progress",
     mip: "mark-in-progress",
     "mark-done": "mark-done",
@@ -149,6 +182,9 @@ async function main() {
     case "delete":
       await deleteTask(id);
       break;
+    case "clear-all":
+      await clearAllTasks();
+      break;
     case "mark-in-progress":
       await markTask(id, "in-progress");
       break;
@@ -159,7 +195,7 @@ async function main() {
       await listTasks(args._[1] as string);
       break;
     default:
-      console.log("Unknown command. Available commands: add (a), update (u), delete (d), mark-in-progress (mip), mark-done (md), list (l)");
+      console.log("Unknown command. Available commands: add (a), update (u), delete (d), clear-all (ca), mark-in-progress (mip), mark-done (md), list (l)");
   }
 }
 

@@ -4,6 +4,7 @@
     "add": "deno run --allow-read --allow-write main.ts add",
     "update": "deno run --allow-read --allow-write main.ts update",
     "delete": "deno run --allow-read --allow-write main.ts delete",
+    "clear-all":"deno run --allow-read --allow-write main.ts clear-all",
     "mark-in-progress": "deno run --allow-read --allow-write main.ts mark-in-progress",
     "mark-done": "deno run --allow-read --allow-write main.ts mark-done",
     "list": "deno run --allow-read --allow-write main.ts list"
