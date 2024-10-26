@@ -4,12 +4,15 @@
     "add": "deno run --allow-read --allow-write main.ts add",
     "update": "deno run --allow-read --allow-write main.ts update",
     "delete": "deno run --allow-read --allow-write main.ts delete",
-    "clear-all":"deno run --allow-read --allow-write main.ts clear-all",
+    "clear-all": "deno run --allow-read --allow-write main.ts clear-all",
     "mark-in-progress": "deno run --allow-read --allow-write main.ts mark-in-progress",
     "mark-done": "deno run --allow-read --allow-write main.ts mark-done",
     "list": "deno run --allow-read --allow-write main.ts list"
   },
   "imports": {
+    "@mxkit/inquire": "jsr:@mxkit/inquire@^0.1.0",
+    "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1",
+    "@sauber/table": "jsr:@sauber/table@^0.1.0",
     "@std/assert": "jsr:@std/assert@1"
   }
 }

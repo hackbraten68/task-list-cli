@@ -1,10 +1,16 @@
 import { parse } from "https://deno.land/std@0.177.0/flags/mod.ts";
+// import { Table } from "@sauber/table";
+import Table from "npm:cli-table3"
+import chalk from "@nothing628/chalk";
+import chalkAnimation from "npm:chalk-animation";
+import gradient, {rainbow, pastel, vice, instagram} from "npm:gradient-string";
 
 const TASK_FILE = "tasks.json";
 
 interface Task {
   id: number;
   description: string;
+  details: string;
   status: string;
   createdAt: string;
   updatedAt: string;
@@ -32,11 +38,11 @@ function formatDate(dateString: string): string {
   const date = new Date(dateString);
   return new Intl.DateTimeFormat("de-DE", {
     dateStyle: "short",
-    timeStyle: "medium",
+    timeStyle: "short",
   }).format(date);
 }
 
-async function loadTasks(): Promise<Task[]> {
+export async function loadTasks(): Promise<Task[]> {
   try {
     const data = await Deno.readTextFile(TASK_FILE);
     return JSON.parse(data);
@@ -49,22 +55,25 @@ async function saveTasks(tasks: Task[]): Promise<void> {
   await Deno.writeTextFile(TASK_FILE, JSON.stringify(tasks, null, 2));
 }
 
-async function addTask(description: string) {
+export async function addTask(description: string, details: string = "") {
   const tasks = await loadTasks();
   const now = new Date().toISOString();
+
   const newTask: Task = {
     id: tasks.length + 1,
     description,
+    details,       // New property to store details separately
     status: "todo",
     createdAt: now,
     updatedAt: now,
   };
+
   tasks.push(newTask);
   await saveTasks(tasks);
-  console.log(`Task added successfully (ID: ${newTask.id})`);
+  console.log(`Task added successfully (ID: ${newTask.id}) (Task: ${newTask.description}) (Details: ${newTask.details})`);
 }
 
-async function updateTask(taskId: number, description: string) {
+export async function updateTask(taskId: number, description: string) {
   const tasks = await loadTasks();
   const task = tasks.find((task) => task.id === taskId);
   if (task) {
@@ -77,19 +86,19 @@ async function updateTask(taskId: number, description: string) {
   }
 }
 
-async function deleteTask(taskId: number) {
+export async function deleteTask(taskId: number) {
   let tasks = await loadTasks();
   tasks = tasks.filter((task) => task.id !== taskId);
   await saveTasks(tasks);
   console.log(`Task ${taskId} deleted successfully.`);
 }
 
-async function clearAllTasks() {
+export async function clearAllTasks() {
   await saveTasks([]);
   console.log("All tasks cleared successfully.");
 }
 
-async function markTask(taskId: number, status: string) {
+export async function markTask(taskId: number, status: string) {
   const tasks = await loadTasks();
   const task = tasks.find((task) => task.id === taskId);
   if (task) {
@@ -102,34 +111,48 @@ async function markTask(taskId: number, status: string) {
   }
 }
 
-async function listTasks(status?: string) {
+export async function listTasks(status?: string) {
   const tasks = await loadTasks();
   const filteredTasks = status ? tasks.filter((task) => task.status === status) : tasks;
 
-  filteredTasks.forEach((task) => {
-    let statusColor = Colors.reset;
-    let backgroundColor = Colors.reset;
+  const table = new Table({
+    head: ["ID", "Task", "Status", "Created At", "Updated At"],
+    style: {
+      head: [], //disable colors in header cells
+      border: [], //disable colors for the border
+    },
+    colWidths: [5, 40, 10],
+    wordWrap: true,
+  });
 
+  filteredTasks.forEach((task) => {
+    let statusColor: string;
     switch (task.status) {
       case "todo":
-        statusColor = Colors.white;
-        backgroundColor = Colors.bgRed;
+        statusColor = chalk.white.bgRed(task.status);
         break;
       case "in-progress":
-        statusColor = Colors.white;
-        backgroundColor = Colors.bgYellow;
+        statusColor = chalk.white.bgYellow(task.status);
         break;
       case "done":
-        statusColor = Colors.white;
-        backgroundColor = Colors.bgGreen;
+        statusColor = chalk.white.bgGreen(task.status);
         break;
       default:
-        break;
+        statusColor = task.status;
     }
 
-    console.log(`${task.id}: ${task.description} [${backgroundColor}${statusColor}${task.status}${Colors.reset}] (Created: ${formatDate(task.createdAt)}, Updated: ${formatDate(task.updatedAt)})`);
+    table.push([
+      String(task.id),
+      task.description,
+      statusColor,
+      formatDate(task.createdAt),
+      formatDate(task.updatedAt),
+    ]);
   });
+
+  console.log(table.toString());
 }
+
 
 async function promptUser(question: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -149,13 +172,15 @@ async function promptUser(question: string): Promise<string> {
 async function interactiveAddTask() {
   const description = await promptUser("Please enter the task description: ");
   const addDetails = await promptUser("Would you like to add details to this task? (y/n): ");
-  
+
+  // If user opts to add details, prompt for them and pass as separate argument
+  let details = "";
   if (addDetails.toLowerCase() === "y") {
-    const details = await promptUser("Please enter the task details: ");
-    await addTask(`${description}\nDetails: ${details}`);
-  } else {
-    await addTask(description);
+    details = await promptUser("Please enter the task details: ");
   }
+
+  // Pass both description and details to addTask
+  await addTask(description, details);
 }
 
 async function selectTask(): Promise<number | null> {
