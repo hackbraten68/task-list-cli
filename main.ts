@@ -1,42 +1,27 @@
 import { parse } from "https://deno.land/std@0.177.0/flags/mod.ts";
+import Table from "npm:cli-table3";
+import chalk from "@nothing628/chalk";
 
 const TASK_FILE = "tasks.json";
 
 interface Task {
   id: number;
   description: string;
+  details: string;
   status: string;
   createdAt: string;
   updatedAt: string;
 }
 
-const Colors = {
-  reset: "\x1b[0m",
-  red: "\x1b[31m",
-  green: "\x1b[32m",
-  yellow: "\x1b[33m",
-  blue: "\x1b[34m",
-  magenta: "\x1b[35m",
-  cyan: "\x1b[36m",
-  white: "\x1b[37m",
-  bgRed: "\x1b[41m",
-  bgGreen: "\x1b[42m",
-  bgYellow: "\x1b[43m",
-  bgBlue: "\x1b[44m",
-  bgMagenta: "\x1b[45m",
-  bgCyan: "\x1b[46m",
-  bgWhite: "\x1b[47m",
-};
-
 function formatDate(dateString: string): string {
   const date = new Date(dateString);
   return new Intl.DateTimeFormat("de-DE", {
     dateStyle: "short",
-    timeStyle: "medium",
+    timeStyle: "short",
   }).format(date);
 }
 
-async function loadTasks(): Promise<Task[]> {
+export async function loadTasks(): Promise<Task[]> {
   try {
     const data = await Deno.readTextFile(TASK_FILE);
     return JSON.parse(data);
@@ -49,22 +34,27 @@ async function saveTasks(tasks: Task[]): Promise<void> {
   await Deno.writeTextFile(TASK_FILE, JSON.stringify(tasks, null, 2));
 }
 
-async function addTask(description: string) {
+export async function addTask(description: string, details: string = "") {
   const tasks = await loadTasks();
   const now = new Date().toISOString();
+
   const newTask: Task = {
     id: tasks.length + 1,
     description,
+    details,
     status: "todo",
     createdAt: now,
     updatedAt: now,
   };
+
   tasks.push(newTask);
   await saveTasks(tasks);
-  console.log(`Task added successfully (ID: ${newTask.id})`);
+  console.log(
+    `Task added successfully (ID: ${newTask.id}) (Task: ${newTask.description}) (Details: ${newTask.details})`,
+  );
 }
 
-async function updateTask(taskId: number, description: string) {
+export async function updateTask(taskId: number, description: string) {
   const tasks = await loadTasks();
   const task = tasks.find((task) => task.id === taskId);
   if (task) {
@@ -77,19 +67,19 @@ async function updateTask(taskId: number, description: string) {
   }
 }
 
-async function deleteTask(taskId: number) {
+export async function deleteTask(taskId: number) {
   let tasks = await loadTasks();
   tasks = tasks.filter((task) => task.id !== taskId);
   await saveTasks(tasks);
   console.log(`Task ${taskId} deleted successfully.`);
 }
 
-async function clearAllTasks() {
+export async function clearAllTasks() {
   await saveTasks([]);
   console.log("All tasks cleared successfully.");
 }
 
-async function markTask(taskId: number, status: string) {
+export async function markTask(taskId: number, status: string) {
   const tasks = await loadTasks();
   const task = tasks.find((task) => task.id === taskId);
   if (task) {
@@ -102,39 +92,55 @@ async function markTask(taskId: number, status: string) {
   }
 }
 
-async function listTasks(status?: string) {
+export async function listTasks(status?: string) {
   const tasks = await loadTasks();
-  const filteredTasks = status ? tasks.filter((task) => task.status === status) : tasks;
+  const filteredTasks = status
+    ? tasks.filter((task) => task.status === status)
+    : tasks;
+
+  const table = new Table({
+    head: ["ID", "Task", "Details", "Status", "Created At", "Updated At"],
+    style: {
+      head: [],
+      border: [],
+    },
+    colWidths: [5, 30, 30, 13, 12, 12],
+    wordWrap: true,
+  });
 
   filteredTasks.forEach((task) => {
-    let statusColor = Colors.reset;
-    let backgroundColor = Colors.reset;
-
+    let statusColor: string;
     switch (task.status) {
       case "todo":
-        statusColor = Colors.white;
-        backgroundColor = Colors.bgRed;
+        statusColor = chalk.white.bgRed(task.status);
         break;
       case "in-progress":
-        statusColor = Colors.white;
-        backgroundColor = Colors.bgYellow;
+        statusColor = chalk.white.bgYellow(task.status);
         break;
       case "done":
-        statusColor = Colors.white;
-        backgroundColor = Colors.bgGreen;
+        statusColor = chalk.white.bgGreen(task.status);
         break;
       default:
-        break;
+        statusColor = task.status;
     }
 
-    console.log(`${task.id}: ${task.description} [${backgroundColor}${statusColor}${task.status}${Colors.reset}] (Created: ${formatDate(task.createdAt)}, Updated: ${formatDate(task.updatedAt)})`);
+    table.push([
+      String(task.id),
+      task.description,
+      task.details,
+      statusColor,
+      formatDate(task.createdAt),
+      formatDate(task.updatedAt),
+    ]);
   });
+
+  console.log(table.toString());
 }
 
 async function promptUser(question: string): Promise<string> {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
-  
+
   console.log(question);
   const input = new Uint8Array(1024);
   const n = await Deno.stdin.read(input);
@@ -142,20 +148,22 @@ async function promptUser(question: string): Promise<string> {
   if (n === null) {
     return "";
   }
-  
+
   return decoder.decode(input.subarray(0, n)).trim();
 }
 
 async function interactiveAddTask() {
   const description = await promptUser("Please enter the task description: ");
-  const addDetails = await promptUser("Would you like to add details to this task? (y/n): ");
-  
+  const addDetails = await promptUser(
+    "Would you like to add details to this task? (y/n): ",
+  );
+
+  let details = "";
   if (addDetails.toLowerCase() === "y") {
-    const details = await promptUser("Please enter the task details: ");
-    await addTask(`${description}\nDetails: ${details}`);
-  } else {
-    await addTask(description);
+    details = await promptUser("Please enter the task details: ");
   }
+
+  await addTask(description, details);
 }
 
 async function selectTask(): Promise<number | null> {
@@ -171,9 +179,11 @@ async function selectTask(): Promise<number | null> {
     console.log(`${task.id}: ${task.description}`);
   });
 
-  const selectedIndex = await promptUser("Enter the task ID you want to update: ");
+  const selectedIndex = await promptUser(
+    "Enter the task ID you want to update: ",
+  );
   const taskId = parseInt(selectedIndex, 10);
-  
+
   if (tasks.some((task) => task.id === taskId)) {
     return taskId;
   }
@@ -185,13 +195,17 @@ async function selectTask(): Promise<number | null> {
 async function interactiveUpdateTask() {
   const taskId = await selectTask();
   if (taskId) {
-    const newDescription = await promptUser("Please enter the new description for the task: ");
+    const newDescription = await promptUser(
+      "Please enter the new description for the task: ",
+    );
     await updateTask(taskId, newDescription);
   }
 }
 
 async function printCommand(command: string, description: string, id?: number) {
-  const commandText = `${command} ${id ? id : ""} ${description ? description : ""}`;
+  const commandText = `${command} ${id ? id : ""} ${
+    description ? description : ""
+  }`;
   console.log(`Running command: ${commandText}`);
 }
 
@@ -210,28 +224,7 @@ async function main() {
     return;
   }
 
-  const commandMap = {
-    add: "add",
-    a: "add",
-    update: "update",
-    u: "update",
-    delete: "delete",
-    d: "delete",
-    "clear-all": "clear-all",
-    ca: "clear-all",
-    "mark-in-progress": "mark-in-progress",
-    mip: "mark-in-progress",
-    "mark-done": "mark-done",
-    md: "mark-done",
-    list: "list",
-    l: "list",
-  };
-
-  const fullCommand = commandMap[command] || command;
-
-  await printCommand(fullCommand, "", id);
-
-  switch (fullCommand) {
+  switch (command) {
     case "delete":
       await deleteTask(id);
       break;
@@ -248,7 +241,9 @@ async function main() {
       await listTasks(args._[1] as string);
       break;
     default:
-      console.log("Unknown command. Available commands: add (a), update (u), delete (d), clear-all (ca), mark-in-progress (mip), mark-done (md), list (l)");
+      console.log(
+        "Unknown command. Available commands: add, update, delete, clear-all, mark-in-progress, mark-done, list",
+      );
   }
 }
 
