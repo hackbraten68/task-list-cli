@@ -203,7 +203,9 @@ async function interactiveUpdateTask() {
 }
 
 async function printCommand(command: string, description: string, id?: number) {
-  const commandText = `${command} ${id ? id : ""} ${description ? description : ""}`;
+  const commandText = `${command} ${id ? id : ""} ${
+    description ? description : ""
+  }`;
   console.log(`Running command: ${commandText}`);
 }
 
@@ -240,7 +242,7 @@ async function main() {
       break;
     default:
       console.log(
-        "Unknown command. Available commands: add, update, delete, clear-all, mark-in-progress, mark-done, list"
+        "Unknown command. Available commands: add, update, delete, clear-all, mark-in-progress, mark-done, list",
       );
   }
 }
