@@ -1,18 +1,1 @@
-[
-  {
-    "id": 1,
-    "description": "Test 1",
-    "details": "this is a test",
-    "status": "todo",
-    "createdAt": "2024-10-25T23:55:02.936Z",
-    "updatedAt": "2024-10-25T23:55:02.936Z"
-  },
-  {
-    "id": 2,
-    "description": "Das soll ein laengerer Text werden, um zu sehen ob wordwrap ein ding hier ist?!",
-    "details": "This is a Hello World entry",
-    "status": "todo",
-    "createdAt": "2024-10-25T23:55:45.516Z",
-    "updatedAt": "2024-10-26T11:02:33.389Z"
-  }
-]
+[]
