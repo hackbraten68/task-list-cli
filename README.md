@@ -21,8 +21,10 @@ A modern, `lazydocker`-inspired Task Management TUI. Effortlessly manage your pr
 ### Global Installation
 Install LazyTask globally to use the `lazytask` command anywhere:
 ```bash
-deno install -A -n lazytask file:///home/sam/github/task-list-cli/main.ts
+deno task install
 ```
+> [!NOTE]
+> Make sure `~/.deno/bin` is in your `PATH`.
 
 ### Local Execution
 ```bash

@@ -16,5 +16,15 @@
     "status": "in-progress",
     "createdAt": "2026-01-12T17:08:04.493Z",
     "updatedAt": "2026-01-12T17:08:15.492Z"
+  },
+  {
+    "id": 4,
+    "description": "a new one",
+    "details": "just a test",
+    "priority": "low",
+    "dueDate": "2026-01-13",
+    "status": "done",
+    "createdAt": "2026-01-12T23:15:50.788Z",
+    "updatedAt": "2026-01-12T23:42:47.264Z"
   }
 ]
