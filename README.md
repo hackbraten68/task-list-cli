@@ -1,45 +1,60 @@
 # LazyTask 🚵‍♂️
 
-A `lazydocker`-inspired, multi-pane Terminal User Interface (TUI) for managing your tasks. Built with Deno and Cliffy.
+A modern, `lazydocker`-inspired Task Management TUI. Effortlessly manage your productivity with a keyboard-driven, multi-pane experience.
 
-## Features
-- **Modern Multi-Pane TUI:** Navigate your tasks with a sidebar and detailed view.
-- **Interactive Modals:** Add, update, and delete tasks in centered popup windows with dimmed backgrounds.
-- **Keyboard Driven:** Use `j/k` or arrows for navigation; `a`, `u`, `d`, `m` for actions.
-- **Persistent Storage:** Tasks are saved automatically to `tasks.json`.
+![LazyTask Header](https://raw.githubusercontent.com/deno-libs/cliffy/main/assets/cliffy.png)
 
-## Installation
+## ✨ Features
+
+- **Multi-Pane Dashboard**: Navigate tasks in a responsive sidebar and view full details, timestamps, and priorities in the main preview panel.
+- **Interactive Modals**: Seamlessly add or update tasks in centered popup windows.
+- **Contextual Dimming**: The background dashboard dynamically dims when modals are active, keeping your focus on the task at hand.
+- **Modern ANSI Aesthetics**: Rich color palettes, ASCII branding, and smooth TUI transitions.
+- **Keyboard Mastery**: Optimized for speed with single-key navigation and global shortcuts.
+- **Smart Persistence**: Automatic saving and loading via `tasks.json`.
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- [Deno](https://deno.land/) installed on your system.
+- [Deno](https://deno.land/) (v1.40+)
 
 ### Global Installation
-Install LazyTask as a global command:
+Install LazyTask globally to use the `lazytask` command anywhere:
 ```bash
 deno install -A -n lazytask file:///home/sam/github/task-list-cli/main.ts
 ```
 
-## Usage
-Run the dashboard:
+### Local Execution
 ```bash
-lazytask
-# or
+# Run the TUI immediately
 deno task dashboard
 ```
 
-### Keybindings
+## ⌨️ Keybindings
+
 | Key | Action |
 |-----|--------|
 | `j` / `↓` | Select next task |
 | `k` / `↑` | Select previous task |
-| `a` | Add new task (Modal) |
-| `u` / `Enter` | Update selected task (Modal) |
-| `d` | Delete selected task (Modal) |
-| `m` | Mark status (Followed by `t`, `i`, or `d`) |
-| `q` / `Ctrl+C` | Quit |
+| `a` | **Add** a new task (Modal) |
+| `u` / `⏎` | **Update** selected task (Modal) |
+| `d` | **Delete** selected task (Modal) |
+| `m` | **Mark** status (followed by `t`: todo, `i`: in-progress, `d`: done) |
+| `q` / `⌃C` | Quit LazyTask |
 
-## Development
+## 🛠 Related Tasks (CLI Mode)
+LazyTask also supports traditional CLI arguments for quick automation:
 ```bash
-# Run the dashboard
-deno task dashboard
+lazytask add "New task" --priority high
+lazytask list --status todo
+lazytask mark done 1
 ```
+
+## 📂 Project Structure
+- `main.ts`: Entry point and CLI command definitions.
+- `src/commands/`: Individual logic for dashboard, add, update, etc.
+- `src/ui.ts`: The TUI rendering engine (panels, boxes, modals).
+- `src/storage.ts`: Task persistence and migration logic.
+
+---
+Built with [Cliffy](https://cliffy.io/) & [Deno](https://deno.com/) 🦕
