@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "id": 2,
+    "description": "grocery shopping",
+    "details": "let it be healthy",
+    "priority": "medium",
+    "status": "in-progress",
+    "createdAt": "2026-01-12T16:31:01.525Z",
+    "updatedAt": "2026-01-12T16:55:11.290Z"
+  },
+  {
+    "id": 3,
+    "description": "another test",
+    "details": "",
+    "priority": "high",
+    "status": "in-progress",
+    "createdAt": "2026-01-12T17:08:04.493Z",
+    "updatedAt": "2026-01-12T17:08:15.492Z"
+  }
+]
