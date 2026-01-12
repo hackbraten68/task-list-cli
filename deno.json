@@ -8,7 +8,8 @@
     "mark-in-progress": "deno run -A main.ts mark-in-progress",
     "mark-done": "deno run -A main.ts mark-done",
     "list": "deno run -A main.ts list",
-    "dashboard": "deno run -A main.ts dashboard"
+    "dashboard": "deno run -A main.ts dashboard",
+    "install": "deno install --global --config deno.json -A -f -n lazytask main.ts"
   },
   "imports": {
     "@mxkit/inquire": "jsr:@mxkit/inquire@^0.1.0",
