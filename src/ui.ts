@@ -186,11 +186,11 @@ export const UI = {
             if (terminalWidth > 120) {
                 if (overdueCount && overdueCount > 0) {
                     // Alert mode: show completion + overdue with red indicator
-                    footerStr += `  [${completionRate}% | ${overdueCount}🔴]`;
+                    footerStr += `      [${completionRate}% | ${overdueCount}🔴]`;
                 } else {
                     // Normal mode: show mini progress bar + percentage
                     const miniBar = this.miniProgressBar(completionRate, 8);
-                    footerStr += `  ${miniBar} ${completionRate}%`;
+                    footerStr += `      ${miniBar} ${completionRate}%`;
                 }
             }
         }
