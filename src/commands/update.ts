@@ -45,24 +45,32 @@ export async function updateCommand(id?: number, options?: { modal?: boolean, re
                 console.log(ansi.cursorTo(startCol, modalY + i).toString() + line);
             });
             console.log(ansi.cursorTo(startCol + 4, modalY + 3 + 1).toString());
-        } else {
+            return { promptCol: startCol + 4, promptRow: modalY + 3 + 1 };
+        } else if (!isModal) {
             UI.header();
         }
+        return null;
     };
 
-    await showModal("New description (empty to skip)");
+    const pos1 = await showModal("New description (empty to skip)");
     const newDescription = await Input.prompt({
-        message: "",
+        message: pos1 ? ansi.cursorTo(pos1.promptCol, pos1.promptRow).toString() : "",
+        prefix: "",
+        pointer: "",
     });
 
-    await showModal("New details (empty to skip)");
+    const pos2 = await showModal("New details (empty to skip)");
     const newDetails = await Input.prompt({
-        message: "",
+        message: pos2 ? ansi.cursorTo(pos2.promptCol, pos2.promptRow).toString() : "",
+        prefix: "",
+        pointer: "",
     });
 
-    await showModal("New priority (empty to skip)");
+    const pos3 = await showModal("New priority (empty to skip)");
     const newPriority = await Select.prompt({
-        message: "",
+        message: pos3 ? ansi.cursorTo(pos3.promptCol, pos3.promptRow).toString() : "",
+        prefix: "",
+        pointer: "",
         options: [
             { name: "Keep current", value: task.priority },
             { name: "Low", value: "low" },
@@ -72,9 +80,11 @@ export async function updateCommand(id?: number, options?: { modal?: boolean, re
         ],
     });
 
-    await showModal("New due date (YYYY-MM-DD, empty to skip)");
+    const pos4 = await showModal("New due date (empty to skip)");
     const newDueDate = await Input.prompt({
-        message: "",
+        message: pos4 ? ansi.cursorTo(pos4.promptCol, pos4.promptRow).toString() : "",
+        prefix: "",
+        pointer: "",
         validate: (value: string) => {
             if (value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
                 return "Please use YYYY-MM-DD format";
