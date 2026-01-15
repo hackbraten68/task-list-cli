@@ -28,6 +28,17 @@ export async function updateCommand(id?: number, options?: { modal?: boolean, re
 
     const task = tasks[taskIndex];
 
+    if (!isModal) {
+        UI.clearScreen();
+        UI.header();
+        console.log(`  ${colors.bold.cyan("Updating Task:")} ${colors.yellow(task.id.toString())}`);
+        console.log(`  ${colors.bold("Description:")} ${task.description}`);
+        console.log(`  ${colors.bold("Priority:   ")} ${UI.priorityPipe(task.priority)}`);
+        if (task.details) console.log(`  ${colors.bold("Details:    ")} ${task.details}`);
+        if (task.dueDate) console.log(`  ${colors.bold("Due Date:   ")} ${colors.cyan(task.dueDate)}`);
+        console.log("\n  " + colors.dim("Leave empty to keep current value") + "\n");
+    }
+
     const showModal = async (step: string) => {
         if (isModal && options.renderBackground) {
             await options.renderBackground();
@@ -47,28 +58,28 @@ export async function updateCommand(id?: number, options?: { modal?: boolean, re
             console.log(ansi.cursorTo(startCol + 4, modalY + 3 + 1).toString());
             return { promptCol: startCol + 4, promptRow: modalY + 3 + 1 };
         } else if (!isModal) {
-            UI.header();
+            console.log(`  ${colors.bold.blue("➜")} ${colors.bold(step)}`);
         }
         return null;
     };
 
-    const pos1 = await showModal("New description (empty to skip)");
+    const pos1 = await showModal("New description");
     const newDescription = await Input.prompt({
-        message: pos1 ? ansi.cursorTo(pos1.promptCol, pos1.promptRow).toString() : "",
+        message: pos1 ? ansi.cursorTo(pos1.promptCol, pos1.promptRow).toString() : "    ",
         prefix: "",
         pointer: "",
     });
 
-    const pos2 = await showModal("New details (empty to skip)");
+    const pos2 = await showModal("New details");
     const newDetails = await Input.prompt({
-        message: pos2 ? ansi.cursorTo(pos2.promptCol, pos2.promptRow).toString() : "",
+        message: pos2 ? ansi.cursorTo(pos2.promptCol, pos2.promptRow).toString() : "    ",
         prefix: "",
         pointer: "",
     });
 
-    const pos3 = await showModal("New priority (empty to skip)");
+    const pos3 = await showModal("New priority");
     const newPriority = await Select.prompt({
-        message: pos3 ? ansi.cursorTo(pos3.promptCol, pos3.promptRow).toString() : "",
+        message: pos3 ? ansi.cursorTo(pos3.promptCol, pos3.promptRow).toString() : "    ",
         prefix: "",
         pointer: "",
         options: [
@@ -80,9 +91,9 @@ export async function updateCommand(id?: number, options?: { modal?: boolean, re
         ],
     });
 
-    const pos4 = await showModal("New due date (empty to skip)");
+    const pos4 = await showModal("New due date");
     const newDueDate = await Input.prompt({
-        message: pos4 ? ansi.cursorTo(pos4.promptCol, pos4.promptRow).toString() : "",
+        message: pos4 ? ansi.cursorTo(pos4.promptCol, pos4.promptRow).toString() : "    ",
         prefix: "",
         pointer: "",
         validate: (value: string) => {
@@ -95,7 +106,7 @@ export async function updateCommand(id?: number, options?: { modal?: boolean, re
 
     if (newDescription) task.description = newDescription;
     if (newDetails) task.details = newDetails;
-    if (newPriority) task.priority = newPriority as TaskPriority;
+    if (newPriority && newPriority !== task.priority) task.priority = newPriority as TaskPriority;
     if (newDueDate) task.dueDate = newDueDate;
 
     task.updatedAt = new Date().toISOString();

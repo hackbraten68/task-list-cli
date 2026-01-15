@@ -16,6 +16,13 @@ export async function addCommand(
 ) {
     const isModal = options?.modal;
 
+    if (!isModal && !descriptionArg) {
+        UI.clearScreen();
+        UI.header();
+        console.log(`  ${colors.bold.cyan("Creating New Task")}`);
+        console.log("\n  " + colors.dim("Follow the prompts below") + "\n");
+    }
+
     const showModal = async (step: string) => {
         if (isModal && options?.renderBackground) {
             await options.renderBackground();
@@ -35,7 +42,7 @@ export async function addCommand(
             console.log(ansi.cursorTo(startCol + 4, modalY + 3 + 1).toString()); // Position at "> "
             return { promptCol: startCol + 4, promptRow: modalY + 3 + 1 };
         } else if (!isModal && !descriptionArg) {
-            UI.header();
+            console.log(`  ${colors.bold.blue("➜")} ${colors.bold(step)}`);
         }
         return null;
     };
@@ -44,7 +51,7 @@ export async function addCommand(
     if (!description) {
         const pos = await showModal("Enter Description");
         description = await Input.prompt({
-            message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "",
+            message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "    ",
             suffix: "",
         });
     }
@@ -53,7 +60,7 @@ export async function addCommand(
     if (details === undefined && !descriptionArg) {
         const pos = await showModal("Enter Details (optional)");
         details = await Input.prompt({
-            message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "",
+            message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "    ",
         });
     }
 
@@ -64,7 +71,7 @@ export async function addCommand(
         } else {
             const pos = await showModal("Select Priority");
             priority = (await Select.prompt({
-                message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "",
+                message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "    ",
                 options: ["low", "medium", "high", "critical"],
             })) as TaskPriority;
         }
@@ -74,7 +81,7 @@ export async function addCommand(
     if (dueDate === undefined && !descriptionArg) {
         const pos = await showModal("Enter Due Date (YYYY-MM-DD, optional)");
         dueDate = await Input.prompt({
-            message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "",
+            message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "    ",
             validate: (value: string) => {
                 if (value && !/^\d{4}-\d{2}-\d{1,2}$/.test(value)) {
                     return "Please use YYYY-MM-DD format";
