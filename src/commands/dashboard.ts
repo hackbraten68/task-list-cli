@@ -2,7 +2,7 @@ import { colors } from "cliffy/ansi";
 import { Select } from "cliffy/prompt";
 import { loadTasks, bulkMarkTasks, bulkDeleteTasks, bulkUpdateTasks } from "../storage.ts";
 import { UI } from "../ui.ts";
-import { calculateStats } from "../stats.ts";
+import { calculateStats, TaskStats } from "../stats.ts";
 import { addCommand } from "./add.ts";
 import { updateCommand } from "./update.ts";
 import { deleteCommand } from "./delete.ts";
@@ -32,7 +32,7 @@ export async function dashboardCommand() {
         Deno.exit();
     });
 
-    async function render(tasks: Task[], modal?: { lines: string[], width: number, height: number }) {
+    async function render(tasks: Task[], modal?: { lines: string[], width: number, height: number }, stats?: TaskStats) {
         UI.clearScreen();
         UI.header();
 
@@ -133,7 +133,7 @@ export async function dashboardCommand() {
         const mainPanel = UI.box("Details", detailLines, mainWidth, height, false, isDimmed);
 
         UI.renderLayout([sidebar, mainPanel], modal);
-        UI.footer(multiSelectMode, selectedTasks.size, statsViewMode);
+        UI.footer(multiSelectMode, selectedTasks.size, statsViewMode, stats?.completionRate, stats?.overdue);
     }
 
     try {
@@ -143,7 +143,10 @@ export async function dashboardCommand() {
                 selectedIndex = tasks.length - 1;
             }
 
-            await render(tasks);
+            // Calculate stats for footer status bar
+            const stats = calculateStats(tasks);
+
+            await render(tasks, undefined, stats);
 
             const reader = Deno.stdin.readable.getReader();
             const { value, done } = await reader.read();

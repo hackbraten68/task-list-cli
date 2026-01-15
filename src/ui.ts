@@ -147,7 +147,7 @@ export const UI = {
         }
     },
 
-    footer(multiSelectMode: boolean = false, selectedCount: number = 0, statsViewMode: boolean = false) {
+    footer(multiSelectMode: boolean = false, selectedCount: number = 0, statsViewMode: boolean = false, completionRate?: number, overdueCount?: number) {
         const encoder = new TextEncoder();
 
         let footerStr = "  " + colors.bgWhite.black(" KEYS ") + " ";
@@ -177,6 +177,22 @@ export const UI = {
                 colors.bold("d") + " Delete  " +
                 colors.bold("m") + " Mark  " +
                 colors.bold("q") + " Quit";
+        }
+
+        // Add dynamic completion status bar (if provided)
+        if (completionRate !== undefined) {
+            // Check terminal width - only show if we have enough space (>120 chars)
+            const terminalWidth = Deno.consoleSize().columns;
+            if (terminalWidth > 120) {
+                if (overdueCount && overdueCount > 0) {
+                    // Alert mode: show completion + overdue with red indicator
+                    footerStr += `  [${completionRate}% | ${overdueCount}🔴]`;
+                } else {
+                    // Normal mode: show mini progress bar + percentage
+                    const miniBar = this.miniProgressBar(completionRate, 8);
+                    footerStr += `  ${miniBar} ${completionRate}%`;
+                }
+            }
         }
 
         // Use writeSync to avoid trailing newline
@@ -224,6 +240,23 @@ export const UI = {
 
         const bar = "█".repeat(filled) + "░".repeat(empty);
         return `${bar} ${percentage}%`;
+    },
+
+    miniProgressBar(percentage: number, width: number = 8): string {
+        const filled = Math.round((percentage / 100) * width);
+        const empty = width - filled;
+
+        let barColor: (s: string) => string;
+        if (percentage >= 75) {
+            barColor = colors.green;
+        } else if (percentage >= 50) {
+            barColor = colors.yellow;
+        } else {
+            barColor = colors.red;
+        }
+
+        const bar = "█".repeat(filled) + "░".repeat(empty);
+        return barColor(bar);
     },
 
     renderStatsPanel(stats: TaskStats, width: number, height: number): string[] {
