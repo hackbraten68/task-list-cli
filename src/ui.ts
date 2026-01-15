@@ -164,7 +164,7 @@ export const UI = {
 
     renderTasks(tasks: Task[]) {
         if (tasks.length === 0) {
-            this.info("No tasks found. Press [a] to add your first task.");
+            this.info("No tasks found. Press [a] inside the dashboardto add your first task.");
             return;
         }
 

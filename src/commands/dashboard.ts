@@ -51,6 +51,7 @@ export async function dashboardCommand() {
         const detailLines: string[] = [];
         if (selectedTask) {
             detailLines.push("");
+            detailLines.push(`  ${colors.bold.white("ID:")}          ${colors.dim(selectedTask.id.toString())}`);
             detailLines.push(`  ${colors.bold.white("Title:")}       ${selectedTask.description}`);
             detailLines.push(`  ${colors.bold.white("Status:")}      ${UI.statusPipe(selectedTask.status)}`);
             detailLines.push(`  ${colors.bold.white("Priority:")}    ${UI.priorityPipe(selectedTask.priority)}`);
@@ -98,32 +99,32 @@ export async function dashboardCommand() {
                     case "\u001b[A": // Up arrow
                         selectedIndex = Math.max(0, selectedIndex - 1);
                         break;
-                     case "a":
-                         cleanup();
-                         await addCommand(undefined, {
-                             modal: true,
-                             renderBackground: () => render(tasks)
-                         });
-                         Deno.stdin.setRaw(true);
-                         break;
+                    case "a":
+                        cleanup();
+                        await addCommand(undefined, {
+                            modal: true,
+                            renderBackground: () => render(tasks)
+                        });
+                        Deno.stdin.setRaw(true);
+                        break;
                     case "u":
                     case "\r": // Enter
                         if (tasks[selectedIndex]) {
                             cleanup();
-                             await updateCommand(tasks[selectedIndex].id, {
-                                 modal: true,
-                                 renderBackground: () => render(tasks, { lines: [], width: 60, height: 8 })
-                             });
+                            await updateCommand(tasks[selectedIndex].id, {
+                                modal: true,
+                                renderBackground: () => render(tasks, { lines: [], width: 60, height: 8 })
+                            });
                             Deno.stdin.setRaw(true);
                         }
                         break;
                     case "d":
                         if (tasks[selectedIndex]) {
                             cleanup();
-                             await deleteCommand(tasks[selectedIndex].id, {
-                                 modal: true,
-                                 renderBackground: () => render(tasks, { lines: [], width: 60, height: 6 })
-                             });
+                            await deleteCommand(tasks[selectedIndex].id, {
+                                modal: true,
+                                renderBackground: () => render(tasks, { lines: [], width: 60, height: 6 })
+                            });
                             Deno.stdin.setRaw(true);
                         }
                         break;
@@ -140,10 +141,10 @@ export async function dashboardCommand() {
                             const statusMap: Record<string, any> = { t: "todo", i: "in-progress", d: "done" };
 
                             if (statusMap[mKey]) {
-                                 await markCommand(statusMap[mKey], tasks[selectedIndex].id, {
-                                     modal: true,
-                                     renderBackground: () => render(tasks, { lines: [], width: 60, height: 6 })
-                                 });
+                                await markCommand(statusMap[mKey], tasks[selectedIndex].id, {
+                                    modal: true,
+                                    renderBackground: () => render(tasks, { lines: [], width: 60, height: 6 })
+                                });
                             } else {
                                 console.log(`\n Invalid key: ${mKey}. Use t, i, or d.`);
                                 await new Promise(r => setTimeout(r, 1000));
