@@ -151,7 +151,7 @@ export const UI = {
         const footerStr = "  " +
             colors.bgWhite.black(" KEYS ") +
             " " +
-            colors.bold("j/k") + " ↓/↑  " +
+            colors.bold("j/k") + " or " + colors.bold("↑/↓") + "  " +
             colors.bold("a") + " Add  " +
             colors.bold("u") + " Update  " +
             colors.bold("d") + " Delete  " +
