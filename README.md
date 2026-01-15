@@ -79,12 +79,15 @@ lazytask list --status in-progress
 lazytask list --priority high
 lazytask list --tags urgent
 lazytask list --tags "work,personal"
+lazytask list --search "meeting"
+lazytask list --search "urgent" --status todo
 ```
 
 **Options:**
 - `-s, --status <status>` — Filter by `todo`, `in-progress`, `done`
 - `-p, --priority <priority>` — Filter by priority
 - `-t, --tags <tags>` — Filter by tags (comma-separated, partial matches supported)
+- `--search <keyword>` — Search tasks by keyword in description, details, or tags
 
 ### Update Tasks
 ```bash

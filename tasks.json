@@ -72,5 +72,31 @@
     "createdAt": "2026-01-15T11:00:00.000Z",
     "updatedAt": "2026-01-15T18:49:08.744Z",
     "tags": []
+  },
+  {
+    "id": 8,
+    "description": "Buy groceries for the meeting",
+    "details": "",
+    "priority": "medium",
+    "tags": [
+      "shopping",
+      "urgent"
+    ],
+    "status": "todo",
+    "createdAt": "2026-01-15T23:44:19.432Z",
+    "updatedAt": "2026-01-15T23:44:19.432Z"
+  },
+  {
+    "id": 9,
+    "description": "Prepare presentation slides",
+    "details": "Meeting with client tomorrow",
+    "priority": "medium",
+    "tags": [
+      "work",
+      "meeting"
+    ],
+    "status": "todo",
+    "createdAt": "2026-01-15T23:44:34.944Z",
+    "updatedAt": "2026-01-15T23:44:34.944Z"
   }
 ]

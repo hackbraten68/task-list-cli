@@ -10,7 +10,7 @@ import { bulkMarkCommand, bulkDeleteCommand, bulkUpdateCommand } from "./src/com
 if (import.meta.main) {
   await new Command()
     .name("lazytask")
-    .version("0.4.0")
+    .version("0.5.0")
     .description("LazyTask - A lazydocker-inspired Task Management TUI")
     .default("dashboard")
     .command("dashboard", "Open the TUI dashboard")
@@ -21,6 +21,7 @@ if (import.meta.main) {
     .option("-s, --status <status:string>", "Filter by status")
     .option("-p, --priority <priority:string>", "Filter by priority")
     .option("-t, --tags <tags:string>", "Filter by tags")
+    .option("--search <search:string>", "Search tasks by keyword")
     .action(async (options) => {
       await listCommand(options);
     })
