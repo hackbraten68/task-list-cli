@@ -2,17 +2,19 @@ import { colors } from "cliffy/ansi";
 import { Select } from "cliffy/prompt";
 import { loadTasks, bulkMarkTasks, bulkDeleteTasks, bulkUpdateTasks } from "../storage.ts";
 import { UI } from "../ui.ts";
+import { calculateStats } from "../stats.ts";
 import { addCommand } from "./add.ts";
 import { updateCommand } from "./update.ts";
 import { deleteCommand } from "./delete.ts";
 import { markCommand } from "./mark.ts";
-import { Task, TaskStatus, TaskPriority } from "../types.ts";
+import { Task, TaskPriority } from "../types.ts";
 import { getTaskSummaries } from "../utils/task-selection.ts";
 
 export async function dashboardCommand() {
     let selectedIndex = 0;
     let selectedTasks = new Set<number>(); // Multi-selection state
     let multiSelectMode = false;
+    let statsViewMode = false; // Toggle between tasks and stats view
     let running = true;
 
     // Set stdin to raw mode
@@ -41,33 +43,45 @@ export async function dashboardCommand() {
         const height = Math.max(10, rows - 12);
         const isDimmed = !!modal;
 
-        const taskLines = tasks.map((t, i) => {
-            const isCurrent = i === selectedIndex;
-            const isMultiSelected = selectedTasks.has(t.id);
+        let sidebarTitle: string;
+        let sidebarLines: string[];
 
-            let prefix = "  ";
-            if (isCurrent && multiSelectMode) {
-                prefix = colors.bold.magenta("❯ ");
-            } else if (isCurrent) {
-                prefix = colors.bold.cyan("❯ ");
-            }
+        if (statsViewMode) {
+            // Stats view: show statistics in sidebar
+            const stats = calculateStats(tasks);
+            sidebarTitle = "Statistics";
+            sidebarLines = UI.renderStatsPanel(stats, sidebarWidth, height);
+        } else {
+            // Tasks view: show task list in sidebar
+            sidebarTitle = "Tasks";
+            sidebarLines = tasks.map((t, i) => {
+                const isCurrent = i === selectedIndex;
+                const isMultiSelected = selectedTasks.has(t.id);
 
-            const statusIcon = t.status === "done" ? colors.green("✔") : t.status === "in-progress" ? colors.yellow("●") : colors.red("●");
+                let prefix = "  ";
+                if (isCurrent && multiSelectMode) {
+                    prefix = colors.bold.magenta("❯ ");
+                } else if (isCurrent) {
+                    prefix = colors.bold.cyan("❯ ");
+                }
 
-            // Add selection indicator for multi-selected tasks
-            const selectIndicator = isMultiSelected ? colors.bold.blue("[✓] ") : "    ";
-            const line = `${selectIndicator}${prefix}${statusIcon} ${t.description}`;
+                const statusIcon = t.status === "done" ? colors.green("✔") : t.status === "in-progress" ? colors.yellow("●") : colors.red("●");
 
-            // Highlight current selection or multi-selected tasks
-            if (isCurrent && !multiSelectMode) {
-                return colors.bgRgb24(line, { r: 50, g: 50, b: 50 });
-            } else if (isMultiSelected) {
-                return colors.bgRgb24(line, { r: 30, g: 30, b: 60 });
-            }
-            return line;
-        });
+                // Add selection indicator for multi-selected tasks
+                const selectIndicator = isMultiSelected ? colors.bold.blue("[✓] ") : "    ";
+                const line = `${selectIndicator}${prefix}${statusIcon} ${t.description}`;
 
-        const sidebar = UI.box("Tasks", taskLines, sidebarWidth, height, !isDimmed, isDimmed);
+                // Highlight current selection or multi-selected tasks
+                if (isCurrent && !multiSelectMode) {
+                    return colors.bgRgb24(line, { r: 50, g: 50, b: 50 });
+                } else if (isMultiSelected) {
+                    return colors.bgRgb24(line, { r: 30, g: 30, b: 60 });
+                }
+                return line;
+            });
+        }
+
+        const sidebar = UI.box(sidebarTitle, sidebarLines, sidebarWidth, height, !isDimmed, isDimmed);
 
         const selectedTask = tasks[selectedIndex];
         const detailLines: string[] = [];
@@ -119,7 +133,7 @@ export async function dashboardCommand() {
         const mainPanel = UI.box("Details", detailLines, mainWidth, height, false, isDimmed);
 
         UI.renderLayout([sidebar, mainPanel], modal);
-        UI.footer(multiSelectMode, selectedTasks.size);
+        UI.footer(multiSelectMode, selectedTasks.size, statsViewMode);
     }
 
     try {
@@ -210,6 +224,15 @@ export async function dashboardCommand() {
                             renderBackground: () => render(tasks, { lines: [], width: 60, height: 8 })
                         });
                         Deno.stdin.setRaw(true);
+                    }
+                    break;
+                case "s":
+                    statsViewMode = !statsViewMode;
+                    // Reset selection when switching to stats mode
+                    if (statsViewMode) {
+                        selectedIndex = 0;
+                        selectedTasks.clear();
+                        multiSelectMode = false;
                     }
                     break;
                 case "q":

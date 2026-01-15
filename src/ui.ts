@@ -2,6 +2,7 @@ import { colors, ansi } from "cliffy/ansi";
 import { Table } from "cliffy/table";
 import { Task, TaskPriority, TaskStatus } from "./types.ts";
 import { format } from "@std/datetime";
+import { TaskStats } from "./stats.ts";
 
 export const UI = {
     header() {
@@ -70,7 +71,7 @@ export const UI = {
     },
 
     clearScreen() {
-        console.log((ansi.eraseScreen + ansi.cursorUp(100) + ansi.cursorTo(0, 0)).toString());
+        console.log(`${ansi.eraseScreen}${ansi.cursorUp(100)}${ansi.cursorTo(0, 0)}`);
     },
 
     box(title: string, lines: string[], width: number, height: number, focused = false, dimmed = false): string[] {
@@ -146,12 +147,16 @@ export const UI = {
         }
     },
 
-    footer(multiSelectMode: boolean = false, selectedCount: number = 0) {
+    footer(multiSelectMode: boolean = false, selectedCount: number = 0, statsViewMode: boolean = false) {
         const encoder = new TextEncoder();
 
         let footerStr = "  " + colors.bgWhite.black(" KEYS ") + " ";
 
-        if (multiSelectMode) {
+        if (statsViewMode) {
+            footerStr +=
+                colors.bold("s") + " Tasks View  " +
+                colors.bold("q") + " Quit";
+        } else if (multiSelectMode) {
             footerStr +=
                 colors.bold("j/k") + " or " + colors.bold("↑/↓") + "  " +
                 colors.bold("Space") + " Select  " +
@@ -166,6 +171,7 @@ export const UI = {
             footerStr +=
                 colors.bold("j/k") + " or " + colors.bold("↑/↓") + "  " +
                 colors.bold("Tab") + " Multi-Select  " +
+                colors.bold("s") + " Statistics  " +
                 colors.bold("a") + " Add  " +
                 colors.bold("u") + " Update  " +
                 colors.bold("d") + " Delete  " +
@@ -209,5 +215,71 @@ export const UI = {
             .indent(2);
 
         table.render();
+    },
+
+    progressBar(value: number, max: number, width: number = 20): string {
+        const percentage = max > 0 ? Math.round((value / max) * 100) : 0;
+        const filled = Math.round((value / max) * width);
+        const empty = width - filled;
+
+        const bar = "█".repeat(filled) + "░".repeat(empty);
+        return `${bar} ${percentage}%`;
+    },
+
+    renderStatsPanel(stats: TaskStats, width: number, height: number): string[] {
+        const lines: string[] = [];
+
+        lines.push("");
+        lines.push(`  ${colors.bold.cyan("📊 Task Statistics")}`);
+        lines.push("");
+
+        // Total tasks
+        lines.push(`  ${colors.bold.white("Total Tasks:")}     ${colors.bold(stats.total.toString())}`);
+        lines.push("");
+
+        // Completion rate with progress bar
+        const completionBar = this.progressBar(stats.byStatus.done, stats.total, Math.min(width - 20, 25));
+        lines.push(`  ${colors.bold.white("Completion:")}      ${colors.green(completionBar)}`);
+        lines.push("");
+
+        // Status breakdown
+        lines.push(`  ${colors.bold.white("Status Breakdown:")}`);
+        lines.push(`    ${colors.red("●")} Todo:         ${stats.byStatus.todo}`);
+        lines.push(`    ${colors.yellow("●")} In Progress:  ${stats.byStatus["in-progress"]}`);
+        lines.push(`    ${colors.green("✔")} Done:          ${stats.byStatus.done}`);
+        lines.push("");
+
+        // Priority breakdown
+        lines.push(`  ${colors.bold.white("Priority Levels:")}`);
+        lines.push(`    ${colors.blue("Low:")}           ${stats.byPriority.low}`);
+        lines.push(`    ${colors.yellow("Medium:")}        ${stats.byPriority.medium}`);
+        lines.push(`    ${colors.red("High:")}           ${stats.byPriority.high}`);
+        lines.push(`    ${colors.bold.red("Critical:")}      ${stats.byPriority.critical}`);
+        lines.push("");
+
+        // Overdue tasks (if any)
+        if (stats.overdue > 0) {
+            lines.push(`  ${colors.bold.red("⚠️  Overdue:")}       ${colors.bold.red(stats.overdue.toString())} tasks`);
+            lines.push("");
+        }
+
+        // Recent activity
+        lines.push(`  ${colors.bold.white("Recent Activity:")} ${stats.recentActivity} tasks this week`);
+
+        // Top tags
+        if (stats.topTags.length > 0) {
+            lines.push("");
+            lines.push(`  ${colors.bold.white("Top Tags:")}`);
+            stats.topTags.slice(0, 5).forEach(({ tag, count }) => {
+                lines.push(`    ${colors.cyan(tag)} (${count})`);
+            });
+        }
+
+        // Fill remaining height with empty lines
+        while (lines.length < height - 2) {
+            lines.push("");
+        }
+
+        return lines;
     },
 };
