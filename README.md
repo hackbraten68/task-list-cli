@@ -1,19 +1,8 @@
 # LazyTask 🚵‍♂️
 
-A modern, `lazydocker`-inspired Task Management TUI. Effortlessly manage your productivity with a keyboard-driven, multi-pane experience.
+A modern, `lazydocker`-inspired Task Management TUI.
 
-![LazyTask Header](https://raw.githubusercontent.com/deno-libs/cliffy/main/assets/cliffy.png)
-
-## ✨ Features
-
-- **Multi-Pane Dashboard**: Navigate tasks in a responsive sidebar and view full details, timestamps, and priorities in the main preview panel.
-- **Interactive Modals**: Seamlessly add or update tasks in centered popup windows.
-- **Contextual Dimming**: The background dashboard dynamically dims when modals are active, keeping your focus on the task at hand.
-- **Modern ANSI Aesthetics**: Rich color palettes, ASCII branding, and smooth TUI transitions.
-- **Keyboard Mastery**: Optimized for speed with single-key navigation and global shortcuts.
-- **Smart Persistence**: Automatic saving and loading via `tasks.json`.
-
-## 🚀 Quick Start
+## 🛠 Installation
 
 ### Prerequisites
 - [Deno](https://deno.land/) (v1.40+)
@@ -23,40 +12,96 @@ Install LazyTask globally to use the `lazytask` command anywhere:
 ```bash
 deno task install
 ```
-> [!NOTE]
-> Make sure `~/.deno/bin` is in your `PATH`.
 
-### Local Execution
+### 🛣 Path Configuration
+To run `lazytask` from anywhere, ensure that `~/.deno/bin` is in your `PATH`.
+
+#### Bash / Zsh
+Add the following to your `~/.bashrc` or `~/.zshrc`:
 ```bash
-# Run the TUI immediately
-deno task dashboard
+export PATH="$HOME/.deno/bin:$PATH"
+```
+Then reload your shell:
+```bash
+source ~/.bashrc  # or source ~/.zshrc
 ```
 
-## ⌨️ Keybindings
+#### Fish
+Run the following command in your terminal:
+```fish
+set -U fish_user_paths $HOME/.deno/bin $fish_user_paths
+```
+
+## 🚀 Getting Started
+
+```bash
+# Start the TUI dashboard
+lazytask
+```
+
+## 📋 Commands
+
+### Dashboard
+```bash
+lazytask                    # Open the TUI dashboard (default)
+lazytask dashboard          # Same as above
+```
+
+### Add Tasks
+```bash
+lazytask add "Buy groceries"
+lazytask add "Fix bug" --priority high
+lazytask add "Deploy" --priority critical --details "Production release"
+lazytask add "Meeting" --due-date 2026-01-20
+```
+
+**Options:**
+- `-p, --priority <priority>` — `low`, `medium`, `high`, `critical`
+- `-d, --details <details>` — Additional task details
+- `-u, --due-date <date>` — Due date (YYYY-MM-DD)
+
+### List Tasks
+```bash
+lazytask list
+lazytask list --status todo
+lazytask list --status in-progress
+lazytask list --priority high
+```
+
+**Options:**
+- `-s, --status <status>` — Filter by `todo`, `in-progress`, `done`
+- `-p, --priority <priority>` — Filter by priority
+
+### Update Tasks
+```bash
+lazytask update 1           # Interactive update for task #1
+lazytask update             # Interactive task selection
+```
+
+### Mark Status
+```bash
+lazytask mark todo 1
+lazytask mark in-progress 1
+lazytask mark done 1
+lazytask mark done          # Interactive task selection
+```
+
+**Statuses:** `todo`, `in-progress`, `done`
+
+### Delete Tasks
+```bash
+lazytask delete 1           # Delete task #1
+lazytask delete             # Interactive task selection
+```
+
+## ⌨️ Dashboard Keybindings
 
 | Key | Action |
 |-----|--------|
 | `j` / `↓` | Select next task |
 | `k` / `↑` | Select previous task |
-| `a` | **Add** a new task (Modal) |
-| `u` / `⏎` | **Update** selected task (Modal) |
-| `d` | **Delete** selected task (Modal) |
-| `m` | **Mark** status (followed by `t`: todo, `i`: in-progress, `d`: done) |
-| `q` / `⌃C` | Quit LazyTask |
-
-## 🛠 Related Tasks (CLI Mode)
-LazyTask also supports traditional CLI arguments for quick automation:
-```bash
-lazytask add "New task" --priority high
-lazytask list --status todo
-lazytask mark done 1
-```
-
-## 📂 Project Structure
-- `main.ts`: Entry point and CLI command definitions.
-- `src/commands/`: Individual logic for dashboard, add, update, etc.
-- `src/ui.ts`: The TUI rendering engine (panels, boxes, modals).
-- `src/storage.ts`: Task persistence and migration logic.
-
----
-Built with [Cliffy](https://cliffy.io/) & [Deno](https://deno.com/) 🦕
+| `a` | Add new task |
+| `u` / `⏎` | Update selected task |
+| `d` | Delete selected task |
+| `m` | Mark status (`t`: todo, `i`: in-progress, `d`: done) |
+| `q` / `⌃C` | Quit |
