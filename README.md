@@ -1,6 +1,6 @@
 # LazyTask 🚵‍♂️
 
-A modern, `lazydocker`-inspired Task Management TUI.
+A modern, `lazydocker`-inspired Task Management TUI with priority, due date, and flexible tagging support.
 
 ## 🛠 Installation
 
@@ -39,6 +39,8 @@ set -U fish_user_paths $HOME/.deno/bin $fish_user_paths
 lazytask
 ```
 
+LazyTask features a modern TUI for interactive task management with support for priorities, due dates, detailed descriptions, and flexible tagging system.
+
 ## 📋 Commands
 
 ### Dashboard
@@ -53,12 +55,15 @@ lazytask add "Buy groceries"
 lazytask add "Fix bug" --priority high
 lazytask add "Deploy" --priority critical --details "Production release"
 lazytask add "Meeting" --due-date 2026-01-20
+lazytask add "Code review" --tags "urgent,work"
+lazytask add "Grocery shopping" --tags "personal,weekly" --priority low
 ```
 
 **Options:**
 - `-p, --priority <priority>` — `low`, `medium`, `high`, `critical`
 - `-d, --details <details>` — Additional task details
 - `-u, --due-date <date>` — Due date (YYYY-MM-DD)
+- `-t, --tags <tags>` — Comma-separated tags (e.g., "urgent,work")
 
 ### List Tasks
 ```bash
@@ -66,11 +71,14 @@ lazytask list
 lazytask list --status todo
 lazytask list --status in-progress
 lazytask list --priority high
+lazytask list --tags urgent
+lazytask list --tags "work,personal"
 ```
 
 **Options:**
 - `-s, --status <status>` — Filter by `todo`, `in-progress`, `done`
 - `-p, --priority <priority>` — Filter by priority
+- `-t, --tags <tags>` — Filter by tags (comma-separated, partial matches supported)
 
 ### Update Tasks
 ```bash
@@ -93,6 +101,36 @@ lazytask mark done          # Interactive task selection
 lazytask delete 1           # Delete task #1
 lazytask delete             # Interactive task selection
 ```
+
+## 🏷️ Task Tagging
+
+LazyTask supports flexible task tagging to help organize and filter your tasks:
+
+### Adding Tags
+- **CLI:** Use `--tags "tag1,tag2,tag3"` when adding tasks
+- **Interactive:** The add/update commands will prompt for tags (comma-separated)
+
+### Tag Management
+- **Update Tags:** Use `lazytask update` to modify existing tags
+- **Preserve Tags:** Leave tag input empty to keep current tags
+- **Clear Tags:** Enter `clear` when prompted to remove all tags
+
+### Finding Tasks by Tags
+```bash
+# Find all urgent tasks
+lazytask list --tags urgent
+
+# Find tasks tagged with work or personal
+lazytask list --tags "work,personal"
+
+# Combine filters
+lazytask list --status todo --tags urgent
+```
+
+### Tag Display
+- Tags appear in the task list table
+- Dashboard shows tags in task details
+- Empty tag lists show as "-" in the interface
 
 ## ⌨️ Dashboard Keybindings
 
