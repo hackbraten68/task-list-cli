@@ -177,7 +177,10 @@ export async function dashboardCommand() {
                     if (multiSelectMode && selectedTasks.size > 0) {
                         // Show bulk actions menu
                         cleanup();
-                        await showBulkActionsMenu(tasks, Array.from(selectedTasks));
+                        const updatedSelection = await showBulkActionsMenu(tasks, Array.from(selectedTasks));
+                        // Update the selectedTasks set with the returned selection
+                        selectedTasks.clear();
+                        updatedSelection.forEach(id => selectedTasks.add(id));
                         Deno.stdin.setRaw(true);
                     } else if (!multiSelectMode && tasks[selectedIndex]) {
                         cleanup();
@@ -187,6 +190,7 @@ export async function dashboardCommand() {
                         });
                         Deno.stdin.setRaw(true);
                     }
+                    break;
                     break;
                 case "d":
                     if (tasks[selectedIndex]) {
@@ -224,8 +228,9 @@ export async function dashboardCommand() {
 
 /**
  * Show bulk actions menu for selected tasks
+ * Returns the updated selected IDs after the operation
  */
-async function showBulkActionsMenu(tasks: Task[], selectedIds: number[]) {
+async function showBulkActionsMenu(tasks: Task[], selectedIds: number[]): Promise<number[]> {
     const taskSummaries = getTaskSummaries(tasks, selectedIds);
 
     console.clear();
@@ -247,7 +252,7 @@ async function showBulkActionsMenu(tasks: Task[], selectedIds: number[]) {
     });
 
     if (action === "cancel") {
-        return;
+        return selectedIds; // Return unchanged selection
     }
 
     try {
@@ -267,7 +272,11 @@ async function showBulkActionsMenu(tasks: Task[], selectedIds: number[]) {
                 result.errors.forEach(error => {
                     UI.error(`Task ${error.id}: ${error.error}`);
                 });
+                // Return only the failed task IDs to keep them selected
+                return result.errors.map(error => error.id);
             }
+            // All tasks marked successfully, return empty selection
+            return [];
 
         } else if (action === "update") {
             console.log("");
@@ -320,9 +329,14 @@ async function showBulkActionsMenu(tasks: Task[], selectedIds: number[]) {
                     result.errors.forEach(error => {
                         UI.error(`Task ${error.id}: ${error.error}`);
                     });
+                    // Return only the failed task IDs to keep them selected
+                    return result.errors.map(error => error.id);
                 }
+                // All tasks updated successfully, return empty selection
+                return [];
             } else {
                 UI.info("No changes made.");
+                return selectedIds; // No changes made, keep original selection
             }
 
         } else if (action === "delete") {
@@ -344,8 +358,13 @@ async function showBulkActionsMenu(tasks: Task[], selectedIds: number[]) {
                     result.errors.forEach(error => {
                         UI.error(`Task ${error.id}: ${error.error}`);
                     });
+                    // Return only the failed task IDs to keep them selected
+                    return result.errors.map(error => error.id);
                 }
+                // All tasks deleted successfully, return empty selection
+                return [];
             }
+            return selectedIds; // If not confirmed, keep original selection
         }
 
         // Wait for user to see results
@@ -358,5 +377,9 @@ async function showBulkActionsMenu(tasks: Task[], selectedIds: number[]) {
         const message = error instanceof Error ? error.message : String(error);
         UI.error(`Bulk operation failed: ${message}`);
         await new Promise(resolve => setTimeout(resolve, 2000));
+        return selectedIds; // On error, keep original selection
     }
+
+    // Fallback return (should not be reached)
+    return selectedIds;
 }
