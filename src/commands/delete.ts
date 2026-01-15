@@ -24,6 +24,8 @@ export async function deleteCommand(id?: number, options?: { modal?: boolean, re
         return;
     }
 
+    const task = tasks[taskIndex];
+
     const showModal = async (step: string) => {
         if (isModal && options.renderBackground) {
             await options.renderBackground();
@@ -42,15 +44,19 @@ export async function deleteCommand(id?: number, options?: { modal?: boolean, re
             });
             console.log(ansi.cursorTo(startCol + 9, modalY + 3 + 1).toString());
             return { promptCol: startCol + 9, promptRow: modalY + 3 + 1 };
-        } else {
+        } else if (!isModal) {
+            UI.clearScreen();
             UI.header();
+            console.log(`  ${colors.bold.red("Deleting Task:")} ${colors.yellow(task.id.toString())}`);
+            console.log(`  ${colors.bold("Description:")}   ${task.description}`);
+            console.log("\n  " + colors.bold.red("➜") + " " + colors.bold(step));
         }
         return null;
     };
 
-    const pos = await showModal(`Delete task ${taskId}?`);
+    const pos = await showModal(`Are you sure you want to delete this task?`);
     const confirmed = await Confirm.prompt({
-        message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "",
+        message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "    ",
         prefix: "",
         pointer: "",
     });

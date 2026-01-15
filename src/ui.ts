@@ -151,7 +151,7 @@ export const UI = {
         const footerStr = "  " +
             colors.bgWhite.black(" KEYS ") +
             " " +
-            colors.bold("j/k") + " ↓/↑  " +
+            colors.bold("j/k") + " or " + colors.bold("↑/↓") + "  " +
             colors.bold("a") + " Add  " +
             colors.bold("u") + " Update  " +
             colors.bold("d") + " Delete  " +
@@ -164,7 +164,7 @@ export const UI = {
 
     renderTasks(tasks: Task[]) {
         if (tasks.length === 0) {
-            this.info("No tasks found. Press [a] to add your first task.");
+            this.info("No tasks found. Press [a] inside the dashboardto add your first task.");
             return;
         }
 

@@ -9,7 +9,7 @@ import { updateCommand } from "./src/commands/update.ts";
 if (import.meta.main) {
   await new Command()
     .name("lazytask")
-    .version("0.2.1")
+    .version("0.2.2")
     .description("LazyTask - A lazydocker-inspired Task Management TUI")
     .default("dashboard")
     .command("dashboard", "Open the TUI dashboard")
@@ -41,12 +41,18 @@ if (import.meta.main) {
       await deleteCommand(id);
     })
     .command("mark", "Mark task status")
-    .arguments("<status:string> [id:number]")
-    .action(async (_options, status: string, id) => {
+    .arguments("[status:string] [id:number]")
+    .action(async (_options, status, id) => {
       const validStatuses = ["todo", "in-progress", "done"];
-      if (!validStatuses.includes(status)) {
-        console.error(`Invalid status. Use: ${validStatuses.join(", ")}`);
-        return;
+      if (status && !validStatuses.includes(status)) {
+        // If status is a number and id is missing, treat it as id
+        if (!isNaN(Number(status)) && id === undefined) {
+          id = Number(status);
+          status = undefined;
+        } else {
+          console.error(`Invalid status. Use: ${validStatuses.join(", ")}`);
+          return;
+        }
       }
       await markCommand(status as any, id);
     })

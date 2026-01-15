@@ -51,6 +51,7 @@ export async function dashboardCommand() {
         const detailLines: string[] = [];
         if (selectedTask) {
             detailLines.push("");
+            detailLines.push(`  ${colors.bold.white("ID:")}          ${colors.dim(selectedTask.id.toString())}`);
             detailLines.push(`  ${colors.bold.white("Title:")}       ${selectedTask.description}`);
             detailLines.push(`  ${colors.bold.white("Status:")}      ${UI.statusPipe(selectedTask.status)}`);
             detailLines.push(`  ${colors.bold.white("Priority:")}    ${UI.priorityPipe(selectedTask.priority)}`);
@@ -88,74 +89,58 @@ export async function dashboardCommand() {
 
             const keys = new TextDecoder().decode(value);
 
-            for (const key of keys) {
-                switch (key) {
-                    case "j":
-                    case "\u001b[B": // Down arrow
-                        selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
-                        break;
-                    case "k":
-                    case "\u001b[A": // Up arrow
-                        selectedIndex = Math.max(0, selectedIndex - 1);
-                        break;
-                     case "a":
-                         cleanup();
-                         await addCommand(undefined, {
-                             modal: true,
-                             renderBackground: () => render(tasks)
-                         });
-                         Deno.stdin.setRaw(true);
-                         break;
-                    case "u":
-                    case "\r": // Enter
-                        if (tasks[selectedIndex]) {
-                            cleanup();
-                             await updateCommand(tasks[selectedIndex].id, {
-                                 modal: true,
-                                 renderBackground: () => render(tasks, { lines: [], width: 60, height: 8 })
-                             });
-                            Deno.stdin.setRaw(true);
-                        }
-                        break;
-                    case "d":
-                        if (tasks[selectedIndex]) {
-                            cleanup();
-                             await deleteCommand(tasks[selectedIndex].id, {
-                                 modal: true,
-                                 renderBackground: () => render(tasks, { lines: [], width: 60, height: 6 })
-                             });
-                            Deno.stdin.setRaw(true);
-                        }
-                        break;
-                    case "m":
-                        if (tasks[selectedIndex]) {
-                            cleanup();
-                            console.log("\n Mark as: [t] Todo, [i] In Progress, [d] Done");
-
-                            const mReader = Deno.stdin.readable.getReader();
-                            const { value: mVal } = await mReader.read();
-                            mReader.releaseLock();
-
-                            const mKey = new TextDecoder().decode(mVal).trim().toLowerCase().charAt(0);
-                            const statusMap: Record<string, any> = { t: "todo", i: "in-progress", d: "done" };
-
-                            if (statusMap[mKey]) {
-                                 await markCommand(statusMap[mKey], tasks[selectedIndex].id, {
-                                     modal: true,
-                                     renderBackground: () => render(tasks, { lines: [], width: 60, height: 6 })
-                                 });
-                            } else {
-                                console.log(`\n Invalid key: ${mKey}. Use t, i, or d.`);
-                                await new Promise(r => setTimeout(r, 1000));
-                            }
-                            Deno.stdin.setRaw(true);
-                        }
-                        break;
-                    case "q":
-                    case "\u0003": // Ctrl+C
-                        running = false;
-                        break;
-                }
+            switch (keys) {
+                case "j":
+                case "\u001b[B": // Down arrow
+                    selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
+                    break;
+                case "k":
+                case "\u001b[A": // Up arrow
+                    selectedIndex = Math.max(0, selectedIndex - 1);
+                    break;
+                case "a":
+                    cleanup();
+                    await addCommand(undefined, {
+                        modal: true,
+                        renderBackground: () => render(tasks)
+                    });
+                    Deno.stdin.setRaw(true);
+                    break;
+                case "u":
+                case "\r": // Enter
+                    if (tasks[selectedIndex]) {
+                        cleanup();
+                        await updateCommand(tasks[selectedIndex].id, {
+                            modal: true,
+                            renderBackground: () => render(tasks, { lines: [], width: 60, height: 8 })
+                        });
+                        Deno.stdin.setRaw(true);
+                    }
+                    break;
+                case "d":
+                    if (tasks[selectedIndex]) {
+                        cleanup();
+                        await deleteCommand(tasks[selectedIndex].id, {
+                            modal: true,
+                            renderBackground: () => render(tasks, { lines: [], width: 60, height: 6 })
+                        });
+                        Deno.stdin.setRaw(true);
+                    }
+                    break;
+                case "m":
+                    if (tasks[selectedIndex]) {
+                        cleanup();
+                        await markCommand(undefined, tasks[selectedIndex].id, {
+                            modal: true,
+                            renderBackground: () => render(tasks, { lines: [], width: 60, height: 8 })
+                        });
+                        Deno.stdin.setRaw(true);
+                    }
+                    break;
+                case "q":
+                case "\u0003": // Ctrl+C
+                    running = false;
+                    break;
             }
         }
     } finally {
