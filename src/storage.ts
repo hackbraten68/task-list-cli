@@ -12,6 +12,7 @@ export async function loadTasks(): Promise<Task[]> {
             ...t,
             priority: t.priority || "medium",
             status: t.status || "todo",
+            tags: t.tags || [],
             createdAt: t.createdAt || new Date().toISOString(),
             updatedAt: t.updatedAt || new Date().toISOString(),
         }));
