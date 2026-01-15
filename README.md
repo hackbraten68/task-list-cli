@@ -168,6 +168,7 @@ All bulk operations include:
 - ✅ Confirmation prompts (bypassable with `--force`)
 - ✅ Atomic operations with full rollback on failures
 - ✅ Comprehensive error reporting
+- ✅ Smart selection state management (successful operations remove tasks from selection, failed operations remain selected)
 
 ## ⌨️ Dashboard Keybindings
 
@@ -192,6 +193,12 @@ All bulk operations include:
 | `Tab` | Exit multi-select mode |
 | `⏎` | Show bulk actions menu |
 | `q` / `⌃C` | Quit |
+
+**Multi-select indicators:**
+- `[✓]` - Task is selected
+- `❯` (magenta) - Current cursor in multi-select mode
+- Selected count shown in footer
+- Selection automatically updates after bulk operations
 
 **Multi-select indicators:**
 - `[✓]` - Task is selected
