@@ -55,6 +55,7 @@ export async function dashboardCommand() {
             detailLines.push(`  ${colors.bold.white("Title:")}       ${selectedTask.description}`);
             detailLines.push(`  ${colors.bold.white("Status:")}      ${UI.statusPipe(selectedTask.status)}`);
             detailLines.push(`  ${colors.bold.white("Priority:")}    ${UI.priorityPipe(selectedTask.priority)}`);
+            detailLines.push(`  ${colors.bold.white("Tags:")}        ${selectedTask.tags && selectedTask.tags.length > 0 ? selectedTask.tags.join(", ") : colors.dim("-")}`);
             detailLines.push(`  ${colors.bold.white("Due Date:")}    ${selectedTask.dueDate ? colors.cyan(selectedTask.dueDate) : colors.dim("-")}`);
             detailLines.push("");
             detailLines.push(`  ${colors.dim("Created at: " + selectedTask.createdAt)}`);

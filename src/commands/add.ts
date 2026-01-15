@@ -10,6 +10,7 @@ export async function addCommand(
         priority?: TaskPriority,
         details?: string,
         dueDate?: string,
+        tags?: string,
         modal?: boolean,
         renderBackground?: () => Promise<void>
     }
@@ -52,7 +53,6 @@ export async function addCommand(
         const pos = await showModal("Enter Description");
         description = await Input.prompt({
             message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "    ",
-            suffix: "",
         });
     }
 
@@ -91,6 +91,17 @@ export async function addCommand(
         });
     }
 
+    let tags: string[] = [];
+    if (options?.tags) {
+        tags = options.tags.split(",").map(t => t.trim()).filter(t => t);
+    } else if (!descriptionArg) {
+        const pos = await showModal("Enter Tags (comma-separated, optional)");
+        const tagsInput = await Input.prompt({
+            message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "    ",
+        });
+        tags = tagsInput ? tagsInput.split(",").map(t => t.trim()).filter(t => t) : [];
+    }
+
     const tasks = await loadTasks();
     const newTask: Task = {
         id: await getNextId(),
@@ -98,6 +109,7 @@ export async function addCommand(
         details: details || "",
         priority: priority as TaskPriority,
         dueDate: dueDate || undefined,
+        tags: tags,
         status: "todo",
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),

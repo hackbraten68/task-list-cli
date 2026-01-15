@@ -174,6 +174,7 @@ export const UI = {
                 colors.bold("Task"),
                 colors.bold("Status"),
                 colors.bold("Priority"),
+                colors.bold("Tags"),
                 colors.bold("Due Date"),
                 colors.dim("Created"),
             ])
@@ -183,6 +184,7 @@ export const UI = {
                     colors.bold(t.description),
                     this.statusPipe(t.status),
                     this.priorityPipe(t.priority),
+                    t.tags && t.tags.length > 0 ? t.tags.join(", ") : colors.dim("-"),
                     t.dueDate ? colors.cyan(t.dueDate) : colors.dim("-"),
                     colors.dim(format(new Date(t.createdAt), "dd.MM")),
                 ]),
