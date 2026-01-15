@@ -1,20 +1,69 @@
 [
   {
     "id": 1,
-    "description": "i really need to make some changes here",
-    "details": "ditto",
-    "priority": "medium",
-    "status": "todo",
-    "createdAt": "2026-01-15T16:37:27.887Z",
-    "updatedAt": "2026-01-15T16:41:50.871Z"
+    "description": "🚀 Launch Rocket Project",
+    "details": "Finalize the propulsion system and coordinate with ground control for T-minus 0.",
+    "priority": "critical",
+    "status": "in-progress",
+    "dueDate": "2026-02-01",
+    "createdAt": "2026-01-15T10:00:00.000Z",
+    "updatedAt": "2026-01-15T19:00:00.000Z"
   },
   {
     "id": 2,
-    "description": "another test",
-    "details": "wobbadadadobdob",
+    "description": "🍎 Buy organic groceries",
+    "details": "Need kale, almond milk, and some seasonal fruits.",
+    "priority": "low",
+    "status": "todo",
+    "dueDate": "2026-01-16",
+    "createdAt": "2026-01-15T12:30:00.000Z",
+    "updatedAt": "2026-01-15T12:30:00.000Z"
+  },
+  {
+    "id": 3,
+    "description": "📦 Ship customer orders",
+    "details": "Batch 402, 403, and 405 are ready for dispatch.",
     "priority": "high",
     "status": "todo",
-    "createdAt": "2026-01-15T17:21:42.599Z",
-    "updatedAt": "2026-01-15T17:21:42.599Z"
+    "dueDate": "2026-01-15",
+    "createdAt": "2026-01-15T14:15:00.000Z",
+    "updatedAt": "2026-01-15T14:15:00.000Z"
+  },
+  {
+    "id": 4,
+    "description": "🧘 Morning Meditation",
+    "details": "20 minutes of mindfulness to start the day right.",
+    "priority": "medium",
+    "status": "done",
+    "createdAt": "2026-01-15T06:00:00.000Z",
+    "updatedAt": "2026-01-15T06:20:00.000Z"
+  },
+  {
+    "id": 5,
+    "description": "💻 Refactor API layer",
+    "details": "Move to a more robust middleware pattern and add better error handling.",
+    "priority": "high",
+    "status": "in-progress",
+    "createdAt": "2026-01-14T09:00:00.000Z",
+    "updatedAt": "2026-01-15T15:45:00.000Z"
+  },
+  {
+    "id": 6,
+    "description": "🎸 Practice Guitar",
+    "details": "Work on the solo for 'Sultans of Swing'.",
+    "priority": "low",
+    "status": "todo",
+    "createdAt": "2026-01-15T18:00:00.000Z",
+    "updatedAt": "2026-01-15T18:00:00.000Z"
+  },
+  {
+    "id": 7,
+    "description": "📅 Quarterly Planning",
+    "details": "Meet with the team to set goals for Q2.",
+    "priority": "medium",
+    "status": "todo",
+    "dueDate": "2026-01-20",
+    "createdAt": "2026-01-15T11:00:00.000Z",
+    "updatedAt": "2026-01-15T11:00:00.000Z"
   }
 ]
