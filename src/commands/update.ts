@@ -14,10 +14,13 @@ export async function updateCommand(id?: number, options?: { modal?: boolean, re
 
     let taskId = id;
     if (taskId === undefined) {
-        taskId = parseInt(await Select.prompt({
+        const options = tasks.map(t => `${t.id}: ${t.description}`);
+        const selected = await Select.prompt({
             message: "Select task to update",
-            options: tasks.map(t => ({ name: `${t.id}: ${t.description}`, value: t.id.toString() })),
-        }));
+            options: options,
+        });
+        const selectedId = selected.split(':')[0].trim();
+        taskId = parseInt(selectedId);
     }
 
     const taskIndex = tasks.findIndex(t => t.id === taskId);
@@ -36,6 +39,7 @@ export async function updateCommand(id?: number, options?: { modal?: boolean, re
         console.log(`  ${colors.bold("Priority:   ")} ${UI.priorityPipe(task.priority)}`);
         if (task.details) console.log(`  ${colors.bold("Details:    ")} ${task.details}`);
         if (task.dueDate) console.log(`  ${colors.bold("Due Date:   ")} ${colors.cyan(task.dueDate)}`);
+        if (task.tags && task.tags.length > 0) console.log(`  ${colors.bold("Tags:        ")} ${task.tags.join(", ")}`);
         console.log("\n  " + colors.dim("Leave empty to keep current value") + "\n");
     }
 
@@ -104,10 +108,24 @@ export async function updateCommand(id?: number, options?: { modal?: boolean, re
         },
     });
 
+    const pos5 = await showModal(`New tags (comma-separated, current: ${task.tags?.join(", ") || "none"}) - enter "clear" to remove all`);
+    const newTagsInput = await Input.prompt({
+        message: pos5 ? ansi.cursorTo(pos5.promptCol, pos5.promptRow).toString() : "    ",
+        prefix: "",
+        pointer: "",
+    });
+
     if (newDescription) task.description = newDescription;
     if (newDetails) task.details = newDetails;
     if (newPriority && newPriority !== task.priority) task.priority = newPriority as TaskPriority;
     if (newDueDate) task.dueDate = newDueDate;
+    if (newTagsInput !== undefined) {
+        if (newTagsInput.trim().toLowerCase() === "clear") {
+            task.tags = [];
+        } else if (newTagsInput.trim()) {
+            task.tags = newTagsInput.split(",").map(t => t.trim()).filter(t => t);
+        }
+    }
 
     task.updatedAt = new Date().toISOString();
     await saveTasks(tasks);

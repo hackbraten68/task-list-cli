@@ -7,7 +7,8 @@
     "status": "in-progress",
     "dueDate": "2026-02-01",
     "createdAt": "2026-01-15T10:00:00.000Z",
-    "updatedAt": "2026-01-15T19:33:23.959Z"
+    "updatedAt": "2026-01-15T19:33:23.959Z",
+    "tags": []
   },
   {
     "id": 2,
@@ -17,7 +18,8 @@
     "status": "todo",
     "dueDate": "2026-01-16",
     "createdAt": "2026-01-15T12:30:00.000Z",
-    "updatedAt": "2026-01-15T12:30:00.000Z"
+    "updatedAt": "2026-01-15T12:30:00.000Z",
+    "tags": []
   },
   {
     "id": 3,
@@ -27,7 +29,8 @@
     "status": "todo",
     "dueDate": "2026-01-15",
     "createdAt": "2026-01-15T14:15:00.000Z",
-    "updatedAt": "2026-01-15T19:11:15.122Z"
+    "updatedAt": "2026-01-15T19:11:15.122Z",
+    "tags": []
   },
   {
     "id": 4,
@@ -36,7 +39,8 @@
     "priority": "medium",
     "status": "done",
     "createdAt": "2026-01-15T06:00:00.000Z",
-    "updatedAt": "2026-01-15T06:20:00.000Z"
+    "updatedAt": "2026-01-15T06:20:00.000Z",
+    "tags": []
   },
   {
     "id": 5,
@@ -45,7 +49,8 @@
     "priority": "high",
     "status": "in-progress",
     "createdAt": "2026-01-14T09:00:00.000Z",
-    "updatedAt": "2026-01-15T15:45:00.000Z"
+    "updatedAt": "2026-01-15T15:45:00.000Z",
+    "tags": []
   },
   {
     "id": 6,
@@ -54,7 +59,8 @@
     "priority": "low",
     "status": "todo",
     "createdAt": "2026-01-15T18:00:00.000Z",
-    "updatedAt": "2026-01-15T18:00:00.000Z"
+    "updatedAt": "2026-01-15T18:00:00.000Z",
+    "tags": []
   },
   {
     "id": 7,
@@ -64,6 +70,33 @@
     "status": "todo",
     "dueDate": "2026-01-20",
     "createdAt": "2026-01-15T11:00:00.000Z",
-    "updatedAt": "2026-01-15T18:49:08.744Z"
+    "updatedAt": "2026-01-15T18:49:08.744Z",
+    "tags": []
+  },
+  {
+    "id": 8,
+    "description": "Test task with tags",
+    "details": "",
+    "priority": "medium",
+    "tags": [
+      "urgent",
+      "work"
+    ],
+    "status": "todo",
+    "createdAt": "2026-01-15T19:57:45.837Z",
+    "updatedAt": "2026-01-15T19:57:45.838Z"
+  },
+  {
+    "id": 9,
+    "description": "test",
+    "details": "hellooooooooooooooo woirld !",
+    "priority": "low",
+    "tags": [
+      "fixed",
+      "done"
+    ],
+    "status": "todo",
+    "createdAt": "2026-01-15T19:59:26.107Z",
+    "updatedAt": "2026-01-15T20:08:50.939Z"
   }
 ]

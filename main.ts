@@ -19,6 +19,7 @@ if (import.meta.main) {
     .command("list", "List tasks")
     .option("-s, --status <status:string>", "Filter by status")
     .option("-p, --priority <priority:string>", "Filter by priority")
+    .option("-t, --tags <tags:string>", "Filter by tags")
     .action(async (options) => {
       await listCommand(options);
     })
@@ -27,6 +28,7 @@ if (import.meta.main) {
     .option("-p, --priority <priority:string>", "Task priority (low, medium, high, critical)")
     .option("-d, --details <details:string>", "Task details")
     .option("-u, --due-date <dueDate:string>", "Task due date (YYYY-MM-DD)")
+    .option("-t, --tags <tags:string>", "Task tags (comma-separated)")
     .action(async (options, description) => {
       await addCommand(description, options as any);
     })
