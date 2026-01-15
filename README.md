@@ -2,6 +2,36 @@
 
 A modern, `lazydocker`-inspired Task Management TUI.
 
+## 🛠 Installation
+
+### Prerequisites
+- [Deno](https://deno.land/) (v1.40+)
+
+### Global Installation
+Install LazyTask globally to use the `lazytask` command anywhere:
+```bash
+deno task install
+```
+
+### 🛣 Path Configuration
+To run `lazytask` from anywhere, ensure that `~/.deno/bin` is in your `PATH`.
+
+#### Bash / Zsh
+Add the following to your `~/.bashrc` or `~/.zshrc`:
+```bash
+export PATH="$HOME/.deno/bin:$PATH"
+```
+Then reload your shell:
+```bash
+source ~/.bashrc  # or source ~/.zshrc
+```
+
+#### Fish
+Run the following command in your terminal:
+```fish
+set -U fish_user_paths $HOME/.deno/bin $fish_user_paths
+```
+
 ## 🚀 Getting Started
 
 ```bash
