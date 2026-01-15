@@ -171,12 +171,29 @@ All bulk operations include:
 
 ## ⌨️ Dashboard Keybindings
 
+### Normal Mode
 | Key | Action |
 |-----|--------|
 | `j` / `↓` | Select next task |
 | `k` / `↑` | Select previous task |
+| `Tab` | Enter multi-select mode |
 | `a` | Add new task |
 | `u` / `⏎` | Update selected task |
 | `d` | Delete selected task |
-| `m` | Mark status (`t`: todo, `i`: in-progress, `d`: done) |
+| `m` | Mark status |
 | `q` / `⌃C` | Quit |
+
+### Multi-Select Mode
+| Key | Action |
+|-----|--------|
+| `j` / `↓` | Move to next task |
+| `k` / `↑` | Move to previous task |
+| `Space` | Select/deselect current task |
+| `Tab` | Exit multi-select mode |
+| `⏎` | Show bulk actions menu |
+| `q` / `⌃C` | Quit |
+
+**Multi-select indicators:**
+- `[✓]` - Task is selected
+- `❯` (magenta) - Current cursor in multi-select mode
+- Selected count shown in footer

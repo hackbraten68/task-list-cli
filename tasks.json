@@ -98,5 +98,17 @@
     "status": "todo",
     "createdAt": "2026-01-15T19:59:26.107Z",
     "updatedAt": "2026-01-15T20:08:50.939Z"
+  },
+  {
+    "id": 10,
+    "description": "Test TUI task 1",
+    "details": "",
+    "priority": "medium",
+    "tags": [
+      "tui"
+    ],
+    "status": "done",
+    "createdAt": "2026-01-15T21:50:08.068Z",
+    "updatedAt": "2026-01-15T21:50:27.653Z"
   }
 ]
