@@ -41,14 +41,18 @@ export async function deleteCommand(id?: number, options?: { modal?: boolean, re
                 console.log(ansi.cursorTo(startCol, modalY + i).toString() + line);
             });
             console.log(ansi.cursorTo(startCol + 9, modalY + 3 + 1).toString());
+            return { promptCol: startCol + 9, promptRow: modalY + 3 + 1 };
         } else {
             UI.header();
         }
+        return null;
     };
 
-    await showModal(`Delete task ${taskId}?`);
+    const pos = await showModal(`Delete task ${taskId}?`);
     const confirmed = await Confirm.prompt({
-        message: "",
+        message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "",
+        prefix: "",
+        pointer: "",
     });
 
     if (confirmed) {

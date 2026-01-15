@@ -126,27 +126,29 @@ export const UI = {
         }
 
         if (modal) {
-            const { columns, rows } = Deno.consoleSize();
-            const startRow = Math.floor((rows - modal.height) / 2) - 4; // Offset up slightly
-            const startCol = Math.floor((columns - modal.width) / 2);
-
-            // Simpler approach: Print background, then use ANSI to draw modal on top
-            layoutLines.forEach(l => console.log(l));
-
-            const modalY = Math.max(0, startRow + 8); // Account for header
-            modal.lines.forEach((line, i) => {
-                const pos = ansi.cursorTo(startCol, modalY + i).toString();
-                console.log(pos + line);
+            // Render dimmed background first
+            layoutLines.forEach(l => {
+                const dimmedLine = l.replace(/\u001b\[[0-9;]*m/g, "");
+                console.log(colors.rgb24(dimmedLine, { r: 60, g: 60, b: 60 }));
             });
-            console.log(ansi.cursorTo(0, rows - 1).toString()); // Move back to bottom
+
+            // Then overlay the modal on top
+            const { columns, rows } = Deno.consoleSize();
+            const startCol = Math.floor((columns - modal.width) / 2);
+            const startRow = Math.floor((rows - modal.height) / 2);
+
+            modal.lines.forEach((line, i) => {
+                console.log(ansi.cursorTo(startCol, startRow + i).toString() + line);
+            });
         } else {
+            // Normal layout rendering
             layoutLines.forEach(l => console.log(l));
         }
     },
 
     footer() {
-        console.log(
-            "\n  " +
+        const encoder = new TextEncoder();
+        const footerStr = "  " +
             colors.bgWhite.black(" KEYS ") +
             " " +
             colors.bold("j/k") + " ↓/↑  " +
@@ -154,8 +156,10 @@ export const UI = {
             colors.bold("u") + " Update  " +
             colors.bold("d") + " Delete  " +
             colors.bold("m") + " Mark  " +
-            colors.bold("q") + " Quit",
-        );
+            colors.bold("q") + " Quit";
+
+        // Use writeSync to avoid trailing newline
+        Deno.stdout.writeSync(encoder.encode(footerStr));
     },
 
     renderTasks(tasks: Task[]) {

@@ -33,25 +33,27 @@ export async function addCommand(
                 console.log(ansi.cursorTo(startCol, modalY + i).toString() + line);
             });
             console.log(ansi.cursorTo(startCol + 4, modalY + 3 + 1).toString()); // Position at "> "
+            return { promptCol: startCol + 4, promptRow: modalY + 3 + 1 };
         } else if (!isModal && !descriptionArg) {
             UI.header();
         }
+        return null;
     };
 
     let description = descriptionArg;
     if (!description) {
-        await showModal("Enter Description");
+        const pos = await showModal("Enter Description");
         description = await Input.prompt({
-            message: "",
+            message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "",
             suffix: "",
         });
     }
 
     let details = options?.details;
     if (details === undefined && !descriptionArg) {
-        await showModal("Enter Details (optional)");
+        const pos = await showModal("Enter Details (optional)");
         details = await Input.prompt({
-            message: "",
+            message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "",
         });
     }
 
@@ -60,9 +62,9 @@ export async function addCommand(
         if (descriptionArg) {
             priority = "medium"; // Default for non-interactive
         } else {
-            await showModal("Select Priority");
+            const pos = await showModal("Select Priority");
             priority = (await Select.prompt({
-                message: "",
+                message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "",
                 options: ["low", "medium", "high", "critical"],
             })) as TaskPriority;
         }
@@ -70,11 +72,11 @@ export async function addCommand(
 
     let dueDate = options?.dueDate;
     if (dueDate === undefined && !descriptionArg) {
-        await showModal("Enter Due Date (YYYY-MM-DD, optional)");
+        const pos = await showModal("Enter Due Date (YYYY-MM-DD, optional)");
         dueDate = await Input.prompt({
-            message: "",
+            message: pos ? ansi.cursorTo(pos.promptCol, pos.promptRow).toString() : "",
             validate: (value: string) => {
-                if (value && !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                if (value && !/^\d{4}-\d{2}-\d{1,2}$/.test(value)) {
                     return "Please use YYYY-MM-DD format";
                 }
                 return true;
