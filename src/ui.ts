@@ -146,17 +146,32 @@ export const UI = {
         }
     },
 
-    footer() {
+    footer(multiSelectMode: boolean = false, selectedCount: number = 0) {
         const encoder = new TextEncoder();
-        const footerStr = "  " +
-            colors.bgWhite.black(" KEYS ") +
-            " " +
-            colors.bold("j/k") + " or " + colors.bold("↑/↓") + "  " +
-            colors.bold("a") + " Add  " +
-            colors.bold("u") + " Update  " +
-            colors.bold("d") + " Delete  " +
-            colors.bold("m") + " Mark  " +
-            colors.bold("q") + " Quit";
+
+        let footerStr = "  " + colors.bgWhite.black(" KEYS ") + " ";
+
+        if (multiSelectMode) {
+            footerStr +=
+                colors.bold("j/k") + " or " + colors.bold("↑/↓") + "  " +
+                colors.bold("Space") + " Select  " +
+                colors.bold("Tab") + " Exit Multi  " +
+                colors.bold("Enter") + " Bulk Actions  " +
+                colors.bold("q") + " Quit";
+
+            if (selectedCount > 0) {
+                footerStr += `  ${colors.bold.magenta(`[${selectedCount} selected]`)}`;
+            }
+        } else {
+            footerStr +=
+                colors.bold("j/k") + " or " + colors.bold("↑/↓") + "  " +
+                colors.bold("Tab") + " Multi-Select  " +
+                colors.bold("a") + " Add  " +
+                colors.bold("u") + " Update  " +
+                colors.bold("d") + " Delete  " +
+                colors.bold("m") + " Mark  " +
+                colors.bold("q") + " Quit";
+        }
 
         // Use writeSync to avoid trailing newline
         Deno.stdout.writeSync(encoder.encode(footerStr));
