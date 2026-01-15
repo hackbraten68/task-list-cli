@@ -12,3 +12,16 @@ export interface Task {
     createdAt: string;
     updatedAt: string;
 }
+
+export interface BulkOperation {
+    operation: 'mark' | 'delete' | 'update';
+    taskIds: number[];
+    changes?: Partial<Task>;
+}
+
+export interface BulkResult {
+    successCount: number;
+    failedCount: number;
+    errors: Array<{id: number, error: string}>;
+    rolledBack: boolean;
+}

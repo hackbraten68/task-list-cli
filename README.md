@@ -91,7 +91,8 @@ lazytask update             # Interactive task selection
 lazytask mark todo 1
 lazytask mark in-progress 1
 lazytask mark done 1
-lazytask mark done          # Interactive task selection
+lazytask mark done "1,2,3,5-8"  # Mark multiple tasks
+lazytask mark done             # Interactive task selection
 ```
 
 **Statuses:** `todo`, `in-progress`, `done`
@@ -99,7 +100,9 @@ lazytask mark done          # Interactive task selection
 ### Delete Tasks
 ```bash
 lazytask delete 1           # Delete task #1
+lazytask delete "1,2,3,5-8" # Delete multiple tasks
 lazytask delete             # Interactive task selection
+lazytask delete 1 --force   # Skip confirmation
 ```
 
 ## 🏷️ Task Tagging
@@ -131,6 +134,40 @@ lazytask list --status todo --tags urgent
 - Tags appear in the task list table
 - Dashboard shows tags in task details
 - Empty tag lists show as "-" in the interface
+
+## 📊 Bulk Operations
+
+LazyTask supports efficient bulk operations for managing multiple tasks at once:
+
+### Bulk Mark Tasks
+```bash
+lazytask bulk-mark done "1,2,3,5-8"    # Mark multiple tasks as done
+lazytask bulk-mark in-progress "10-15"  # Mark range as in-progress
+```
+
+### Bulk Delete Tasks
+```bash
+lazytask bulk-delete "1,2,3"           # Delete with confirmation
+lazytask bulk-delete "5-10" --force    # Delete without confirmation
+```
+
+### Bulk Update Tasks
+```bash
+lazytask bulk-update "1,2,3" --priority high --tags "urgent"
+lazytask bulk-update "5-8" --add-tags "work" --remove-tags "personal"
+lazytask bulk-update "1,2,3"           # Interactive mode
+```
+
+### ID Range Syntax
+- **Single IDs:** `"1,2,3"`
+- **Ranges:** `"5-8"`
+- **Mixed:** `"1,3,5-7,9"`
+
+All bulk operations include:
+- ✅ Detailed task previews before execution
+- ✅ Confirmation prompts (bypassable with `--force`)
+- ✅ Atomic operations with full rollback on failures
+- ✅ Comprehensive error reporting
 
 ## ⌨️ Dashboard Keybindings
 

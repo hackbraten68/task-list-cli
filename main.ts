@@ -5,11 +5,12 @@ import { deleteCommand } from "./src/commands/delete.ts";
 import { listCommand } from "./src/commands/list.ts";
 import { markCommand } from "./src/commands/mark.ts";
 import { updateCommand } from "./src/commands/update.ts";
+import { bulkMarkCommand, bulkDeleteCommand, bulkUpdateCommand } from "./src/commands/bulk.ts";
 
 if (import.meta.main) {
   await new Command()
     .name("lazytask")
-    .version("0.2.2")
+    .version("0.3.0")
     .description("LazyTask - A lazydocker-inspired Task Management TUI")
     .default("dashboard")
     .command("dashboard", "Open the TUI dashboard")
@@ -33,23 +34,24 @@ if (import.meta.main) {
       await addCommand(description, options as any);
     })
     .command("update", "Update a task")
-    .arguments("[id:number]")
+    .arguments("[id:string]")
     .action(async (_options, id) => {
       await updateCommand(id);
     })
     .command("delete", "Delete a task")
-    .arguments("[id:number]")
-    .action(async (_options, id) => {
-      await deleteCommand(id);
+    .arguments("[id:string]")
+    .option("-f, --force", "Skip confirmation prompt")
+    .action(async (options, id) => {
+      await deleteCommand(id, options);
     })
     .command("mark", "Mark task status")
-    .arguments("[status:string] [id:number]")
+    .arguments("[status:string] [id:string]")
     .action(async (_options, status, id) => {
       const validStatuses = ["todo", "in-progress", "done"];
       if (status && !validStatuses.includes(status)) {
         // If status is a number and id is missing, treat it as id
         if (!isNaN(Number(status)) && id === undefined) {
-          id = Number(status);
+          id = status;
           status = undefined;
         } else {
           console.error(`Invalid status. Use: ${validStatuses.join(", ")}`);
@@ -57,6 +59,24 @@ if (import.meta.main) {
         }
       }
       await markCommand(status as any, id);
+    })
+    .command("bulk-mark", "Mark multiple tasks with status")
+    .arguments("[status:string] [ids:string]")
+    .action(async (_options, status, ids) => {
+      await bulkMarkCommand(status as any, ids);
+    })
+    .command("bulk-delete", "Delete multiple tasks")
+    .arguments("[ids:string]")
+    .option("-f, --force", "Skip confirmation prompt")
+    .action(async (options, ids) => {
+      await bulkDeleteCommand(ids, options);
+    })
+    .command("bulk-update", "Update multiple tasks")
+    .arguments("[ids:string]")
+    .option("-p, --priority <priority:string>", "Set priority")
+    .option("-t, --tags <tags:string>", "Replace all tags")
+    .action(async (options, ids) => {
+      await bulkUpdateCommand(ids, options as any);
     })
     .parse(Deno.args);
 }
