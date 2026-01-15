@@ -49,6 +49,12 @@ lazytask                    # Open the TUI dashboard (default)
 lazytask dashboard          # Same as above
 ```
 
+**Features:**
+- Interactive task browsing with detailed information
+- **Statistics View** - Press `s` to toggle productivity analytics
+- Multi-select mode for bulk operations
+- Real-time task status updates
+
 ### Add Tasks
 ```bash
 lazytask add "Buy groceries"
@@ -104,6 +110,31 @@ lazytask delete "1,2,3,5-8" # Delete multiple tasks
 lazytask delete             # Interactive task selection
 lazytask delete 1 --force   # Skip confirmation
 ```
+
+## 📊 Statistics Dashboard
+
+Press `s` in the dashboard to view comprehensive productivity analytics and task statistics.
+
+### Features
+- **Completion Rate** - Visual progress bar showing overall task completion
+- **Status Breakdown** - Distribution of tasks by status (todo, in-progress, done)
+- **Priority Analysis** - Task counts by priority level (low, medium, high, critical)
+- **Overdue Alerts** - Highlight of tasks past their due date
+- **Recent Activity** - Tasks created in the last 7 days
+- **Top Tags** - Most frequently used tags with usage counts
+
+### Dynamic Footer Status Bar
+The dashboard footer displays a completion status bar that adapts based on your tasks:
+- **Normal Progress**: `██████░░░ 75%` (progress bar + percentage)
+- **Overdue Alert**: `[75% | 2🔴]` (completion + overdue count with red indicator)
+
+*Status bar only appears on terminals wider than 120 characters*
+
+### Statistics View Keybindings
+| Key | Action |
+|-----|--------|
+| `s` | Return to tasks view |
+| `q` / `⌃C` | Quit |
 
 ## 🏷️ Task Tagging
 
@@ -178,6 +209,7 @@ All bulk operations include:
 | `j` / `↓` | Select next task |
 | `k` / `↑` | Select previous task |
 | `Tab` | Enter multi-select mode |
+| `s` | Toggle statistics view |
 | `a` | Add new task |
 | `u` / `⏎` | Update selected task |
 | `d` | Delete selected task |
