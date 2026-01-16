@@ -258,7 +258,7 @@ export async function dashboardCommand() {
 
     async function render(tasks: Task[], modal?: { lines: string[], width: number, height: number }, stats?: TaskStats) {
         UI.clearScreen();
-        UI.header();
+        UI.header(tasks.length);
 
         // Show search status if active
         if (searchMode) {
