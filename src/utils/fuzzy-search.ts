@@ -35,8 +35,10 @@ const DEFAULT_OPTIONS: Required<FuzzySearchOptions> = {
  */
 function calculateSimilarity(query: string, target: string): number {
   if (!query || !target) return 0;
-  const dist = distance(query, target);
-  const maxLen = Math.max(query.length, target.length);
+  const queryLower = query.toLowerCase();
+  const targetLower = target.toLowerCase();
+  const dist = distance(queryLower, targetLower);
+  const maxLen = Math.max(queryLower.length, targetLower.length);
   return maxLen > 0 ? 1 - (dist / maxLen) : 1;
 }
 
