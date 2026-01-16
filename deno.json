@@ -12,6 +12,7 @@
     "install": "deno install --global --config deno.json -A -f -n lazytask main.ts"
   },
   "imports": {
+    "@libn/fuzzy": "jsr:@libn/fuzzy@^0.4.0",
     "@mxkit/inquire": "jsr:@mxkit/inquire@^0.1.0",
     "@nothing628/chalk": "jsr:@nothing628/chalk@^1.0.1",
     "@sauber/table": "jsr:@sauber/table@^0.1.0",
