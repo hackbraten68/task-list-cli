@@ -1,6 +1,14 @@
 import { colors } from "cliffy/ansi";
-import { Select, Input } from "cliffy/prompt";
-import { loadTasks, saveTasks, bulkMarkTasks, bulkDeleteTasks, bulkUpdateTasks, exportTasks, importTasks } from "../storage.ts";
+import { Input, Select } from "cliffy/prompt";
+import {
+  bulkDeleteTasks,
+  bulkMarkTasks,
+  bulkUpdateTasks,
+  exportTasks,
+  importTasks,
+  loadTasks,
+  saveTasks,
+} from "../storage.ts";
 import { UI } from "../ui.ts";
 import { calculateStats, TaskStats } from "../stats.ts";
 import { addCommand } from "./add.ts";
@@ -8,740 +16,860 @@ import { updateCommand } from "./update.ts";
 import { deleteCommand } from "./delete.ts";
 import { markCommand } from "./mark.ts";
 import { sortTasks } from "./list.ts";
-import { Task, TaskPriority, ExportOptions, ImportOptions } from "../types.ts";
+import { ExportOptions, ImportOptions, Task, TaskPriority } from "../types.ts";
 import { getTaskSummaries } from "../utils/task-selection.ts";
+import { FuzzySearchOptions, fuzzySearchTasks } from "../utils/fuzzy-search.ts";
 
 function filterTasksBySearch(tasks: Task[], searchTerm: string): Task[] {
-    if (!searchTerm) return tasks;
+  if (!searchTerm) return tasks;
 
-    const term = searchTerm.toLowerCase();
-    return tasks.filter(task =>
-        task.description.toLowerCase().includes(term) ||
-        (task.details && task.details.toLowerCase().includes(term)) ||
-        (task.tags && task.tags.some(tag => tag.toLowerCase().includes(term)))
-    );
+  const term = searchTerm.toLowerCase();
+  return tasks.filter((task) =>
+    task.description.toLowerCase().includes(term) ||
+    (task.details && task.details.toLowerCase().includes(term)) ||
+    (task.tags && task.tags.some((tag) => tag.toLowerCase().includes(term)))
+  );
 }
 
 // Menu system functions
 async function showMainMenu(): Promise<void> {
-    console.clear();
-    UI.header();
+  console.clear();
+  UI.header();
 
-    const choice = await Select.prompt({
-        message: "LazyTask Menu:",
-        options: [
-            { name: "[DATA] Data Management", value: "data" },
-            { name: "[SETTINGS] Settings", value: "settings" },
-            { name: "[HELP] Help & Info", value: "help" },
-            { name: "[BACK] Back to Dashboard", value: "back" }
-        ]
-    });
+  const choice = await Select.prompt({
+    message: "LazyTask Menu:",
+    options: [
+      { name: "[DATA] Data Management", value: "data" },
+      { name: "[SETTINGS] Settings", value: "settings" },
+      { name: "[HELP] Help & Info", value: "help" },
+      { name: "[BACK] Back to Dashboard", value: "back" },
+    ],
+  });
 
-    switch (choice) {
-        case "data":
-            await showDataManagementMenu();
-            break;
-        case "settings":
-            await showSettingsMenu();
-            break;
-        case "help":
-            await showHelpMenu();
-            break;
-        case "back":
-            // Just return to dashboard
-            break;
-    }
+  switch (choice) {
+    case "data":
+      await showDataManagementMenu();
+      break;
+    case "settings":
+      await showSettingsMenu();
+      break;
+    case "help":
+      await showHelpMenu();
+      break;
+    case "back":
+      // Just return to dashboard
+      break;
+  }
 }
 
 async function showDataManagementMenu(): Promise<void> {
-    const choice = await Select.prompt({
-        message: "Data Management:",
-        options: [
-            { name: "[EXPORT] Export Tasks", value: "export" },
-            { name: "[IMPORT] Import Tasks", value: "import" },
-            { name: "[BACKUP] Manual Backup", value: "backup" },
-            { name: "[CLEAR] Clear All Tasks", value: "clear" },
-            { name: "[BACK] Back to Menu", value: "back" }
-        ]
-    });
+  const choice = await Select.prompt({
+    message: "Data Management:",
+    options: [
+      { name: "[EXPORT] Export Tasks", value: "export" },
+      { name: "[IMPORT] Import Tasks", value: "import" },
+      { name: "[BACKUP] Manual Backup", value: "backup" },
+      { name: "[CLEAR] Clear All Tasks", value: "clear" },
+      { name: "[BACK] Back to Menu", value: "back" },
+    ],
+  });
 
-    switch (choice) {
-        case "export":
-            await handleExport();
-            break;
-        case "import":
-            await handleImport();
-            break;
-        case "backup":
-            await handleBackup();
-            break;
-        case "clear":
-            await handleClearAllTasks();
-            break;
-        case "back":
-            await showMainMenu();
-            break;
-    }
+  switch (choice) {
+    case "export":
+      await handleExport();
+      break;
+    case "import":
+      await handleImport();
+      break;
+    case "backup":
+      await handleBackup();
+      break;
+    case "clear":
+      await handleClearAllTasks();
+      break;
+    case "back":
+      await showMainMenu();
+      break;
+  }
 }
 
 async function showSettingsMenu(): Promise<void> {
-    // Future: Theme selection, UI preferences, etc.
-    console.clear();
-    UI.header();
-    UI.info("Settings menu coming soon!");
-    console.log("Future features:");
-    console.log("- Theme selection");
-    console.log("- UI preferences");
-    console.log("- Keyboard shortcuts");
-    await Input.prompt("Press Enter to continue...");
+  // Future: Theme selection, UI preferences, etc.
+  console.clear();
+  UI.header();
+  UI.info("Settings menu coming soon!");
+  console.log("Future features:");
+  console.log("- Theme selection");
+  console.log("- UI preferences");
+  console.log("- Keyboard shortcuts");
+  await Input.prompt("Press Enter to continue...");
 }
 
 async function showHelpMenu(): Promise<void> {
-    console.clear();
-    UI.header();
-    console.log("Help & Info");
-    console.log("===========");
-    console.log("");
-    console.log("Keyboard Shortcuts:");
-    console.log("j/k or ↑/↓    - Navigate tasks");
-    console.log("Tab           - Multi-select mode");
-    console.log("Space         - Select/deselect task (multi-select)");
-    console.log("Enter         - Update task / Bulk actions");
-    console.log("d             - Delete task");
-    console.log("m             - Mark task status");
-    console.log("a             - Add new task");
-    console.log("u             - Update selected task");
-    console.log("d             - Delete selected task");
-    console.log("m             - Mark task status");
-    console.log("o             - Cycle sort field");
-    console.log("r             - Reverse sort order");
-    console.log("h             - Help & Settings menu");
-    console.log("q or Ctrl+C   - Quit");
-    console.log("");
-    await Input.prompt("Press Enter to continue...");
+  console.clear();
+  UI.header();
+  console.log("Help & Info");
+  console.log("===========");
+  console.log("");
+  console.log("Keyboard Shortcuts:");
+  console.log("j/k or ↑/↓    - Navigate tasks");
+  console.log("Tab           - Multi-select mode");
+  console.log("Space         - Select/deselect task (multi-select)");
+  console.log("Enter         - Update task / Bulk actions");
+  console.log("d             - Delete task");
+  console.log("m             - Mark task status");
+  console.log("a             - Add new task");
+  console.log("u             - Update selected task");
+  console.log("d             - Delete selected task");
+  console.log("m             - Mark task status");
+  console.log("o             - Cycle sort field");
+  console.log("r             - Reverse sort order");
+  console.log("h             - Help & Settings menu");
+  console.log("q or Ctrl+C   - Quit");
+  console.log("");
+  await Input.prompt("Press Enter to continue...");
 }
 
 async function handleExport(): Promise<void> {
-    console.clear();
-    UI.header();
+  console.clear();
+  UI.header();
 
-    const format = await Select.prompt({
-        message: "Export format:",
-        options: [
-            { name: "JSON - Complete data structure", value: "json" },
-            { name: "CSV - Spreadsheet compatible", value: "csv" }
-        ]
-    });
+  const format = await Select.prompt({
+    message: "Export format:",
+    options: [
+      { name: "JSON - Complete data structure", value: "json" },
+      { name: "CSV - Spreadsheet compatible", value: "csv" },
+    ],
+  });
 
-    const outputPath = await Input.prompt({
-        message: "Output file path:",
-        default: `lazytask-export-${new Date().toISOString().split('T')[0]}.${format}`
-    });
+  const outputPath = await Input.prompt({
+    message: "Output file path:",
+    default: `lazytask-export-${
+      new Date().toISOString().split("T")[0]
+    }.${format}`,
+  });
 
-    try {
-        const options: ExportOptions = {
-            format: format as 'json' | 'csv',
-            outputPath
-        };
+  try {
+    const options: ExportOptions = {
+      format: format as "json" | "csv",
+      outputPath,
+    };
 
-        await exportTasks(options);
-        UI.success(`[SUCCESS] Tasks exported to ${outputPath}`);
+    await exportTasks(options);
+    UI.success(`[SUCCESS] Tasks exported to ${outputPath}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    UI.error(`[ERROR] Export failed: ${message}`);
+  }
 
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        UI.error(`[ERROR] Export failed: ${message}`);
-    }
-
-    await Input.prompt("Press Enter to continue...");
+  await Input.prompt("Press Enter to continue...");
 }
 
 async function handleImport(): Promise<void> {
-    console.clear();
-    UI.header();
+  console.clear();
+  UI.header();
 
-    const format = await Select.prompt({
-        message: "Import format:",
-        options: [
-            { name: "JSON - Complete data structure", value: "json" },
-            { name: "CSV - Spreadsheet compatible", value: "csv" }
-        ]
-    });
+  const format = await Select.prompt({
+    message: "Import format:",
+    options: [
+      { name: "JSON - Complete data structure", value: "json" },
+      { name: "CSV - Spreadsheet compatible", value: "csv" },
+    ],
+  });
 
-    const inputPath = await Input.prompt({
-        message: "Input file path:",
-        default: `lazytask-import.${format}`
-    });
+  const inputPath = await Input.prompt({
+    message: "Input file path:",
+    default: `lazytask-import.${format}`,
+  });
 
-    const mode = await Select.prompt({
-        message: "Import mode:",
-        options: [
-            { name: "Merge - Add to existing tasks", value: "merge" },
-            { name: "Replace - Replace all tasks", value: "replace" },
-            { name: "Validate - Check data only", value: "validate" }
-        ]
-    });
+  const mode = await Select.prompt({
+    message: "Import mode:",
+    options: [
+      { name: "Merge - Add to existing tasks", value: "merge" },
+      { name: "Replace - Replace all tasks", value: "replace" },
+      { name: "Validate - Check data only", value: "validate" },
+    ],
+  });
 
-    try {
-        const options: ImportOptions = {
-            format: format as 'json' | 'csv',
-            inputPath,
-            mode: mode === "validate" ? "merge" : mode as 'merge' | 'replace',
-            validateOnly: mode === "validate"
-        };
+  try {
+    const options: ImportOptions = {
+      format: format as "json" | "csv",
+      inputPath,
+      mode: mode === "validate" ? "merge" : mode as "merge" | "replace",
+      validateOnly: mode === "validate",
+    };
 
-        const result = await importTasks(options);
+    const result = await importTasks(options);
 
-        if (result.success) {
-            UI.success(`[SUCCESS] ${result.message}`);
-            if (result.importedCount !== undefined) {
-                console.log(`[INFO] ${result.importedCount} tasks processed`);
-            }
-        } else {
-            UI.error(`[ERROR] ${result.message}`);
-            if (result.errors) {
-                result.errors.forEach(error => console.log(`   - ${error}`));
-            }
-        }
-
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        UI.error(`[ERROR] Import failed: ${message}`);
+    if (result.success) {
+      UI.success(`[SUCCESS] ${result.message}`);
+      if (result.importedCount !== undefined) {
+        console.log(`[INFO] ${result.importedCount} tasks processed`);
+      }
+    } else {
+      UI.error(`[ERROR] ${result.message}`);
+      if (result.errors) {
+        result.errors.forEach((error) => console.log(`   - ${error}`));
+      }
     }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    UI.error(`[ERROR] Import failed: ${message}`);
+  }
 
-    await Input.prompt("Press Enter to continue...");
+  await Input.prompt("Press Enter to continue...");
 }
 
 async function handleBackup(): Promise<void> {
-    console.clear();
-    UI.header();
+  console.clear();
+  UI.header();
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    const backupPath = `lazytask-backup-${timestamp}.json`;
+  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const backupPath = `lazytask-backup-${timestamp}.json`;
 
-    try {
-        await exportTasks({
-            format: 'json',
-            outputPath: backupPath
-        });
+  try {
+    await exportTasks({
+      format: "json",
+      outputPath: backupPath,
+    });
 
-        UI.success(`[SUCCESS] Backup created: ${backupPath}`);
+    UI.success(`[SUCCESS] Backup created: ${backupPath}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    UI.error(`[ERROR] Backup failed: ${message}`);
+  }
 
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        UI.error(`[ERROR] Backup failed: ${message}`);
-    }
-
-    await Input.prompt("Press Enter to continue...");
+  await Input.prompt("Press Enter to continue...");
 }
 
 async function handleClearAllTasks(): Promise<void> {
-    console.clear();
-    UI.header();
+  console.clear();
+  UI.header();
 
-    UI.error("⚠️  WARNING: This will permanently delete ALL tasks!");
-    console.log("This action cannot be undone.");
-    console.log("");
+  UI.error("⚠️  WARNING: This will permanently delete ALL tasks!");
+  console.log("This action cannot be undone.");
+  console.log("");
 
-    const confirm = await Select.prompt({
-        message: "Are you sure you want to clear all tasks?",
-        options: [
-            { name: "No, cancel", value: "cancel" },
-            { name: "Yes, clear all tasks", value: "confirm" }
-        ]
-    });
+  const confirm = await Select.prompt({
+    message: "Are you sure you want to clear all tasks?",
+    options: [
+      { name: "No, cancel", value: "cancel" },
+      { name: "Yes, clear all tasks", value: "confirm" },
+    ],
+  });
 
-    if (confirm === "confirm") {
-        await saveTasks([]);
-        UI.success("[SUCCESS] All tasks have been cleared.");
-        console.log("You can now add new tasks or import from backup.");
-    } else {
-        UI.info("[CANCELLED] Operation cancelled - no tasks were deleted.");
-    }
+  if (confirm === "confirm") {
+    await saveTasks([]);
+    UI.success("[SUCCESS] All tasks have been cleared.");
+    console.log("You can now add new tasks or import from backup.");
+  } else {
+    UI.info("[CANCELLED] Operation cancelled - no tasks were deleted.");
+  }
 
-    console.log("");
-    await Input.prompt("Press Enter to return to dashboard...");
+  console.log("");
+  await Input.prompt("Press Enter to return to dashboard...");
 
-    // Return to dashboard (don't call showDataManagementMenu)
+  // Return to dashboard (don't call showDataManagementMenu)
 }
 
 export async function dashboardCommand() {
-    let selectedIndex = 0;
-    let selectedTasks = new Set<number>(); // Multi-selection state
-    let multiSelectMode = false;
-    let statsViewMode = false; // Toggle between tasks and stats view
-    let searchTerm = ""; // Current search term
-    let searchMode = false; // Whether search is active
-    let currentSortField = 'id'; // Current sort field
-    let currentSortOrder: 'asc' | 'desc' = 'asc'; // Current sort order
-    let running = true;
+  let selectedIndex = 0;
+  let selectedTasks = new Set<number>(); // Multi-selection state
+  let multiSelectMode = false;
+  let statsViewMode = false; // Toggle between tasks and stats view
+  let searchTerm = ""; // Current search term
+  let searchMode = false; // Whether search is active
+  let fuzzyMode = false; // Whether fuzzy search is active
+  let currentSortField = "id"; // Current sort field
+  let currentSortOrder: "asc" | "desc" = "asc"; // Current sort order
+  let running = true;
 
-    // Set stdin to raw mode
-    Deno.stdin.setRaw(true);
+  // Set stdin to raw mode
+  Deno.stdin.setRaw(true);
 
-    const cleanup = () => {
-        try {
-            Deno.stdin.setRaw(false);
-        } catch { }
-    };
-
-    // Cleanup on exit/crash
-    Deno.addSignalListener("SIGINT", () => {
-        cleanup();
-        Deno.exit();
-    });
-
-    async function render(tasks: Task[], modal?: { lines: string[], width: number, height: number }, stats?: TaskStats) {
-        UI.clearScreen();
-        UI.header(tasks.length);
-
-        // Show search status if active
-        if (searchMode) {
-            console.log(`  Search: "${searchTerm}" (${tasks.length} matches)`);
-        }
-
-        // Show sort status if active (not default id order)
-        if (currentSortField !== 'id') {
-            console.log(`  Sorted: ${currentSortField} (${currentSortOrder})`);
-        }
-
-        const { columns, rows } = Deno.consoleSize();
-        const terminalWidth = Math.max(80, columns - 4);
-        const sidebarWidth = Math.floor(terminalWidth * 0.35);
-        const mainWidth = terminalWidth - sidebarWidth - 2;
-        const height = Math.max(10, rows - 12);
-        const isDimmed = !!modal;
-
-        let sidebarTitle: string;
-        let sidebarLines: string[];
-
-        if (statsViewMode) {
-            // Stats view: show statistics in sidebar
-            const stats = calculateStats(tasks);
-            sidebarTitle = "Statistics";
-            sidebarLines = UI.renderStatsPanel(stats, sidebarWidth, height);
-        } else {
-            // Tasks view: show task list in sidebar
-            sidebarTitle = "Tasks";
-            sidebarLines = tasks.map((t, i) => {
-                const isCurrent = i === selectedIndex;
-                const isMultiSelected = selectedTasks.has(t.id);
-
-                let prefix = "  ";
-                if (isCurrent && multiSelectMode) {
-                    prefix = colors.bold.magenta("❯ ");
-                } else if (isCurrent) {
-                    prefix = colors.bold.cyan("❯ ");
-                }
-
-                const statusIcon = t.status === "done" ? colors.green("✔") : t.status === "in-progress" ? colors.yellow("●") : colors.red("●");
-
-                // Add selection indicator for multi-selected tasks
-                const selectIndicator = isMultiSelected ? colors.bold.blue("[✓] ") : "    ";
-                const line = `${selectIndicator}${prefix}${statusIcon} ${t.description}`;
-
-                // Highlight current selection or multi-selected tasks
-                if (isCurrent && !multiSelectMode) {
-                    return colors.bgRgb24(line, { r: 50, g: 50, b: 50 });
-                } else if (isMultiSelected) {
-                    return colors.bgRgb24(line, { r: 30, g: 30, b: 60 });
-                }
-                return line;
-            });
-        }
-
-        const sidebar = UI.box(sidebarTitle, sidebarLines, sidebarWidth, height, !isDimmed, isDimmed);
-
-        const selectedTask = tasks[selectedIndex];
-        const detailLines: string[] = [];
-
-        if (multiSelectMode && selectedTasks.size > 0) {
-            // Show multi-selection summary
-            const selectedTaskList = Array.from(selectedTasks).map(id =>
-                tasks.find(t => t.id === id)
-            ).filter(Boolean) as Task[];
-
-            detailLines.push("");
-            detailLines.push(`  ${colors.bold.magenta("Multi-Selection Mode")}`);
-            detailLines.push(`  ${colors.bold.white("Selected:")}     ${selectedTasks.size} tasks`);
-            detailLines.push("");
-            detailLines.push(`  ${colors.bold.white("Selected Tasks:")}`);
-
-            const summaries = selectedTaskList.slice(0, 10).map(task =>
-                `    ${task.id}: ${task.description.substring(0, 40)}${task.description.length > 40 ? '...' : ''}`
-            );
-            detailLines.push(...summaries);
-
-            if (selectedTaskList.length > 10) {
-                detailLines.push(`    ... and ${selectedTaskList.length - 10} more`);
-            }
-
-            detailLines.push("");
-            detailLines.push(`  ${colors.dim("Press Enter for bulk actions")}`);
-            detailLines.push(`  ${colors.dim("Press Tab to exit multi-select mode")}`);
-
-        } else if (selectedTask) {
-            // Show single task details
-            detailLines.push("");
-            detailLines.push(`  ${colors.bold.white("ID:")}          ${colors.dim(selectedTask.id.toString())}`);
-            detailLines.push(`  ${colors.bold.white("Title:")}       ${selectedTask.description}`);
-            detailLines.push(`  ${colors.bold.white("Status:")}      ${UI.statusPipe(selectedTask.status)}`);
-            detailLines.push(`  ${colors.bold.white("Priority:")}    ${UI.priorityPipe(selectedTask.priority)}`);
-            detailLines.push(`  ${colors.bold.white("Tags:")}        ${selectedTask.tags && selectedTask.tags.length > 0 ? selectedTask.tags.join(", ") : colors.dim("-")}`);
-            detailLines.push(`  ${colors.bold.white("Due Date:")}    ${selectedTask.dueDate ? colors.cyan(selectedTask.dueDate) : colors.dim("-")}`);
-            detailLines.push("");
-            detailLines.push(`  ${colors.dim("Created at: " + selectedTask.createdAt)}`);
-            detailLines.push(`  ${colors.dim("Updated at: " + selectedTask.updatedAt)}`);
-            detailLines.push("");
-            detailLines.push(`  ${colors.bold.white("Details:")}`);
-            detailLines.push(`  ${selectedTask.details || colors.dim("No details provided.")}`);
-        } else {
-            detailLines.push("\n  No tasks available.");
-        }
-
-        const mainPanel = UI.box("Details", detailLines, mainWidth, height, false, isDimmed);
-
-        UI.renderLayout([sidebar, mainPanel], modal);
-        UI.footer(multiSelectMode, selectedTasks.size, statsViewMode, stats?.completionRate, stats?.overdue, searchMode);
-    }
-
+  const cleanup = () => {
     try {
-        while (running) {
-            let tasks = await loadTasks();
+      Deno.stdin.setRaw(false);
+    } catch {
+      // Ignore cleanup errors
+    }
+  };
 
-            // Apply search filter if active
-            let processedTasks = searchMode ? filterTasksBySearch(tasks, searchTerm) : tasks;
+  async function performSearch() {
+    // Enter search mode with footer replacement
+    try {
+      // Save current cursor position
+      console.log("\u001b[s");
 
-            // Apply sorting
-            processedTasks = sortTasks(processedTasks, currentSortField, currentSortOrder);
+      // Move cursor to last line (footer position)
+      const { rows } = Deno.consoleSize();
+      console.log(`\u001b[${rows};1H`);
 
-            if (processedTasks.length > 0 && selectedIndex >= processedTasks.length) {
-                selectedIndex = processedTasks.length - 1;
-            }
+      // Clear current line and show prompt
+      const modeText = fuzzyMode ? "Fuzzy search" : "Search";
+      console.log(`\u001b[2K${modeText} tasks: `);
 
-            // Calculate stats for footer status bar (use original tasks for stats)
-            const stats = calculateStats(tasks);
+      // Exit raw mode for input
+      Deno.stdin.setRaw(false);
 
-            await render(processedTasks, undefined, stats);
+      const newSearchTerm = await Input.prompt("");
+      searchTerm = newSearchTerm.trim();
+      searchMode = searchTerm.length > 0;
 
-            const reader = Deno.stdin.readable.getReader();
-            const { value, done } = await reader.read();
-            reader.releaseLock();
+      // Reset selection when entering search mode
+      selectedIndex = 0;
+      selectedTasks.clear();
+      multiSelectMode = false;
 
-            if (done) break;
+      // Return to raw mode
+      Deno.stdin.setRaw(true);
 
-            const keys = new TextDecoder().decode(value);
+      // Restore cursor position
+      console.log("\u001b[u");
+    } catch {
+      // User cancelled search - restore cursor
+      console.log("\u001b[u");
+      searchTerm = "";
+      searchMode = false;
+      fuzzyMode = false;
+    }
+  }
 
-            switch (keys) {
-                case "j":
-                case "\u001b[B": // Down arrow
-                    selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
-                    break;
-                case "k":
-                case "\u001b[A": // Up arrow
-                    selectedIndex = Math.max(0, selectedIndex - 1);
-                    break;
-                case "a":
-                    cleanup();
-                    await addCommand(undefined, {
-                        modal: true,
-                        renderBackground: () => render(tasks)
-                    });
-                    Deno.stdin.setRaw(true);
-                    break;
-                case "\t": // Tab - Toggle multi-select mode
-                    multiSelectMode = !multiSelectMode;
-                    if (!multiSelectMode) {
-                        selectedTasks.clear(); // Clear selections when exiting multi-select
-                    }
-                    break;
-                case " ": // Space - Select/deselect current task (multi-select mode)
-                    if (multiSelectMode && tasks[selectedIndex]) {
-                        const taskId = tasks[selectedIndex].id;
-                        if (selectedTasks.has(taskId)) {
-                            selectedTasks.delete(taskId);
-                        } else {
-                            selectedTasks.add(taskId);
-                        }
-                    }
-                    break;
-                case "u":
-                case "\r": // Enter
-                    if (multiSelectMode && selectedTasks.size > 0) {
-                        // Show bulk actions menu
-                        cleanup();
-                        const updatedSelection = await showBulkActionsMenu(tasks, Array.from(selectedTasks));
-                        // Update the selectedTasks set with the returned selection
-                        selectedTasks.clear();
-                        updatedSelection.forEach(id => selectedTasks.add(id));
-                        Deno.stdin.setRaw(true);
-                    } else if (!multiSelectMode && tasks[selectedIndex]) {
-                        cleanup();
-                        await updateCommand(tasks[selectedIndex].id, {
-                            modal: true,
-                            renderBackground: () => render(tasks, { lines: [], width: 60, height: 8 })
-                        });
-                        Deno.stdin.setRaw(true);
-                    }
-                    break;
-                    break;
-                case "d":
-                    if (tasks[selectedIndex]) {
-                        cleanup();
-                        await deleteCommand(tasks[selectedIndex].id, {
-                            modal: true,
-                            renderBackground: () => render(tasks, { lines: [], width: 60, height: 6 })
-                        });
-                        Deno.stdin.setRaw(true);
-                    }
-                    break;
-                case "m":
-                    if (tasks[selectedIndex]) {
-                        cleanup();
-                        await markCommand(undefined, tasks[selectedIndex].id, {
-                            modal: true,
-                            renderBackground: () => render(tasks, { lines: [], width: 60, height: 8 })
-                        });
-                        Deno.stdin.setRaw(true);
-                    }
-                    break;
-                case "s":
-                    statsViewMode = !statsViewMode;
-                    // Reset selection when switching to stats mode
-                    if (statsViewMode) {
-                        selectedIndex = 0;
-                        selectedTasks.clear();
-                        multiSelectMode = false;
-                    }
-                    break;
-                case "/":
-                    // Enter search mode with footer replacement
-                    try {
-                        // Save current cursor position
-                        console.log('\u001b[s');
+  // Cleanup on exit/crash
+  Deno.addSignalListener("SIGINT", () => {
+    cleanup();
+    Deno.exit();
+  });
 
-                        // Move cursor to last line (footer position)
-                        const { rows } = Deno.consoleSize();
-                        console.log(`\u001b[${rows};1H`);
+  async function render(
+    tasks: Task[],
+    modal?: { lines: string[]; width: number; height: number },
+    stats?: TaskStats,
+  ) {
+    UI.clearScreen();
+    UI.header(tasks.length);
 
-                        // Clear current line and show prompt
-                        console.log('\u001b[2KSearch tasks: ');
-
-                        // Exit raw mode for input
-                        Deno.stdin.setRaw(false);
-
-                        const newSearchTerm = await Input.prompt("");
-                        searchTerm = newSearchTerm.trim();
-                        searchMode = searchTerm.length > 0;
-
-                        // Reset selection when entering search mode
-                        selectedIndex = 0;
-                        selectedTasks.clear();
-                        multiSelectMode = false;
-
-                        // Return to raw mode
-                        Deno.stdin.setRaw(true);
-
-                        // Restore cursor position
-                        console.log('\u001b[u');
-
-                    } catch {
-                        // User cancelled search - restore cursor
-                        console.log('\u001b[u');
-                        searchTerm = "";
-                        searchMode = false;
-                    }
-                    break;
-                case "\u001b": // ESC key
-                    if (searchMode) {
-                        // Clear search
-                        searchTerm = "";
-                        searchMode = false;
-                        selectedIndex = 0;
-                        selectedTasks.clear();
-                        multiSelectMode = false;
-                    }
-                    break;
-                case "h": // Help/Settings menu
-                    cleanup();
-                    await showMainMenu();
-                    Deno.stdin.setRaw(true);
-                    break;
-                case "o": // Cycle sort field
-                    const sortFields = ['id', 'due-date', 'priority', 'status', 'created', 'updated', 'description'];
-                    const currentIndex = sortFields.indexOf(currentSortField);
-                    currentSortField = sortFields[(currentIndex + 1) % sortFields.length];
-                    break;
-                case "r": // Reverse sort order
-                    currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
-                    break;
-                case "q":
-                case "\u0003": // Ctrl+C
-                    running = false;
-                    break;
-            }
-        }
-    } finally {
-        cleanup();
+    // Show search status if active
+    if (searchMode) {
+      const modeText = fuzzyMode ? "Fuzzy search" : "Search";
+      console.log(`  ${modeText}: "${searchTerm}" (${tasks.length} matches)`);
     }
 
-    UI.clearScreen();
-    console.log("Goodbye! 👋");
+    // Show sort status if active (not default id order)
+    if (currentSortField !== "id") {
+      console.log(`  Sorted: ${currentSortField} (${currentSortOrder})`);
+    }
+
+    const { columns, rows } = Deno.consoleSize();
+    const terminalWidth = Math.max(80, columns - 4);
+    const sidebarWidth = Math.floor(terminalWidth * 0.35);
+    const mainWidth = terminalWidth - sidebarWidth - 2;
+    const height = Math.max(10, rows - 12);
+    const isDimmed = !!modal;
+
+    let sidebarTitle: string;
+    let sidebarLines: string[];
+
+    if (statsViewMode) {
+      // Stats view: show statistics in sidebar
+      const stats = calculateStats(tasks);
+      sidebarTitle = "Statistics";
+      sidebarLines = UI.renderStatsPanel(stats, sidebarWidth, height);
+    } else {
+      // Tasks view: show task list in sidebar
+      sidebarTitle = "Tasks";
+      sidebarLines = tasks.map((t, i) => {
+        const isCurrent = i === selectedIndex;
+        const isMultiSelected = selectedTasks.has(t.id);
+
+        let prefix = "  ";
+        if (isCurrent && multiSelectMode) {
+          prefix = colors.bold.magenta("❯ ");
+        } else if (isCurrent) {
+          prefix = colors.bold.cyan("❯ ");
+        }
+
+        const statusIcon = t.status === "done"
+          ? colors.green("✔")
+          : t.status === "in-progress"
+          ? colors.yellow("●")
+          : colors.red("●");
+
+        // Add selection indicator for multi-selected tasks
+        const selectIndicator = isMultiSelected
+          ? colors.bold.blue("[✓] ")
+          : "    ";
+        const line =
+          `${selectIndicator}${prefix}${statusIcon} ${t.description}`;
+
+        // Highlight current selection or multi-selected tasks
+        if (isCurrent && !multiSelectMode) {
+          return colors.bgRgb24(line, { r: 50, g: 50, b: 50 });
+        } else if (isMultiSelected) {
+          return colors.bgRgb24(line, { r: 30, g: 30, b: 60 });
+        }
+        return line;
+      });
+    }
+
+    const sidebar = UI.box(
+      sidebarTitle,
+      sidebarLines,
+      sidebarWidth,
+      height,
+      !isDimmed,
+      isDimmed,
+    );
+
+    const selectedTask = tasks[selectedIndex];
+    const detailLines: string[] = [];
+
+    if (multiSelectMode && selectedTasks.size > 0) {
+      // Show multi-selection summary
+      const selectedTaskList = Array.from(selectedTasks).map((id) =>
+        tasks.find((t) => t.id === id)
+      ).filter(Boolean) as Task[];
+
+      detailLines.push("");
+      detailLines.push(`  ${colors.bold.magenta("Multi-Selection Mode")}`);
+      detailLines.push(
+        `  ${colors.bold.white("Selected:")}     ${selectedTasks.size} tasks`,
+      );
+      detailLines.push("");
+      detailLines.push(`  ${colors.bold.white("Selected Tasks:")}`);
+
+      const summaries = selectedTaskList.slice(0, 10).map((task) =>
+        `    ${task.id}: ${task.description.substring(0, 40)}${
+          task.description.length > 40 ? "..." : ""
+        }`
+      );
+      detailLines.push(...summaries);
+
+      if (selectedTaskList.length > 10) {
+        detailLines.push(`    ... and ${selectedTaskList.length - 10} more`);
+      }
+
+      detailLines.push("");
+      detailLines.push(`  ${colors.dim("Press Enter for bulk actions")}`);
+      detailLines.push(
+        `  ${colors.dim("Press Tab to exit multi-select mode")}`,
+      );
+    } else if (selectedTask) {
+      // Show single task details
+      detailLines.push("");
+      detailLines.push(
+        `  ${colors.bold.white("ID:")}          ${
+          colors.dim(selectedTask.id.toString())
+        }`,
+      );
+      detailLines.push(
+        `  ${colors.bold.white("Title:")}       ${selectedTask.description}`,
+      );
+      detailLines.push(
+        `  ${colors.bold.white("Status:")}      ${
+          UI.statusPipe(selectedTask.status)
+        }`,
+      );
+      detailLines.push(
+        `  ${colors.bold.white("Priority:")}    ${
+          UI.priorityPipe(selectedTask.priority)
+        }`,
+      );
+      detailLines.push(
+        `  ${colors.bold.white("Tags:")}        ${
+          selectedTask.tags && selectedTask.tags.length > 0
+            ? selectedTask.tags.join(", ")
+            : colors.dim("-")
+        }`,
+      );
+      detailLines.push(
+        `  ${colors.bold.white("Due Date:")}    ${
+          selectedTask.dueDate
+            ? colors.cyan(selectedTask.dueDate)
+            : colors.dim("-")
+        }`,
+      );
+      detailLines.push("");
+      detailLines.push(
+        `  ${colors.dim("Created at: " + selectedTask.createdAt)}`,
+      );
+      detailLines.push(
+        `  ${colors.dim("Updated at: " + selectedTask.updatedAt)}`,
+      );
+      detailLines.push("");
+      detailLines.push(`  ${colors.bold.white("Details:")}`);
+      detailLines.push(
+        `  ${selectedTask.details || colors.dim("No details provided.")}`,
+      );
+    } else {
+      detailLines.push("\n  No tasks available.");
+    }
+
+    const mainPanel = UI.box(
+      "Details",
+      detailLines,
+      mainWidth,
+      height,
+      false,
+      isDimmed,
+    );
+
+    UI.renderLayout([sidebar, mainPanel], modal);
+    UI.footer(
+      multiSelectMode,
+      selectedTasks.size,
+      statsViewMode,
+      stats?.completionRate,
+      stats?.overdue,
+      searchMode,
+    );
+  }
+
+  try {
+    while (running) {
+      let tasks = await loadTasks();
+
+      // Apply search filter if active
+      let processedTasks: Task[];
+      if (searchMode) {
+        if (fuzzyMode) {
+          const fuzzyOptions: FuzzySearchOptions = { threshold: 0.7 };
+          const fuzzyResults = fuzzySearchTasks(
+            tasks,
+            searchTerm,
+            fuzzyOptions,
+          );
+          processedTasks = fuzzyResults.map((r) => r.task);
+        } else {
+          processedTasks = filterTasksBySearch(tasks, searchTerm);
+        }
+      } else {
+        processedTasks = tasks;
+      }
+
+      // Apply sorting
+      processedTasks = sortTasks(
+        processedTasks,
+        currentSortField,
+        currentSortOrder,
+      );
+
+      if (processedTasks.length > 0 && selectedIndex >= processedTasks.length) {
+        selectedIndex = processedTasks.length - 1;
+      }
+
+      // Calculate stats for footer status bar (use original tasks for stats)
+      const stats = calculateStats(tasks);
+
+      await render(processedTasks, undefined, stats);
+
+      const reader = Deno.stdin.readable.getReader();
+      const { value, done } = await reader.read();
+      reader.releaseLock();
+
+      if (done) break;
+
+      const keys = new TextDecoder().decode(value);
+
+      switch (keys) {
+        case "j":
+        case "\u001b[B": // Down arrow
+          selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
+          break;
+        case "k":
+        case "\u001b[A": // Up arrow
+          selectedIndex = Math.max(0, selectedIndex - 1);
+          break;
+        case "a":
+          cleanup();
+          await addCommand(undefined, {
+            modal: true,
+            renderBackground: () => render(tasks),
+          });
+          Deno.stdin.setRaw(true);
+          break;
+        case "\t": // Tab - Toggle multi-select mode
+          multiSelectMode = !multiSelectMode;
+          if (!multiSelectMode) {
+            selectedTasks.clear(); // Clear selections when exiting multi-select
+          }
+          break;
+        case " ": // Space - Select/deselect current task (multi-select mode)
+          if (multiSelectMode && tasks[selectedIndex]) {
+            const taskId = tasks[selectedIndex].id;
+            if (selectedTasks.has(taskId)) {
+              selectedTasks.delete(taskId);
+            } else {
+              selectedTasks.add(taskId);
+            }
+          }
+          break;
+        case "u":
+        case "\r": // Enter
+          if (multiSelectMode && selectedTasks.size > 0) {
+            // Show bulk actions menu
+            cleanup();
+            const updatedSelection = await showBulkActionsMenu(
+              tasks,
+              Array.from(selectedTasks),
+            );
+            // Update the selectedTasks set with the returned selection
+            selectedTasks.clear();
+            updatedSelection.forEach((id) => selectedTasks.add(id));
+            Deno.stdin.setRaw(true);
+          } else if (!multiSelectMode && tasks[selectedIndex]) {
+            cleanup();
+            await updateCommand(tasks[selectedIndex].id, {
+              modal: true,
+              renderBackground: () =>
+                render(tasks, { lines: [], width: 60, height: 8 }),
+            });
+            Deno.stdin.setRaw(true);
+          }
+          break;
+        case "d":
+          if (tasks[selectedIndex]) {
+            cleanup();
+            await deleteCommand(tasks[selectedIndex].id, {
+              modal: true,
+              renderBackground: () =>
+                render(tasks, { lines: [], width: 60, height: 6 }),
+            });
+            Deno.stdin.setRaw(true);
+          }
+          break;
+        case "m":
+          if (tasks[selectedIndex]) {
+            cleanup();
+            await markCommand(undefined, tasks[selectedIndex].id, {
+              modal: true,
+              renderBackground: () =>
+                render(tasks, { lines: [], width: 60, height: 8 }),
+            });
+            Deno.stdin.setRaw(true);
+          }
+          break;
+        case "s":
+          statsViewMode = !statsViewMode;
+          // Reset selection when switching to stats mode
+          if (statsViewMode) {
+            selectedIndex = 0;
+            selectedTasks.clear();
+            multiSelectMode = false;
+          }
+          break;
+        case "/":
+          // Enter exact search mode
+          fuzzyMode = false;
+          await performSearch();
+          break;
+        case "?":
+          // Enter fuzzy search mode
+          fuzzyMode = true;
+          await performSearch();
+          break;
+        case "\u001b": // ESC key
+          if (searchMode) {
+            // Clear search
+            searchTerm = "";
+            searchMode = false;
+            fuzzyMode = false;
+            selectedIndex = 0;
+            selectedTasks.clear();
+            multiSelectMode = false;
+          }
+          break;
+        case "h": // Help/Settings menu
+          cleanup();
+          await showMainMenu();
+          Deno.stdin.setRaw(true);
+          break;
+        case "o": { // Cycle sort field
+          const sortFields = [
+            "id",
+            "due-date",
+            "priority",
+            "status",
+            "created",
+            "updated",
+            "description",
+          ];
+          const currentIndex = sortFields.indexOf(currentSortField);
+          currentSortField = sortFields[(currentIndex + 1) % sortFields.length];
+          break;
+        }
+        case "r": { // Reverse sort order
+          currentSortOrder = currentSortOrder === "asc" ? "desc" : "asc";
+          break;
+        }
+        case "q":
+        case "\u0003": // Ctrl+C
+          running = false;
+          break;
+      }
+    }
+  } finally {
+    cleanup();
+  }
+
+  UI.clearScreen();
+  console.log("Goodbye! 👋");
 }
 
 /**
  * Show bulk actions menu for selected tasks
  * Returns the updated selected IDs after the operation
  */
-async function showBulkActionsMenu(tasks: Task[], selectedIds: number[]): Promise<number[]> {
-    const taskSummaries = getTaskSummaries(tasks, selectedIds);
+async function showBulkActionsMenu(
+  tasks: Task[],
+  selectedIds: number[],
+): Promise<number[]> {
+  const taskSummaries = getTaskSummaries(tasks, selectedIds);
 
-    console.clear();
-    UI.header();
+  console.clear();
+  UI.header();
 
-    console.log(`  ${colors.bold.magenta("Bulk Actions Menu")}`);
-    console.log(`  ${colors.dim("Selected tasks:")}`);
-    taskSummaries.forEach(summary => console.log(`    ${summary}`));
-    console.log("");
+  console.log(`  ${colors.bold.magenta("Bulk Actions Menu")}`);
+  console.log(`  ${colors.dim("Selected tasks:")}`);
+  taskSummaries.forEach((summary) => console.log(`    ${summary}`));
+  console.log("");
 
-    const action = await Select.prompt({
-        message: "Choose bulk action:",
+  const action = await Select.prompt({
+    message: "Choose bulk action:",
+    options: [
+      { name: "Mark as...", value: "mark" },
+      { name: "Update properties", value: "update" },
+      { name: "Delete selected", value: "delete" },
+      { name: "Cancel", value: "cancel" },
+    ],
+  });
+
+  if (action === "cancel") {
+    return selectedIds; // Return unchanged selection
+  }
+
+  try {
+    if (action === "mark") {
+      const statusOptions = ["todo", "in-progress", "done"];
+      const selectedStatus = await Select.prompt({
+        message: `Mark ${selectedIds.length} tasks as:`,
+        options: statusOptions,
+      });
+
+      const result = await bulkMarkTasks(selectedIds, selectedStatus);
+      console.log("");
+      if (result.successCount > 0) {
+        UI.success(`${result.successCount} tasks marked as ${selectedStatus}.`);
+      }
+      if (result.errors.length > 0) {
+        result.errors.forEach((error) => {
+          UI.error(`Task ${error.id}: ${error.error}`);
+        });
+        // Return only the failed task IDs to keep them selected
+        return result.errors.map((error) => error.id);
+      }
+      // All tasks marked successfully, return empty selection
+      return [];
+    } else if (action === "update") {
+      console.log("");
+      console.log("Update properties for selected tasks:");
+
+      const changes: Partial<Task> = {};
+
+      // Priority update
+      const priorityOptions = ["skip", "low", "medium", "high", "critical"];
+      const prioritySelection = await Select.prompt({
+        message: "Update priority:",
         options: [
-            { name: "Mark as...", value: "mark" },
-            { name: "Update properties", value: "update" },
-            { name: "Delete selected", value: "delete" },
-            { name: "Cancel", value: "cancel" }
-        ]
-    });
+          { name: "Skip - keep current", value: "skip" },
+          { name: "Low", value: "low" },
+          { name: "Medium", value: "medium" },
+          { name: "High", value: "high" },
+          { name: "Critical", value: "critical" },
+        ],
+      });
 
-    if (action === "cancel") {
-        return selectedIds; // Return unchanged selection
-    }
+      if (prioritySelection !== "skip") {
+        changes.priority = prioritySelection as TaskPriority;
+      }
 
-    try {
-        if (action === "mark") {
-            const statusOptions = ["todo", "in-progress", "done"];
-            const selectedStatus = await Select.prompt({
-                message: `Mark ${selectedIds.length} tasks as:`,
-                options: statusOptions
-            });
+      // Tags update (simplified for TUI)
+      const tagsOptions = ["skip", "clear", "urgent", "work", "personal"];
+      const tagsSelection = await Select.prompt({
+        message: "Update tags:",
+        options: [
+          { name: "Skip - keep current", value: "skip" },
+          { name: "Clear all tags", value: "clear" },
+          { name: "Add 'urgent' tag", value: "urgent" },
+          { name: "Add 'work' tag", value: "work" },
+          { name: "Add 'personal' tag", value: "personal" },
+        ],
+      });
 
-            const result = await bulkMarkTasks(selectedIds, selectedStatus);
-            console.log("");
-            if (result.successCount > 0) {
-                UI.success(`${result.successCount} tasks marked as ${selectedStatus}.`);
-            }
-            if (result.errors.length > 0) {
-                result.errors.forEach(error => {
-                    UI.error(`Task ${error.id}: ${error.error}`);
-                });
-                // Return only the failed task IDs to keep them selected
-                return result.errors.map(error => error.id);
-            }
-            // All tasks marked successfully, return empty selection
-            return [];
+      if (tagsSelection === "clear") {
+        changes.tags = [];
+      } else if (tagsSelection !== "skip") {
+        changes.tags = [tagsSelection];
+      }
 
-        } else if (action === "update") {
-            console.log("");
-            console.log("Update properties for selected tasks:");
-
-            const changes: Partial<Task> = {};
-
-            // Priority update
-            const priorityOptions = ["skip", "low", "medium", "high", "critical"];
-            const prioritySelection = await Select.prompt({
-                message: "Update priority:",
-                options: [
-                    { name: "Skip - keep current", value: "skip" },
-                    { name: "Low", value: "low" },
-                    { name: "Medium", value: "medium" },
-                    { name: "High", value: "high" },
-                    { name: "Critical", value: "critical" }
-                ]
-            });
-
-            if (prioritySelection !== "skip") {
-                changes.priority = prioritySelection as TaskPriority;
-            }
-
-            // Tags update (simplified for TUI)
-            const tagsOptions = ["skip", "clear", "urgent", "work", "personal"];
-            const tagsSelection = await Select.prompt({
-                message: "Update tags:",
-                options: [
-                    { name: "Skip - keep current", value: "skip" },
-                    { name: "Clear all tags", value: "clear" },
-                    { name: "Add 'urgent' tag", value: "urgent" },
-                    { name: "Add 'work' tag", value: "work" },
-                    { name: "Add 'personal' tag", value: "personal" }
-                ]
-            });
-
-            if (tagsSelection === "clear") {
-                changes.tags = [];
-            } else if (tagsSelection !== "skip") {
-                changes.tags = [tagsSelection];
-            }
-
-            if (Object.keys(changes).length > 0) {
-                const result = await bulkUpdateTasks(selectedIds, changes);
-                if (result.successCount > 0) {
-                    UI.success(`${result.successCount} tasks updated.`);
-                }
-                if (result.errors.length > 0) {
-                    result.errors.forEach(error => {
-                        UI.error(`Task ${error.id}: ${error.error}`);
-                    });
-                    // Return only the failed task IDs to keep them selected
-                    return result.errors.map(error => error.id);
-                }
-                // All tasks updated successfully, return empty selection
-                return [];
-            } else {
-                UI.info("No changes made.");
-                return selectedIds; // No changes made, keep original selection
-            }
-
-        } else if (action === "delete") {
-            const confirmOptions = ["no", "yes"];
-            const confirmed = await Select.prompt({
-                message: `Delete ${selectedIds.length} selected tasks?`,
-                options: [
-                    { name: "No, cancel", value: "no" },
-                    { name: "Yes, delete them", value: "yes" }
-                ]
-            });
-
-            if (confirmed === "yes") {
-                const result = await bulkDeleteTasks(selectedIds);
-                if (result.successCount > 0) {
-                    UI.success(`${result.successCount} tasks deleted.`);
-                }
-                if (result.errors.length > 0) {
-                    result.errors.forEach(error => {
-                        UI.error(`Task ${error.id}: ${error.error}`);
-                    });
-                    // Return only the failed task IDs to keep them selected
-                    return result.errors.map(error => error.id);
-                }
-                // All tasks deleted successfully, return empty selection
-                return [];
-            }
-            return selectedIds; // If not confirmed, keep original selection
+      if (Object.keys(changes).length > 0) {
+        const result = await bulkUpdateTasks(selectedIds, changes);
+        if (result.successCount > 0) {
+          UI.success(`${result.successCount} tasks updated.`);
         }
+        if (result.errors.length > 0) {
+          result.errors.forEach((error) => {
+            UI.error(`Task ${error.id}: ${error.error}`);
+          });
+          // Return only the failed task IDs to keep them selected
+          return result.errors.map((error) => error.id);
+        }
+        // All tasks updated successfully, return empty selection
+        return [];
+      } else {
+        UI.info("No changes made.");
+        return selectedIds; // No changes made, keep original selection
+      }
+    } else if (action === "delete") {
+      const confirmOptions = ["no", "yes"];
+      const confirmed = await Select.prompt({
+        message: `Delete ${selectedIds.length} selected tasks?`,
+        options: [
+          { name: "No, cancel", value: "no" },
+          { name: "Yes, delete them", value: "yes" },
+        ],
+      });
 
-        // Wait for user to see results
-        console.log("");
-        console.log("Press any key to continue...");
-        // Simple timeout for TUI - user can press any key to continue
-        await new Promise(resolve => setTimeout(resolve, 3000));
-
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        UI.error(`Bulk operation failed: ${message}`);
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        return selectedIds; // On error, keep original selection
+      if (confirmed === "yes") {
+        const result = await bulkDeleteTasks(selectedIds);
+        if (result.successCount > 0) {
+          UI.success(`${result.successCount} tasks deleted.`);
+        }
+        if (result.errors.length > 0) {
+          result.errors.forEach((error) => {
+            UI.error(`Task ${error.id}: ${error.error}`);
+          });
+          // Return only the failed task IDs to keep them selected
+          return result.errors.map((error) => error.id);
+        }
+        // All tasks deleted successfully, return empty selection
+        return [];
+      }
+      return selectedIds; // If not confirmed, keep original selection
     }
 
-    // Fallback return (should not be reached)
-    return selectedIds;
+    // Wait for user to see results
+    console.log("");
+    console.log("Press any key to continue...");
+    // Simple timeout for TUI - user can press any key to continue
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    UI.error(`Bulk operation failed: ${message}`);
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+    return selectedIds; // On error, keep original selection
+  }
+
+  // Fallback return (should not be reached)
+  return selectedIds;
 }

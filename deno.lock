@@ -7,6 +7,7 @@
     "jsr:@cliffy/keycode@1.0.0-rc.4": "1.0.0-rc.4",
     "jsr:@cliffy/prompt@1.0.0-rc.4": "1.0.0-rc.4",
     "jsr:@cliffy/table@1.0.0-rc.4": "1.0.0-rc.4",
+    "jsr:@libn/fuzzy@0.4": "0.4.0",
     "jsr:@mxkit/inquire@0.1": "0.1.0",
     "jsr:@nothing628/chalk@^1.0.1": "1.0.1",
     "jsr:@sauber/table@0.1": "0.1.0",
@@ -76,6 +77,9 @@
         "jsr:@std/console",
         "jsr:@std/fmt@0.221"
       ]
+    },
+    "@libn/fuzzy@0.4.0": {
+      "integrity": "6a36f41396a7f0112394fa9591134a9b95e9e7231072cb71712bdffe996b8aa4"
     },
     "@mxkit/inquire@0.1.0": {
       "integrity": "3013a876c2fdc32aedce7d13166c43d679637de3a11bd8a1e63091d240b58437",
@@ -703,6 +707,7 @@
       "jsr:@cliffy/command@1.0.0-rc.4",
       "jsr:@cliffy/prompt@1.0.0-rc.4",
       "jsr:@cliffy/table@1.0.0-rc.4",
+      "jsr:@libn/fuzzy@0.4",
       "jsr:@mxkit/inquire@0.1",
       "jsr:@nothing628/chalk@^1.0.1",
       "jsr:@sauber/table@0.1",

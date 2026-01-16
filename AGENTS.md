@@ -1,10 +1,12 @@
 # Agent Guidelines for Task List CLI
 
-This document provides guidelines for AI agents working on the LazyTask CLI codebase.
+This document provides guidelines for AI agents working on the LazyTask CLI
+codebase.
 
 ## Build, Test, and Lint Commands
 
 ### Running Tests
+
 ```bash
 # Run all tests
 deno test
@@ -17,6 +19,7 @@ deno test --coverage=coverage main_test.ts
 ```
 
 ### Linting and Formatting
+
 ```bash
 # Lint the codebase
 deno lint
@@ -29,6 +32,7 @@ deno fmt --check
 ```
 
 ### Development and Build Commands
+
 ```bash
 # Development server (watch mode)
 deno task dev
@@ -51,6 +55,7 @@ deno task install
 ### TypeScript and Deno Conventions
 
 #### Imports
+
 - Use JSR imports for Deno standard library and third-party modules
 - Group imports: external libraries first, then local imports
 - Use relative imports for local modules (`./`, `../`)
@@ -67,6 +72,7 @@ import { UI } from "./ui.ts";
 ```
 
 #### Types and Interfaces
+
 - Define interfaces in `types.ts` for shared types
 - Use union types for enums (string literals)
 - Use optional properties with `?` for nullable fields
@@ -77,18 +83,19 @@ export type TaskStatus = "todo" | "in-progress" | "done";
 export type TaskPriority = "low" | "medium" | "high" | "critical";
 
 export interface Task {
-    id: number;
-    description: string;
-    details?: string;
-    status: TaskStatus;
-    priority: TaskPriority;
-    dueDate?: string;
-    createdAt: string;
-    updatedAt: string;
+  id: number;
+  description: string;
+  details?: string;
+  status: TaskStatus;
+  priority: TaskPriority;
+  dueDate?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 ```
 
 #### Naming Conventions
+
 - **Files**: kebab-case (`add-command.ts`, `task-storage.ts`)
 - **Functions**: camelCase (`addTask`, `loadTasks`, `getNextId`)
 - **Variables**: camelCase (`taskList`, `newTask`)
@@ -97,6 +104,7 @@ export interface Task {
 - **Properties**: camelCase (`taskId`, `createdAt`)
 
 #### Functions and Async Code
+
 - Use async/await for asynchronous operations
 - Return `Promise<T>` for async functions
 - Use arrow functions for callbacks and short functions
@@ -104,35 +112,39 @@ export interface Task {
 
 ```typescript
 export async function loadTasks(): Promise<Task[]> {
-    try {
-        const data = await Deno.readTextFile(TASK_FILE);
-        return JSON.parse(data);
-    } catch {
-        return [];
-    }
+  try {
+    const data = await Deno.readTextFile(TASK_FILE);
+    return JSON.parse(data);
+  } catch {
+    return [];
+  }
 }
 ```
 
 #### Error Handling
+
 - Use try/catch blocks for file operations and external calls
-- Empty catch blocks are acceptable for optional operations (loading files that may not exist)
+- Empty catch blocks are acceptable for optional operations (loading files that
+  may not exist)
 - Throw descriptive errors for invalid inputs
 - Use early returns to avoid deep nesting
 
 ```typescript
 export async function saveTasks(tasks: Task[]): Promise<void> {
-    try {
-        await Deno.writeTextFile(TASK_FILE, JSON.stringify(tasks, null, 2));
-    } catch (error) {
-        throw new Error(`Failed to save tasks: ${error.message}`);
-    }
+  try {
+    await Deno.writeTextFile(TASK_FILE, JSON.stringify(tasks, null, 2));
+  } catch (error) {
+    throw new Error(`Failed to save tasks: ${error.message}`);
+  }
 }
 ```
 
 #### Control Flow and Logic
+
 - Use switch statements for enum-based logic
 - Prefer array methods (map, filter, find) over loops when possible
-- Use optional chaining (`?.`) and nullish coalescing (`??`) for safe property access
+- Use optional chaining (`?.`) and nullish coalescing (`??`) for safe property
+  access
 - Destructure objects and arrays for cleaner code
 
 ```typescript
@@ -145,6 +157,7 @@ const { description, details } = task;
 ### CLI and TUI Patterns
 
 #### Command Structure
+
 - Use Cliffy for CLI argument parsing
 - Define commands in `main.ts` with clear descriptions
 - Use action callbacks for command execution
@@ -160,12 +173,14 @@ const { description, details } = task;
 ```
 
 #### UI/UX Patterns
+
 - Use consistent colors from Cliffy for status indicators
 - Provide clear success/error/info messages
 - Use ANSI escape codes for cursor positioning in TUI
 - Handle both interactive (TUI) and non-interactive (CLI) modes
 
 #### Task Management Logic
+
 - Always load/save tasks through storage functions
 - Use `getNextId()` for generating new task IDs
 - Update `updatedAt` timestamp on modifications
@@ -174,6 +189,7 @@ const { description, details } = task;
 ### File Organization
 
 #### Project Structure
+
 ```
 ├── main.ts              # CLI entry point
 ├── main_test.ts         # Test suite
@@ -189,6 +205,7 @@ const { description, details } = task;
 ```
 
 #### File Responsibilities
+
 - `main.ts`: CLI setup and command routing only
 - `src/commands/*.ts`: Individual command logic
 - `src/storage.ts`: File I/O and data persistence
@@ -199,6 +216,7 @@ const { description, details } = task;
 ### Testing Guidelines
 
 #### Test Structure
+
 - Use Deno's built-in test framework
 - Group related tests with `t.step()`
 - Test both success and error cases
@@ -206,17 +224,18 @@ const { description, details } = task;
 
 ```typescript
 Deno.test("Task management", async (t) => {
-    await t.step("add task", async () => {
-        // test logic
-    });
+  await t.step("add task", async () => {
+    // test logic
+  });
 
-    await t.step("update task", async () => {
-        // test logic
-    });
+  await t.step("update task", async () => {
+    // test logic
+  });
 });
 ```
 
 #### Assertions
+
 - Use `@std/assert` for assertions
 - Prefer `assertEquals` for value comparisons
 - Test both return values and side effects
@@ -224,12 +243,14 @@ Deno.test("Task management", async (t) => {
 ### Git and Workflow
 
 #### Commit Messages
+
 - Use imperative mood ("Add feature" not "Added feature")
 - Start with action verb (Add, Fix, Update, Remove)
 - Keep first line under 50 characters
 - Add body for complex changes
 
 #### Branching
+
 - Use descriptive branch names (`feature/add-priority-filter`)
 - Keep branches focused on single features
 - Rebase on main before merging
@@ -237,11 +258,13 @@ Deno.test("Task management", async (t) => {
 ### Performance Considerations
 
 #### File Operations
+
 - Minimize file reads/writes
 - Cache loaded data when possible
 - Use atomic operations for data integrity
 
 #### TUI Rendering
+
 - Batch console output when possible
 - Use efficient string concatenation
 - Handle terminal resizing gracefully
@@ -249,11 +272,13 @@ Deno.test("Task management", async (t) => {
 ### Security Best Practices
 
 #### Input Validation
+
 - Validate user inputs (dates, enums, IDs)
 - Sanitize file paths
 - Use parameterized operations where available
 
 #### File System Access
+
 - Use Deno permissions appropriately (`--allow-read`, `--allow-write`)
 - Validate file existence before operations
 - Handle permission errors gracefully
@@ -261,10 +286,11 @@ Deno.test("Task management", async (t) => {
 ### Code Quality Checks
 
 Before committing changes, ensure:
+
 1. `deno lint` passes
 2. `deno fmt --check` passes
 3. `deno test` passes
 4. All imports are used
 5. Types are properly defined
 6. Error cases are handled</content>
-<parameter name="filePath">/home/sam/github/task-list-cli/AGENTS.md
+   <parameter name="filePath">/home/sam/github/task-list-cli/AGENTS.md

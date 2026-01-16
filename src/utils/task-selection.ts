@@ -10,12 +10,12 @@ export function parseTaskIds(input: string): number[] {
   }
 
   const ids: number[] = [];
-  const parts = input.split(",").map(p => p.trim());
+  const parts = input.split(",").map((p) => p.trim());
 
   for (const part of parts) {
     if (part.includes("-")) {
       // Handle ranges like "5-8"
-      const [startStr, endStr] = part.split("-").map(s => s.trim());
+      const [startStr, endStr] = part.split("-").map((s) => s.trim());
       const start = parseInt(startStr, 10);
       const end = parseInt(endStr, 10);
 
@@ -46,8 +46,11 @@ export function parseTaskIds(input: string): number[] {
 /**
  * Validate that task IDs exist in the task list
  */
-export function validateTaskIds(ids: number[], existingTasks: Task[]): { valid: number[], invalid: number[] } {
-  const existingIds = new Set(existingTasks.map(t => t.id));
+export function validateTaskIds(
+  ids: number[],
+  existingTasks: Task[],
+): { valid: number[]; invalid: number[] } {
+  const existingIds = new Set(existingTasks.map((t) => t.id));
   const valid: number[] = [];
   const invalid: number[] = [];
 
@@ -66,8 +69,8 @@ export function validateTaskIds(ids: number[], existingTasks: Task[]): { valid: 
  * Get task summaries for display in confirmations
  */
 export function getTaskSummaries(tasks: Task[], ids: number[]): string[] {
-  return ids.map(id => {
-    const task = tasks.find(t => t.id === id);
+  return ids.map((id) => {
+    const task = tasks.find((t) => t.id === id);
     return task ? `[${id}] ${task.description}` : `[${id}] Task not found`;
   });
 }
@@ -77,8 +80,8 @@ export function getTaskSummaries(tasks: Task[], ids: number[]): string[] {
  */
 export function prepareBulkOperation(
   idInput: string,
-  existingTasks: Task[]
-): { taskIds: number[], errors: string[] } {
+  existingTasks: Task[],
+): { taskIds: number[]; errors: string[] } {
   const errors: string[] = [];
 
   try {
