@@ -373,7 +373,25 @@ export async function dashboardCommand() {
     let sidebarTitle: string;
     let sidebarLines: string[];
 
-    if (statsViewMode) {
+    if (editMode === "add") {
+      // Add mode: show task preview in sidebar
+      sidebarTitle = "Preview";
+      sidebarLines = [];
+      sidebarLines.push("");
+      sidebarLines.push(`  ${colors.bold.cyan("New Task Preview")}`);
+      sidebarLines.push("");
+      sidebarLines.push(`  ${colors.bold.white("Description:")} ${editData.description || colors.dim("(empty)")}`);
+      sidebarLines.push(`  ${colors.bold.white("Priority:")}    ${editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("medium")}`);
+      sidebarLines.push(`  ${colors.bold.white("Details:")}     ${editData.details || colors.dim("(none)")}`);
+      sidebarLines.push(`  ${colors.bold.white("Due Date:")}   ${editData.dueDate || colors.dim("(none)")}`);
+      sidebarLines.push(`  ${colors.bold.white("Tags:")}        ${editData.tags && editData.tags.length > 0 ? editData.tags.join(", ") : colors.dim("(none)")}`);
+      sidebarLines.push("");
+      sidebarLines.push(`  ${colors.dim("Press Enter to save")}`);
+      // Fill remaining height
+      while (sidebarLines.length < height - 2) {
+        sidebarLines.push("");
+      }
+    } else if (statsViewMode) {
       // Stats view: show statistics in sidebar
       const stats = calculateStats(tasks);
       sidebarTitle = "Statistics";
