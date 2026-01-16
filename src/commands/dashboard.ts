@@ -365,74 +365,10 @@ export async function dashboardCommand() {
 
     const { columns, rows } = Deno.consoleSize();
     const terminalWidth = Math.max(80, columns - 4);
-    const sidebarWidth = Math.floor(terminalWidth * 0.35);
-    const mainWidth = terminalWidth - sidebarWidth - 2;
     const height = Math.max(10, rows - 12);
-    const isDimmed = !!modal;
 
-    let sidebarTitle: string;
-    let sidebarLines: string[];
-
-    if (editMode === "add") {
-      // Add mode: show task preview in sidebar
-      sidebarTitle = "Preview";
-      sidebarLines = [];
-      sidebarLines.push("");
-      sidebarLines.push(`  ${colors.bold.cyan("New Task Preview")}`);
-      sidebarLines.push("");
-      sidebarLines.push(`  ${colors.bold.white("Description:")} ${editData.description || colors.dim("(empty)")}`);
-      sidebarLines.push(`  ${colors.bold.white("Priority:")}    ${editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("medium")}`);
-      sidebarLines.push(`  ${colors.bold.white("Details:")}     ${editData.details || colors.dim("(none)")}`);
-      sidebarLines.push(`  ${colors.bold.white("Due Date:")}   ${editData.dueDate || colors.dim("(none)")}`);
-      sidebarLines.push(`  ${colors.bold.white("Tags:")}        ${editData.tags && editData.tags.length > 0 ? editData.tags.join(", ") : colors.dim("(none)")}`);
-      sidebarLines.push("");
-      sidebarLines.push(`  ${colors.dim("Press Enter to save")}`);
-      // Fill remaining height
-      while (sidebarLines.length < height - 2) {
-        sidebarLines.push("");
-      }
-    } else if (statsViewMode) {
-      // Stats view: show statistics in sidebar
-      const stats = calculateStats(tasks);
-      sidebarTitle = "Statistics";
-      sidebarLines = UI.renderStatsPanel(stats, sidebarWidth, height);
-    } else {
-      // Tasks view: show task list in sidebar
-      sidebarTitle = "Tasks";
-      sidebarLines = tasks.map((t, i) => {
-        const isCurrent = i === selectedIndex;
-        const isMultiSelected = selectedTasks.has(t.id);
-
-        let prefix = "  ";
-        if (isCurrent && multiSelectMode) {
-          prefix = colors.bold.magenta("❯ ");
-        } else if (isCurrent) {
-          prefix = colors.bold.cyan("❯ ");
-        }
-
-        const statusIcon = t.status === "done"
-          ? colors.green("✔")
-          : t.status === "in-progress"
-          ? colors.yellow("●")
-          : colors.red("●");
-
-        // Add selection indicator for multi-selected tasks
-        const selectIndicator = isMultiSelected
-          ? colors.bold.blue("[✓] ")
-          : "    ";
-        const line =
-          `${selectIndicator}${prefix}${statusIcon} ${t.description}`;
-
-        // Highlight current selection or multi-selected tasks
-        if (isCurrent && !multiSelectMode) {
-          return colors.bgRgb24(line, { r: 50, g: 50, b: 50 });
-        } else if (isMultiSelected) {
-          return colors.bgRgb24(line, { r: 30, g: 30, b: 60 });
-        }
-        return line;
-      });
-    }
-
+    // Create sidebar
+    const sidebarWidth = editMode === "add" ? Math.floor(terminalWidth * 0.2) : Math.floor(terminalWidth * 0.35);
     const sidebar = UI.box(
       sidebarTitle,
       sidebarLines,
@@ -442,130 +378,69 @@ export async function dashboardCommand() {
       isDimmed,
     );
 
-    const selectedTask = tasks[selectedIndex];
-    let mainPanelTitle: string;
-    const detailLines: string[] = [];
+    let panels: string[][];
 
-    if (multiSelectMode && selectedTasks.size > 0) {
-      // Show multi-selection summary
-      const selectedTaskList = Array.from(selectedTasks).map((id) =>
-        tasks.find((t) => t.id === id)
-      ).filter(Boolean) as Task[];
+    if (editMode === "add") {
+      // Three-panel layout: sidebar, form, preview
+      const formWidth = Math.floor(terminalWidth * 0.35);
+      const previewWidth = terminalWidth - sidebarWidth - formWidth - 4; // Account for panel separators
 
-      detailLines.push("");
-      detailLines.push(`  ${colors.bold.magenta("Multi-Selection Mode")}`);
-      detailLines.push(
-        `  ${colors.bold.white("Selected:")}     ${selectedTasks.size} tasks`,
-      );
-      detailLines.push("");
-      detailLines.push(`  ${colors.bold.white("Selected Tasks:")}`);
-
-      const summaries = selectedTaskList.slice(0, 10).map((task) =>
-        `    ${task.id}: ${task.description.substring(0, 40)}${
-          task.description.length > 40 ? "..." : ""
-        }`
-      );
-      detailLines.push(...summaries);
-
-      if (selectedTaskList.length > 10) {
-        detailLines.push(`    ... and ${selectedTaskList.length - 10} more`);
+      // Build form panel
+      const formLines: string[] = [];
+      formLines.push("");
+      formLines.push(`  ${colors.bold.cyan("Add New Task")}`);
+      formLines.push("");
+      formLines.push(`${currentField === "description" ? colors.bold.yellow("➜") : "  "} Description: ${editData.description || colors.dim("(required)")}`);
+      formLines.push(`${currentField === "priority" ? colors.bold.yellow("➜") : "  "} Priority:    ${editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("medium")}`);
+      formLines.push(`${currentField === "details" ? colors.bold.yellow("➜") : "  "} Details:     ${editData.details || colors.dim("(optional)")}`);
+      formLines.push(`${currentField === "dueDate" ? colors.bold.yellow("➜") : "  "} Due Date:   ${editData.dueDate || colors.dim("(optional)")}`);
+      formLines.push(`${currentField === "tags" ? colors.bold.yellow("➜") : "  "} Tags:        ${editData.tags ? editData.tags.join(", ") : colors.dim("(optional)")}`);
+      formLines.push("");
+      formLines.push(`  ${colors.dim("Tab: Next • Enter: Save • Esc: Cancel")}`);
+      // Fill height
+      while (formLines.length < height - 2) {
+        formLines.push("");
       }
+      const formPanel = UI.box("Form", formLines, formWidth, height, false, false);
 
-      detailLines.push("");
-      detailLines.push(`  ${colors.dim("Press Enter for bulk actions")}`);
-      detailLines.push(
-        `  ${colors.dim("Press Tab to exit multi-select mode")}`,
-      );
-      mainPanelTitle = "Details";
-    } else if (selectedTask) {
-      // Show single task details
-      detailLines.push("");
-      detailLines.push(
-        `  ${colors.bold.white("ID:")}          ${
-          colors.dim(selectedTask.id.toString())
-        }`,
-      );
-      detailLines.push(
-        `  ${colors.bold.white("Title:")}       ${selectedTask.description}`,
-      );
-      detailLines.push(
-        `  ${colors.bold.white("Status:")}      ${
-          UI.statusPipe(selectedTask.status)
-        }`,
-      );
-      detailLines.push(
-        `  ${colors.bold.white("Priority:")}    ${
-          UI.priorityPipe(selectedTask.priority)
-        }`,
-      );
-      detailLines.push(
-        `  ${colors.bold.white("Tags:")}        ${
-          selectedTask.tags && selectedTask.tags.length > 0
-            ? selectedTask.tags.join(", ")
-            : colors.dim("-")
-        }`,
-      );
-      detailLines.push(
-        `  ${colors.bold.white("Due Date:")}    ${
-          selectedTask.dueDate
-            ? colors.cyan(selectedTask.dueDate)
-            : colors.dim("-")
-        }`,
-      );
-      detailLines.push("");
-      detailLines.push(
-        `  ${colors.dim("Created at: " + selectedTask.createdAt)}`,
-      );
-      detailLines.push(
-        `  ${colors.dim("Updated at: " + selectedTask.updatedAt)}`,
-      );
-      detailLines.push("");
-      detailLines.push(`  ${colors.bold.white("Details:")}`);
-      detailLines.push(
-        `  ${selectedTask.details || colors.dim("No details provided.")}`,
-      );
-      mainPanelTitle = "Details";
-    } else if (editMode === "add") {
-      // Render add task form
-      detailLines.push("");
-      detailLines.push(`  ${colors.bold.cyan("Adding New Task")}`);
-      detailLines.push("");
+      // Build preview panel
+      const previewLines: string[] = [];
+      previewLines.push("");
+      previewLines.push(`  ${colors.bold.white("Preview")}`);
+      previewLines.push("");
+      previewLines.push(`  ${colors.bold.white("Title:")} ${editData.description || colors.dim("...")}`);
+      previewLines.push(`  ${colors.bold.white("Priority:")} ${editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("Medium")}`);
+      if (editData.details) {
+        previewLines.push(`  ${colors.bold.white("Details:")} ${editData.details}`);
+      }
+      if (editData.dueDate) {
+        previewLines.push(`  ${colors.bold.white("Due:")} ${editData.dueDate}`);
+      }
+      if (editData.tags && editData.tags.length > 0) {
+        previewLines.push(`  ${colors.bold.white("Tags:")} ${editData.tags.join(", ")}`);
+      }
+      // Fill height
+      while (previewLines.length < height - 2) {
+        previewLines.push("");
+      }
+      const previewPanel = UI.box("Preview", previewLines, previewWidth, height, false, false);
 
-      const descLabel = currentField === "description" ? colors.bold.yellow("➜") : "  ";
-      detailLines.push(`${descLabel} ${colors.bold.white("Description:")} ${editData.description || colors.dim("(required)")}`);
-
-      const priorityLabel = currentField === "priority" ? colors.bold.yellow("➜") : "  ";
-      const priorityValue = editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("(optional)");
-      detailLines.push(`${priorityLabel} ${colors.bold.white("Priority:")}    ${priorityValue}`);
-
-      const detailsLabel = currentField === "details" ? colors.bold.yellow("➜") : "  ";
-      detailLines.push(`${detailsLabel} ${colors.bold.white("Details:")}     ${editData.details || colors.dim("(optional)")}`);
-
-      const dueDateLabel = currentField === "dueDate" ? colors.bold.yellow("➜") : "  ";
-      detailLines.push(`${dueDateLabel} ${colors.bold.white("Due Date:")}   ${editData.dueDate || colors.dim("(optional)")}`);
-
-      const tagsLabel = currentField === "tags" ? colors.bold.yellow("➜") : "  ";
-      detailLines.push(`${tagsLabel} ${colors.bold.white("Tags:")}        ${editData.tags ? editData.tags.join(", ") : colors.dim("(optional)")}`);
-
-      detailLines.push("");
-      detailLines.push(`  ${colors.dim("Tab/Shift-Tab: Navigate • Enter: Save • Esc: Cancel")}`);
-
-      mainPanelTitle = "Add Task";
+      panels = [sidebar, formPanel, previewPanel];
     } else {
-      detailLines.push("\n  No tasks available.");
-      mainPanelTitle = "Details";
+      // Two-panel layout: sidebar, details
+      const mainWidth = terminalWidth - sidebarWidth - 2;
+      const mainPanel = UI.box(
+        mainPanelTitle,
+        detailLines,
+        mainWidth,
+        height,
+        false,
+        isDimmed,
+      );
+      panels = [sidebar, mainPanel];
     }
 
-    const mainPanel = UI.box(
-      mainPanelTitle,
-      detailLines,
-      mainWidth,
-      height,
-      false,
-      isDimmed,
-    );
-
-    UI.renderLayout([sidebar, mainPanel], modal);
+    UI.renderLayout(panels, modal);
     UI.footer(
       multiSelectMode,
       selectedTasks.size,
