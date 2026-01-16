@@ -1,5 +1,6 @@
 import { assertEquals } from "jsr:@std/assert";
 import { loadTasks, saveTasks, exportTasks, importTasks } from "./src/storage.ts";
+import { sortTasks } from "./src/commands/list.ts";
 
 // Test data
 const testTasks = [
@@ -155,6 +156,38 @@ Deno.test("Data export/import functions", async (t) => {
 
     // Cleanup
     await Deno.remove(importPath);
+  });
+
+  // Test sorting functionality
+  await t.step("sort by priority descending", async () => {
+    const sorted = sortTasks(testTasks, 'priority', 'desc');
+    assertEquals(sorted[0].priority, 'high'); // High priority first
+    assertEquals(sorted[1].priority, 'low');  // Low priority second
+  });
+
+  await t.step("sort by due-date ascending", async () => {
+    const sorted = sortTasks(testTasks, 'due-date', 'asc');
+    // Task 1 has due date 2024-12-31, Task 2 has no due date (Infinity)
+    assertEquals(sorted[0].id, 1); // Task with due date first
+    assertEquals(sorted[1].id, 2); // Task without due date last
+  });
+
+  await t.step("sort by status ascending", async () => {
+    const sorted = sortTasks(testTasks, 'status', 'asc');
+    assertEquals(sorted[0].status, 'todo'); // Todo status first (1)
+    assertEquals(sorted[1].status, 'done'); // Done status second (3)
+  });
+
+  await t.step("sort by description ascending", async () => {
+    const sorted = sortTasks(testTasks, 'description', 'asc');
+    assertEquals(sorted[0].description, "Test task 1");
+    assertEquals(sorted[1].description, "Test task 2");
+  });
+
+  await t.step("invalid sort field falls back to original order", async () => {
+    const sorted = sortTasks(testTasks, 'invalid-field');
+    assertEquals(sorted[0].id, 1);
+    assertEquals(sorted[1].id, 2);
   });
 
   // Cleanup: Reset to empty

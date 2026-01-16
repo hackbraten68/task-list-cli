@@ -12,7 +12,7 @@ import { importCommand } from "./src/commands/import.ts";
 if (import.meta.main) {
   await new Command()
     .name("lazytask")
-    .version("0.6.0")
+    .version("0.7.0")
     .description("LazyTask - A lazydocker-inspired Task Management TUI")
     .default("dashboard")
     .command("dashboard", "Open the TUI dashboard")
@@ -24,6 +24,8 @@ if (import.meta.main) {
     .option("-p, --priority <priority:string>", "Filter by priority")
     .option("-t, --tags <tags:string>", "Filter by tags")
     .option("--search <search:string>", "Search tasks by keyword")
+    .option("--sort-by <field:string>", "Sort by field (due-date, priority, status, created, updated, description)")
+    .option("--sort-order <order:string>", "Sort order (asc or desc)", { default: "asc" })
     .action(async (options) => {
       await listCommand(options);
     })

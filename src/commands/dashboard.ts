@@ -7,6 +7,7 @@ import { addCommand } from "./add.ts";
 import { updateCommand } from "./update.ts";
 import { deleteCommand } from "./delete.ts";
 import { markCommand } from "./mark.ts";
+import { sortTasks } from "./list.ts";
 import { Task, TaskPriority, ExportOptions, ImportOptions } from "../types.ts";
 import { getTaskSummaries } from "../utils/task-selection.ts";
 
@@ -105,8 +106,11 @@ async function showHelpMenu(): Promise<void> {
     console.log("d             - Delete task");
     console.log("m             - Mark task status");
     console.log("a             - Add new task");
-    console.log("/             - Search tasks");
-    console.log("s             - Toggle statistics view");
+    console.log("u             - Update selected task");
+    console.log("d             - Delete selected task");
+    console.log("m             - Mark task status");
+    console.log("o             - Cycle sort field");
+    console.log("r             - Reverse sort order");
     console.log("h             - Help & Settings menu");
     console.log("q or Ctrl+C   - Quit");
     console.log("");
@@ -233,6 +237,8 @@ export async function dashboardCommand() {
     let statsViewMode = false; // Toggle between tasks and stats view
     let searchTerm = ""; // Current search term
     let searchMode = false; // Whether search is active
+    let currentSortField = 'id'; // Current sort field
+    let currentSortOrder: 'asc' | 'desc' = 'asc'; // Current sort order
     let running = true;
 
     // Set stdin to raw mode
@@ -256,7 +262,12 @@ export async function dashboardCommand() {
 
         // Show search status if active
         if (searchMode) {
-            console.log(`  🔍 Search: "${searchTerm}" (${tasks.length} matches)`);
+            console.log(`  Search: "${searchTerm}" (${tasks.length} matches)`);
+        }
+
+        // Show sort status if active (not default id order)
+        if (currentSortField !== 'id') {
+            console.log(`  Sorted: ${currentSortField} (${currentSortOrder})`);
         }
 
         const { columns, rows } = Deno.consoleSize();
@@ -364,16 +375,19 @@ export async function dashboardCommand() {
             let tasks = await loadTasks();
 
             // Apply search filter if active
-            const filteredTasks = searchMode ? filterTasksBySearch(tasks, searchTerm) : tasks;
+            let processedTasks = searchMode ? filterTasksBySearch(tasks, searchTerm) : tasks;
 
-            if (filteredTasks.length > 0 && selectedIndex >= filteredTasks.length) {
-                selectedIndex = filteredTasks.length - 1;
+            // Apply sorting
+            processedTasks = sortTasks(processedTasks, currentSortField, currentSortOrder);
+
+            if (processedTasks.length > 0 && selectedIndex >= processedTasks.length) {
+                selectedIndex = processedTasks.length - 1;
             }
 
             // Calculate stats for footer status bar (use original tasks for stats)
             const stats = calculateStats(tasks);
 
-            await render(filteredTasks, undefined, stats);
+            await render(processedTasks, undefined, stats);
 
             const reader = Deno.stdin.readable.getReader();
             const { value, done } = await reader.read();
@@ -517,6 +531,14 @@ export async function dashboardCommand() {
                     cleanup();
                     await showMainMenu();
                     Deno.stdin.setRaw(true);
+                    break;
+                case "o": // Cycle sort field
+                    const sortFields = ['id', 'due-date', 'priority', 'status', 'created', 'updated', 'description'];
+                    const currentIndex = sortFields.indexOf(currentSortField);
+                    currentSortField = sortFields[(currentIndex + 1) % sortFields.length];
+                    break;
+                case "r": // Reverse sort order
+                    currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
                     break;
                 case "q":
                 case "\u0003": // Ctrl+C

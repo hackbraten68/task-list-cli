@@ -81,6 +81,9 @@ lazytask list --tags urgent
 lazytask list --tags "work,personal"
 lazytask list --search "meeting"
 lazytask list --search "urgent" --status todo
+lazytask list --sort-by priority --sort-order desc
+lazytask list --sort-by due-date --status todo
+lazytask list --sort-by created --sort-order desc
 ```
 
 **Options:**
@@ -88,6 +91,8 @@ lazytask list --search "urgent" --status todo
 - `-p, --priority <priority>` — Filter by priority
 - `-t, --tags <tags>` — Filter by tags (comma-separated, partial matches supported)
 - `--search <keyword>` — Search tasks by keyword in description, details, or tags
+- `--sort-by <field>` — Sort by field (`due-date`, `priority`, `status`, `created`, `updated`, `description`)
+- `--sort-order <order>` — Sort order (`asc` or `desc`, default: `asc`)
 
 ### Update Tasks
 ```bash
@@ -279,6 +284,8 @@ id,description,details,status,priority,dueDate,tags,createdAt,updatedAt
 | `u` / `⏎` | Update selected task |
 | `d` | Delete selected task |
 | `m` | Mark status |
+| `o` | Cycle sort field |
+| `r` | Reverse sort order |
 | `h` | Help & Settings menu |
 | `q` / `⌃C` | Quit |
 

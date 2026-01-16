@@ -13,7 +13,41 @@ function filterTasksBySearch(tasks: Task[], searchTerm: string): Task[] {
     );
 }
 
-export async function listCommand(options: { status?: string, priority?: string, tags?: string, search?: string }) {
+export function sortTasks(tasks: Task[], sortBy?: string, sortOrder: 'asc' | 'desc' = 'asc'): Task[] {
+    if (!sortBy || !['due-date', 'priority', 'status', 'created', 'updated', 'description'].includes(sortBy)) {
+        return tasks; // Fallback to ID order for invalid sort fields
+    }
+
+    return [...tasks].sort((a, b) => {
+        const getValue = (task: Task) => {
+            switch (sortBy) {
+                case 'due-date':
+                    return task.dueDate ? new Date(task.dueDate).getTime() : Infinity;
+                case 'priority':
+                    return { low: 1, medium: 2, high: 3, critical: 4 }[task.priority];
+                case 'status':
+                    return { todo: 1, 'in-progress': 2, done: 3 }[task.status];
+                case 'created':
+                    return new Date(task.createdAt).getTime();
+                case 'updated':
+                    return new Date(task.updatedAt).getTime();
+                case 'description':
+                    return task.description.toLowerCase();
+                default:
+                    return 0;
+            }
+        };
+
+        const aValue = getValue(a);
+        const bValue = getValue(b);
+
+        if (aValue < bValue) return sortOrder === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+
+export async function listCommand(options: { status?: string, priority?: string, tags?: string, search?: string, sortBy?: string, sortOrder?: string }) {
     const tasks = await loadTasks();
 
     let filteredTasks = tasks;
@@ -33,16 +67,29 @@ export async function listCommand(options: { status?: string, priority?: string,
         filteredTasks = filterTasksBySearch(filteredTasks, options.search);
     }
 
+    // Apply sorting
+    filteredTasks = sortTasks(filteredTasks, options.sortBy, (options.sortOrder as 'asc' | 'desc') || 'asc');
+
     UI.header();
     UI.statusSummary(tasks);
 
+    // Show filtering and sorting information
+    const infoParts = [];
     if (options.status || options.priority || options.tags || options.search) {
         const filters = [];
         if (options.status) filters.push(`status: ${options.status}`);
         if (options.priority) filters.push(`priority: ${options.priority}`);
         if (options.tags) filters.push(`tags: ${options.tags}`);
         if (options.search) filters.push(`search: "${options.search}"`);
-        UI.info(`Filtering by: ${filters.join(", ")}`);
+        infoParts.push(`Filtering by: ${filters.join(", ")}`);
+    }
+    if (options.sortBy) {
+        const order = options.sortOrder || 'asc';
+        infoParts.push(`Sorted by: ${options.sortBy} (${order})`);
+    }
+
+    if (infoParts.length > 0) {
+        UI.info(infoParts.join(" | "));
     }
 
     UI.renderTasks(filteredTasks);
