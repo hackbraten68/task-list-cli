@@ -37,9 +37,42 @@ function calculateSimilarity(query: string, target: string): number {
   if (!query || !target) return 0;
   const queryLower = query.toLowerCase();
   const targetLower = target.toLowerCase();
+
+  // First, check for exact substring match
+  if (targetLower.includes(queryLower)) {
+    return 1.0;
+  }
+
+  // Otherwise, calculate fuzzy similarity for whole strings
   const dist = distance(queryLower, targetLower);
   const maxLen = Math.max(queryLower.length, targetLower.length);
   return maxLen > 0 ? 1 - (dist / maxLen) : 1;
+}
+
+/**
+ * Calculate the maximum similarity between query and any substring of target with same length as query
+ */
+function calculateSubstringSimilarity(query: string, target: string): number {
+  if (!query || !target) return 0;
+  const queryLen = query.length;
+  if (queryLen === 0) return 1;
+
+  const queryLower = query.toLowerCase();
+  const targetLower = target.toLowerCase();
+  const targetLen = targetLower.length;
+
+  if (targetLen < queryLen) return 0;
+
+  let maxSimilarity = 0;
+  for (let i = 0; i <= targetLen - queryLen; i++) {
+    const substring = targetLower.substring(i, i + queryLen);
+    const dist = distance(queryLower, substring);
+    const similarity = 1 - (dist / queryLen);
+    if (similarity > maxSimilarity) {
+      maxSimilarity = similarity;
+    }
+  }
+  return maxSimilarity;
 }
 
 /**
@@ -86,28 +119,24 @@ export function fuzzySearchTasks(
 
     // Search in description
     if (task.description) {
-      const descSimilarity = calculateSimilarity(query, task.description);
+      const descSimilarity = calculateSubstringSimilarity(query, task.description);
       if (descSimilarity >= opts.threshold) {
         totalScore += descSimilarity * opts.fieldWeights.description;
         matches.push({
-          field: "description",
+          field: 'description',
           text: task.description,
-          highlighted: highlightMatches(
-            task.description,
-            query,
-            opts.threshold,
-          ),
+          highlighted: highlightMatches(task.description, query, opts.threshold),
         });
       }
     }
 
     // Search in details
     if (task.details) {
-      const detailsSimilarity = calculateSimilarity(query, task.details);
+      const detailsSimilarity = calculateSubstringSimilarity(query, task.details);
       if (detailsSimilarity >= opts.threshold) {
         totalScore += detailsSimilarity * opts.fieldWeights.details;
         matches.push({
-          field: "details",
+          field: 'details',
           text: task.details,
           highlighted: highlightMatches(task.details, query, opts.threshold),
         });
@@ -117,11 +146,11 @@ export function fuzzySearchTasks(
     // Search in tags
     if (task.tags && task.tags.length > 0) {
       for (const tag of task.tags) {
-        const tagSimilarity = calculateSimilarity(query, tag);
+        const tagSimilarity = calculateSubstringSimilarity(query, tag);
         if (tagSimilarity >= opts.threshold) {
           totalScore += tagSimilarity * opts.fieldWeights.tags;
           matches.push({
-            field: "tags",
+            field: 'tags',
             text: tag,
             highlighted: highlightMatches(tag, query, opts.threshold),
           });
@@ -153,26 +182,10 @@ export function taskMatchesFuzzy(
   query: string,
   threshold = 0.7,
 ): boolean {
-  // Quick check using includes for performance
-  if (includes(query, task.description)) return true;
-  if (task.details && includes(query, task.details)) return true;
-  if (task.tags && task.tags.some((tag) => includes(query, tag))) return true;
-
-  // Fallback to similarity scoring
-  const similarity = calculateSimilarity(query, task.description);
-  if (similarity >= threshold) return true;
-
-  if (task.details) {
-    const detailsSimilarity = calculateSimilarity(query, task.details);
-    if (detailsSimilarity >= threshold) return true;
-  }
-
-  if (task.tags) {
-    for (const tag of task.tags) {
-      const tagSimilarity = calculateSimilarity(query, tag);
-      if (tagSimilarity >= threshold) return true;
-    }
-  }
+  // Check substring similarity for each field
+  if (task.description && calculateSubstringSimilarity(query, task.description) >= threshold) return true;
+  if (task.details && calculateSubstringSimilarity(query, task.details) >= threshold) return true;
+  if (task.tags && task.tags.some((tag) => calculateSubstringSimilarity(query, tag) >= threshold)) return true;
 
   return false;
 }
