@@ -1,5 +1,5 @@
 import { colors } from "cliffy/ansi";
-import { Select } from "cliffy/prompt";
+import { Select, Input } from "cliffy/prompt";
 import { loadTasks, bulkMarkTasks, bulkDeleteTasks, bulkUpdateTasks } from "../storage.ts";
 import { UI } from "../ui.ts";
 import { calculateStats, TaskStats } from "../stats.ts";
@@ -10,11 +10,24 @@ import { markCommand } from "./mark.ts";
 import { Task, TaskPriority } from "../types.ts";
 import { getTaskSummaries } from "../utils/task-selection.ts";
 
+function filterTasksBySearch(tasks: Task[], searchTerm: string): Task[] {
+    if (!searchTerm) return tasks;
+
+    const term = searchTerm.toLowerCase();
+    return tasks.filter(task =>
+        task.description.toLowerCase().includes(term) ||
+        (task.details && task.details.toLowerCase().includes(term)) ||
+        (task.tags && task.tags.some(tag => tag.toLowerCase().includes(term)))
+    );
+}
+
 export async function dashboardCommand() {
     let selectedIndex = 0;
     let selectedTasks = new Set<number>(); // Multi-selection state
     let multiSelectMode = false;
     let statsViewMode = false; // Toggle between tasks and stats view
+    let searchTerm = ""; // Current search term
+    let searchMode = false; // Whether search is active
     let running = true;
 
     // Set stdin to raw mode
@@ -35,6 +48,11 @@ export async function dashboardCommand() {
     async function render(tasks: Task[], modal?: { lines: string[], width: number, height: number }, stats?: TaskStats) {
         UI.clearScreen();
         UI.header();
+
+        // Show search status if active
+        if (searchMode) {
+            console.log(`  🔍 Search: "${searchTerm}" (${tasks.length} matches)`);
+        }
 
         const { columns, rows } = Deno.consoleSize();
         const terminalWidth = Math.max(80, columns - 4);
@@ -133,20 +151,24 @@ export async function dashboardCommand() {
         const mainPanel = UI.box("Details", detailLines, mainWidth, height, false, isDimmed);
 
         UI.renderLayout([sidebar, mainPanel], modal);
-        UI.footer(multiSelectMode, selectedTasks.size, statsViewMode, stats?.completionRate, stats?.overdue);
+        UI.footer(multiSelectMode, selectedTasks.size, statsViewMode, stats?.completionRate, stats?.overdue, searchMode);
     }
 
     try {
         while (running) {
-            const tasks = await loadTasks();
-            if (tasks.length > 0 && selectedIndex >= tasks.length) {
-                selectedIndex = tasks.length - 1;
+            let tasks = await loadTasks();
+
+            // Apply search filter if active
+            const filteredTasks = searchMode ? filterTasksBySearch(tasks, searchTerm) : tasks;
+
+            if (filteredTasks.length > 0 && selectedIndex >= filteredTasks.length) {
+                selectedIndex = filteredTasks.length - 1;
             }
 
-            // Calculate stats for footer status bar
+            // Calculate stats for footer status bar (use original tasks for stats)
             const stats = calculateStats(tasks);
 
-            await render(tasks, undefined, stats);
+            await render(filteredTasks, undefined, stats);
 
             const reader = Deno.stdin.readable.getReader();
             const { value, done } = await reader.read();
@@ -233,6 +255,54 @@ export async function dashboardCommand() {
                     statsViewMode = !statsViewMode;
                     // Reset selection when switching to stats mode
                     if (statsViewMode) {
+                        selectedIndex = 0;
+                        selectedTasks.clear();
+                        multiSelectMode = false;
+                    }
+                    break;
+                case "/":
+                    // Enter search mode with footer replacement
+                    try {
+                        // Save current cursor position
+                        console.log('\u001b[s');
+
+                        // Move cursor to last line (footer position)
+                        const { rows } = Deno.consoleSize();
+                        console.log(`\u001b[${rows};1H`);
+
+                        // Clear current line and show prompt
+                        console.log('\u001b[2KSearch tasks: ');
+
+                        // Exit raw mode for input
+                        Deno.stdin.setRaw(false);
+
+                        const newSearchTerm = await Input.prompt("");
+                        searchTerm = newSearchTerm.trim();
+                        searchMode = searchTerm.length > 0;
+
+                        // Reset selection when entering search mode
+                        selectedIndex = 0;
+                        selectedTasks.clear();
+                        multiSelectMode = false;
+
+                        // Return to raw mode
+                        Deno.stdin.setRaw(true);
+
+                        // Restore cursor position
+                        console.log('\u001b[u');
+
+                    } catch {
+                        // User cancelled search - restore cursor
+                        console.log('\u001b[u');
+                        searchTerm = "";
+                        searchMode = false;
+                    }
+                    break;
+                case "\u001b": // ESC key
+                    if (searchMode) {
+                        // Clear search
+                        searchTerm = "";
+                        searchMode = false;
                         selectedIndex = 0;
                         selectedTasks.clear();
                         multiSelectMode = false;

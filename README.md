@@ -79,12 +79,15 @@ lazytask list --status in-progress
 lazytask list --priority high
 lazytask list --tags urgent
 lazytask list --tags "work,personal"
+lazytask list --search "meeting"
+lazytask list --search "urgent" --status todo
 ```
 
 **Options:**
 - `-s, --status <status>` — Filter by `todo`, `in-progress`, `done`
 - `-p, --priority <priority>` — Filter by priority
 - `-t, --tags <tags>` — Filter by tags (comma-separated, partial matches supported)
+- `--search <keyword>` — Search tasks by keyword in description, details, or tags
 
 ### Update Tasks
 ```bash
@@ -209,6 +212,7 @@ All bulk operations include:
 | `j` / `↓` | Select next task |
 | `k` / `↑` | Select previous task |
 | `Tab` | Enter multi-select mode |
+| `/` | Search tasks |
 | `s` | Toggle statistics view |
 | `a` | Add new task |
 | `u` / `⏎` | Update selected task |
@@ -225,6 +229,20 @@ All bulk operations include:
 | `Tab` | Exit multi-select mode |
 | `⏎` | Show bulk actions menu |
 | `q` / `⌃C` | Quit |
+
+### Search Mode
+| Key | Action |
+|-----|--------|
+| `j` / `↓` | Select next task |
+| `k` / `↑` | Select previous task |
+| `ESC` | Clear search |
+| `/` | New search |
+| `q` / `⌃C` | Quit |
+
+**Search indicators:**
+- Header shows active search term and match count
+- `ESC` clears search and returns to all tasks
+- Search works across description, details, and tags
 
 **Multi-select indicators:**
 - `[✓]` - Task is selected

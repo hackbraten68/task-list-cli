@@ -147,7 +147,7 @@ export const UI = {
         }
     },
 
-    footer(multiSelectMode: boolean = false, selectedCount: number = 0, statsViewMode: boolean = false, completionRate?: number, overdueCount?: number) {
+    footer(multiSelectMode: boolean = false, selectedCount: number = 0, statsViewMode: boolean = false, completionRate?: number, overdueCount?: number, searchMode: boolean = false) {
         const encoder = new TextEncoder();
 
         let footerStr = "  " + colors.bgWhite.black(" KEYS ") + " ";
@@ -155,6 +155,12 @@ export const UI = {
         if (statsViewMode) {
             footerStr +=
                 colors.bold("s") + " Tasks View  " +
+                colors.bold("q") + " Quit";
+        } else if (searchMode) {
+            footerStr +=
+                colors.bold("j/k") + " or " + colors.bold("↑/↓") + "  " +
+                colors.bold("ESC") + " Clear Search  " +
+                colors.bold("/") + " New Search  " +
                 colors.bold("q") + " Quit";
         } else if (multiSelectMode) {
             footerStr +=
