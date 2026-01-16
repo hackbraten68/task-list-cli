@@ -182,6 +182,7 @@ export const UI = {
                 colors.bold("u") + " Update  " +
                 colors.bold("d") + " Delete  " +
                 colors.bold("m") + " Mark  " +
+                colors.bold("h") + " Menu  " +
                 colors.bold("q") + " Quit";
         }
 

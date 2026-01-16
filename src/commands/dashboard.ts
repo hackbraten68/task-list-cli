@@ -1,13 +1,13 @@
 import { colors } from "cliffy/ansi";
 import { Select, Input } from "cliffy/prompt";
-import { loadTasks, bulkMarkTasks, bulkDeleteTasks, bulkUpdateTasks } from "../storage.ts";
+import { loadTasks, bulkMarkTasks, bulkDeleteTasks, bulkUpdateTasks, exportTasks, importTasks } from "../storage.ts";
 import { UI } from "../ui.ts";
 import { calculateStats, TaskStats } from "../stats.ts";
 import { addCommand } from "./add.ts";
 import { updateCommand } from "./update.ts";
 import { deleteCommand } from "./delete.ts";
 import { markCommand } from "./mark.ts";
-import { Task, TaskPriority } from "../types.ts";
+import { Task, TaskPriority, ExportOptions, ImportOptions } from "../types.ts";
 import { getTaskSummaries } from "../utils/task-selection.ts";
 
 function filterTasksBySearch(tasks: Task[], searchTerm: string): Task[] {
@@ -19,6 +19,211 @@ function filterTasksBySearch(tasks: Task[], searchTerm: string): Task[] {
         (task.details && task.details.toLowerCase().includes(term)) ||
         (task.tags && task.tags.some(tag => tag.toLowerCase().includes(term)))
     );
+}
+
+// Menu system functions
+async function showMainMenu(): Promise<void> {
+    console.clear();
+    UI.header();
+
+    const choice = await Select.prompt({
+        message: "LazyTask Menu:",
+        options: [
+            { name: "[DATA] Data Management", value: "data" },
+            { name: "[SETTINGS] Settings", value: "settings" },
+            { name: "[HELP] Help & Info", value: "help" },
+            { name: "[BACK] Back to Dashboard", value: "back" }
+        ]
+    });
+
+    switch (choice) {
+        case "data":
+            await showDataManagementMenu();
+            break;
+        case "settings":
+            await showSettingsMenu();
+            break;
+        case "help":
+            await showHelpMenu();
+            break;
+        case "back":
+            // Just return to dashboard
+            break;
+    }
+}
+
+async function showDataManagementMenu(): Promise<void> {
+    const choice = await Select.prompt({
+        message: "Data Management:",
+        options: [
+            { name: "[EXPORT] Export Tasks", value: "export" },
+            { name: "[IMPORT] Import Tasks", value: "import" },
+            { name: "[BACKUP] Manual Backup", value: "backup" },
+            { name: "[BACK] Back to Menu", value: "back" }
+        ]
+    });
+
+    switch (choice) {
+        case "export":
+            await handleExport();
+            break;
+        case "import":
+            await handleImport();
+            break;
+        case "backup":
+            await handleBackup();
+            break;
+        case "back":
+            await showMainMenu();
+            break;
+    }
+}
+
+async function showSettingsMenu(): Promise<void> {
+    // Future: Theme selection, UI preferences, etc.
+    console.clear();
+    UI.header();
+    UI.info("Settings menu coming soon!");
+    console.log("Future features:");
+    console.log("- Theme selection");
+    console.log("- UI preferences");
+    console.log("- Keyboard shortcuts");
+    await Input.prompt("Press Enter to continue...");
+}
+
+async function showHelpMenu(): Promise<void> {
+    console.clear();
+    UI.header();
+    console.log("Help & Info");
+    console.log("===========");
+    console.log("");
+    console.log("Keyboard Shortcuts:");
+    console.log("j/k or ↑/↓    - Navigate tasks");
+    console.log("Tab           - Multi-select mode");
+    console.log("Space         - Select/deselect task (multi-select)");
+    console.log("Enter         - Update task / Bulk actions");
+    console.log("d             - Delete task");
+    console.log("m             - Mark task status");
+    console.log("a             - Add new task");
+    console.log("/             - Search tasks");
+    console.log("s             - Toggle statistics view");
+    console.log("h             - Help & Settings menu");
+    console.log("q or Ctrl+C   - Quit");
+    console.log("");
+    await Input.prompt("Press Enter to continue...");
+}
+
+async function handleExport(): Promise<void> {
+    console.clear();
+    UI.header();
+
+    const format = await Select.prompt({
+        message: "Export format:",
+        options: [
+            { name: "JSON - Complete data structure", value: "json" },
+            { name: "CSV - Spreadsheet compatible", value: "csv" }
+        ]
+    });
+
+    const outputPath = await Input.prompt({
+        message: "Output file path:",
+        default: `lazytask-export-${new Date().toISOString().split('T')[0]}.${format}`
+    });
+
+    try {
+        const options: ExportOptions = {
+            format: format as 'json' | 'csv',
+            outputPath
+        };
+
+        await exportTasks(options);
+        UI.success(`[SUCCESS] Tasks exported to ${outputPath}`);
+
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        UI.error(`[ERROR] Export failed: ${message}`);
+    }
+
+    await Input.prompt("Press Enter to continue...");
+}
+
+async function handleImport(): Promise<void> {
+    console.clear();
+    UI.header();
+
+    const format = await Select.prompt({
+        message: "Import format:",
+        options: [
+            { name: "JSON - Complete data structure", value: "json" },
+            { name: "CSV - Spreadsheet compatible", value: "csv" }
+        ]
+    });
+
+    const inputPath = await Input.prompt({
+        message: "Input file path:",
+        default: `lazytask-import.${format}`
+    });
+
+    const mode = await Select.prompt({
+        message: "Import mode:",
+        options: [
+            { name: "Merge - Add to existing tasks", value: "merge" },
+            { name: "Replace - Replace all tasks", value: "replace" },
+            { name: "Validate - Check data only", value: "validate" }
+        ]
+    });
+
+    try {
+        const options: ImportOptions = {
+            format: format as 'json' | 'csv',
+            inputPath,
+            mode: mode === "validate" ? "merge" : mode as 'merge' | 'replace',
+            validateOnly: mode === "validate"
+        };
+
+        const result = await importTasks(options);
+
+        if (result.success) {
+            UI.success(`[SUCCESS] ${result.message}`);
+            if (result.importedCount !== undefined) {
+                console.log(`[INFO] ${result.importedCount} tasks processed`);
+            }
+        } else {
+            UI.error(`[ERROR] ${result.message}`);
+            if (result.errors) {
+                result.errors.forEach(error => console.log(`   - ${error}`));
+            }
+        }
+
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        UI.error(`[ERROR] Import failed: ${message}`);
+    }
+
+    await Input.prompt("Press Enter to continue...");
+}
+
+async function handleBackup(): Promise<void> {
+    console.clear();
+    UI.header();
+
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const backupPath = `lazytask-backup-${timestamp}.json`;
+
+    try {
+        await exportTasks({
+            format: 'json',
+            outputPath: backupPath
+        });
+
+        UI.success(`[SUCCESS] Backup created: ${backupPath}`);
+
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        UI.error(`[ERROR] Backup failed: ${message}`);
+    }
+
+    await Input.prompt("Press Enter to continue...");
 }
 
 export async function dashboardCommand() {
@@ -307,6 +512,11 @@ export async function dashboardCommand() {
                         selectedTasks.clear();
                         multiSelectMode = false;
                     }
+                    break;
+                case "h": // Help/Settings menu
+                    cleanup();
+                    await showMainMenu();
+                    Deno.stdin.setRaw(true);
                     break;
                 case "q":
                 case "\u0003": // Ctrl+C
