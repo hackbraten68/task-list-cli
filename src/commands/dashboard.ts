@@ -261,26 +261,42 @@ export async function dashboardCommand() {
                     }
                     break;
                 case "/":
-                    // Enter search mode
+                    // Enter search mode with footer replacement
                     try {
-                        // Exit raw mode for input prompt
+                        // Save current cursor position
+                        console.log('\u001b[s');
+
+                        // Move cursor to last line (footer position)
+                        const { rows } = Deno.consoleSize();
+                        console.log(`\u001b[${rows};1H`);
+
+                        // Clear current line and show prompt
+                        console.log('\u001b[2KSearch tasks: ');
+
+                        // Exit raw mode for input
                         Deno.stdin.setRaw(false);
-                        // Clear screen to ensure clean display
-                        console.clear();
-                        const newSearchTerm = await Input.prompt("Search tasks:");
+
+                        const newSearchTerm = await Input.prompt("");
                         searchTerm = newSearchTerm.trim();
                         searchMode = searchTerm.length > 0;
+
                         // Reset selection when entering search mode
                         selectedIndex = 0;
                         selectedTasks.clear();
                         multiSelectMode = false;
+
+                        // Return to raw mode
+                        Deno.stdin.setRaw(true);
+
+                        // Restore cursor position
+                        console.log('\u001b[u');
+
                     } catch {
-                        // User cancelled search
+                        // User cancelled search - restore cursor
+                        console.log('\u001b[u');
                         searchTerm = "";
                         searchMode = false;
                     }
-                    // Return to raw mode for dashboard
-                    Deno.stdin.setRaw(true);
                     break;
                 case "\u001b": // ESC key
                     if (searchMode) {

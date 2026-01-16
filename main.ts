@@ -10,7 +10,7 @@ import { bulkMarkCommand, bulkDeleteCommand, bulkUpdateCommand } from "./src/com
 if (import.meta.main) {
   await new Command()
     .name("lazytask")
-    .version("0.5.0")
+    .version("0.5.1")
     .description("LazyTask - A lazydocker-inspired Task Management TUI")
     .default("dashboard")
     .command("dashboard", "Open the TUI dashboard")
