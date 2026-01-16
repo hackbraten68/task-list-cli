@@ -24,6 +24,8 @@ if (import.meta.main) {
     .option("-p, --priority <priority:string>", "Filter by priority")
     .option("-t, --tags <tags:string>", "Filter by tags")
     .option("--search <search:string>", "Search tasks by keyword")
+    .option("--sort-by <field:string>", "Sort by field (due-date, priority, status, created, updated, description)")
+    .option("--sort-order <order:string>", "Sort order (asc or desc)", { default: "asc" })
     .action(async (options) => {
       await listCommand(options);
     })
