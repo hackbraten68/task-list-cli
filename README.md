@@ -204,6 +204,67 @@ All bulk operations include:
 - ✅ Comprehensive error reporting
 - ✅ Smart selection state management (successful operations remove tasks from selection, failed operations remain selected)
 
+## 📤 Data Export/Import
+
+LazyTask supports exporting your tasks for backup or migration, and importing from other systems.
+
+### Export Tasks
+```bash
+# Export all tasks to JSON (default)
+lazytask export
+
+# Export to specific file
+lazytask export --output my-tasks.json
+
+# Export completed tasks to CSV
+lazytask export --format csv --status done --output completed-tasks.csv
+
+# Export high priority tasks
+lazytask export --priority high --format csv
+```
+
+**Options:**
+- `-f, --format <format>` — `json` or `csv` (default: json)
+- `-o, --output <file>` — Output file path (default: `lazytask-export-YYYY-MM-DD.json/csv`)
+- `-s, --status <status>` — Filter by status
+- `-p, --priority <priority>` — Filter by priority
+- `-t, --tags <tags>` — Filter by tags (comma-separated)
+
+### Import Tasks
+```bash
+# Import and merge with existing tasks (recommended)
+lazytask import tasks.json
+
+# Import CSV file
+lazytask import --format csv tasks.csv
+
+# Replace all existing tasks
+lazytask import --mode replace backup.json
+
+# Validate without importing
+lazytask import --validate-only data.csv
+```
+
+**Options:**
+- `-f, --format <format>` — `json` or `csv` (default: json)
+- `-m, --mode <mode>` — `merge` or `replace` (default: merge)
+- `--validate-only` — Check data without saving changes
+
+### CSV Format
+Tasks exported to CSV use semicolon-separated tags to avoid conflicts with comma-separated values. The format includes all task fields:
+
+```csv
+id,description,details,status,priority,dueDate,tags,createdAt,updatedAt
+1,"Review code","Check pull requests",todo,high,"2024-12-31","code;review;urgent","2024-01-15T10:00:00Z","2024-01-15T10:00:00Z"
+```
+
+### Import Validation
+- ✅ Required fields: description, status, priority
+- ✅ Valid enums: status ∈ {todo, in-progress, done}, priority ∈ {low, medium, high, critical}
+- ✅ Date format: dueDate must be YYYY-MM-DD
+- ✅ Auto-migration: Missing timestamps are filled with current time
+- ✅ Error reporting: Detailed validation errors for each invalid task
+
 ## ⌨️ Dashboard Keybindings
 
 ### Normal Mode

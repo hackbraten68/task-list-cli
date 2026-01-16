@@ -6,6 +6,8 @@ import { listCommand } from "./src/commands/list.ts";
 import { markCommand } from "./src/commands/mark.ts";
 import { updateCommand } from "./src/commands/update.ts";
 import { bulkMarkCommand, bulkDeleteCommand, bulkUpdateCommand } from "./src/commands/bulk.ts";
+import { exportCommand } from "./src/commands/export.ts";
+import { importCommand } from "./src/commands/import.ts";
 
 if (import.meta.main) {
   await new Command()
@@ -78,6 +80,23 @@ if (import.meta.main) {
     .option("-t, --tags <tags:string>", "Replace all tags")
     .action(async (options, ids) => {
       await bulkUpdateCommand(ids, options as any);
+    })
+    .command("export", "Export tasks to JSON or CSV")
+    .option("-f, --format <format:string>", "Export format (json or csv)", { default: "json" })
+    .option("-o, --output <output:string>", "Output file path")
+    .option("-s, --status <status:string>", "Filter by status (todo, in-progress, done)")
+    .option("-p, --priority <priority:string>", "Filter by priority (low, medium, high, critical)")
+    .option("-t, --tags <tags:string>", "Filter by tags (comma-separated)")
+    .action(async (options) => {
+      await exportCommand(options);
+    })
+    .command("import", "Import tasks from JSON or CSV")
+    .arguments("<input:string>")
+    .option("-f, --format <format:string>", "Import format (json or csv)", { default: "json" })
+    .option("-m, --mode <mode:string>", "Import mode (merge or replace)", { default: "merge" })
+    .option("--validate-only", "Validate without importing")
+    .action(async (options, input) => {
+      await importCommand({ ...options, input });
     })
     .parse(Deno.args);
 }

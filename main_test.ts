@@ -1,57 +1,166 @@
 import { assertEquals } from "jsr:@std/assert";
-import { addTask, loadTasks, clearAllTasks, updateTask, listTasks } from "./main.ts"; // Adjust path as needed
+import { loadTasks, saveTasks, exportTasks, importTasks } from "./src/storage.ts";
 
-// Test suite for task functionalities
-Deno.test("Task management functions", async (t) => {
+// Test data
+const testTasks = [
+  {
+    id: 1,
+    description: "Test task 1",
+    details: "Details for task 1",
+    status: "todo" as const,
+    priority: "high" as const,
+    dueDate: "2024-12-31",
+    tags: ["urgent", "work"],
+    createdAt: "2024-01-01T00:00:00Z",
+    updatedAt: "2024-01-01T00:00:00Z"
+  },
+  {
+    id: 2,
+    description: "Test task 2",
+    status: "done" as const,
+    priority: "low" as const,
+    tags: [],
+    createdAt: "2024-01-02T00:00:00Z",
+    updatedAt: "2024-01-02T00:00:00Z"
+  }
+];
 
-  // Step 1: Clear all tasks to ensure a clean state
-  await t.step("clear all tasks", async () => {
-    await clearAllTasks();
+Deno.test("Data export/import functions", async (t) => {
+  // Setup: Save test tasks
+  await t.step("setup test data", async () => {
+    await saveTasks(testTasks);
+    const tasks = await loadTasks();
+    assertEquals(tasks.length, 2);
+  });
+
+  // Test JSON export
+  await t.step("export to JSON", async () => {
+    const outputPath = "test-export.json";
+    await exportTasks({ format: 'json', outputPath });
+
+    // Verify file exists and content
+    const content = await Deno.readTextFile(outputPath);
+    const exported = JSON.parse(content);
+    assertEquals(exported.length, 2);
+    assertEquals(exported[0].description, "Test task 1");
+
+    // Cleanup
+    await Deno.remove(outputPath);
+  });
+
+  // Test CSV export
+  await t.step("export to CSV", async () => {
+    const outputPath = "test-export.csv";
+    await exportTasks({ format: 'csv', outputPath });
+
+    // Verify file exists and content
+    const content = await Deno.readTextFile(outputPath);
+    const lines = content.trim().split('\n');
+    assertEquals(lines.length, 3); // header + 2 data rows
+    assertEquals(lines[0], 'id,description,details,status,priority,dueDate,tags,createdAt,updatedAt');
+
+    // Cleanup
+    await Deno.remove(outputPath);
+  });
+
+  // Test export with filters
+  await t.step("export with status filter", async () => {
+    const outputPath = "test-export-filtered.json";
+    await exportTasks({ format: 'json', outputPath, status: 'done' });
+
+    const content = await Deno.readTextFile(outputPath);
+    const exported = JSON.parse(content);
+    assertEquals(exported.length, 1);
+    assertEquals(exported[0].status, 'done');
+
+    // Cleanup
+    await Deno.remove(outputPath);
+  });
+
+  // Test JSON import (merge)
+  await t.step("import JSON merge", async () => {
+    const importData = [{
+      description: "Imported task",
+      status: "todo",
+      priority: "medium"
+    }];
+    const importPath = "test-import.json";
+    await Deno.writeTextFile(importPath, JSON.stringify(importData));
+
+    const result = await importTasks({ format: 'json', inputPath: importPath, mode: 'merge' });
+    assertEquals(result.success, true);
+    assertEquals(result.importedCount, 1);
+
+    const tasks = await loadTasks();
+    assertEquals(tasks.length, 3); // original 2 + 1 imported
+
+    // Cleanup
+    await Deno.remove(importPath);
+  });
+
+  // Test CSV import
+  await t.step("import CSV", async () => {
+    const csvData = `description,details,status,priority,dueDate,tags
+"CSV task","CSV details",todo,high,"2024-12-25","csv;test"`;
+    const importPath = "test-import.csv";
+    await Deno.writeTextFile(importPath, csvData);
+
+    const result = await importTasks({ format: 'csv', inputPath: importPath, mode: 'merge' });
+    assertEquals(result.success, true);
+    assertEquals(result.importedCount, 1);
+
+    const tasks = await loadTasks();
+    const csvTask = tasks.find(t => t.description === "CSV task");
+    assertEquals(csvTask?.tags, ["csv", "test"]);
+
+    // Cleanup
+    await Deno.remove(importPath);
+  });
+
+  // Test validation
+  await t.step("import validation", async () => {
+    const invalidData = [{
+      description: "Invalid task",
+      status: "invalid-status",
+      priority: "medium"
+    }];
+    const importPath = "test-invalid.json";
+    await Deno.writeTextFile(importPath, JSON.stringify(invalidData));
+
+    const result = await importTasks({ format: 'json', inputPath: importPath, mode: 'merge', validateOnly: true });
+    assertEquals(result.success, false);
+    assertEquals(result.errors?.length, 1);
+
+    // Cleanup
+    await Deno.remove(importPath);
+  });
+
+  // Test replace mode
+  await t.step("import replace mode", async () => {
+    const replaceData = [{
+      description: "Replaced task",
+      status: "done",
+      priority: "critical"
+    }];
+    const importPath = "test-replace.json";
+    await Deno.writeTextFile(importPath, JSON.stringify(replaceData));
+
+    const result = await importTasks({ format: 'json', inputPath: importPath, mode: 'replace' });
+    assertEquals(result.success, true);
+    assertEquals(result.importedCount, 1);
+
+    const tasks = await loadTasks();
+    assertEquals(tasks.length, 1);
+    assertEquals(tasks[0].description, "Replaced task");
+
+    // Cleanup
+    await Deno.remove(importPath);
+  });
+
+  // Cleanup: Reset to empty
+  await t.step("cleanup", async () => {
+    await saveTasks([]);
     const tasks = await loadTasks();
     assertEquals(tasks.length, 0);
-  });
-
-  // Step 2: Add a new task and verify it was added
-  await t.step("add a task", async () => {
-    const description = "Test task description";
-    const details = "Some detailed information";
-
-    await addTask(description, details);
-    const tasks = await loadTasks();
-
-    assertEquals(tasks.length, 1);  // Expect one task
-    assertEquals(tasks[0].description, description);  // Check description
-    assertEquals(tasks[0].details, details);  // Check details
-    assertEquals(tasks[0].status, "todo");  // Check initial status
-  });
-
-  // Step 3: Update the task and verify the update
-  await t.step("update task", async () => {
-    const updatedDescription = "Updated task description";
-    const tasks = await loadTasks();
-
-    if (tasks.length > 0) {
-      const taskId = tasks[0].id;
-      await updateTask(taskId, updatedDescription);
-
-      const updatedTasks = await loadTasks();
-      assertEquals(updatedTasks[0].description, updatedDescription);  // Verify updated description
-    } else {
-      throw new Error("No task found to update");
-    }
-  });
-
-  // Step 4: List tasks to ensure it displays them correctly
-  await t.step("list tasks", async () => {
-    await listTasks();
-    // Since `listTasks` outputs to console, visually verify the output for now.
-    // Additional tooling would be needed to capture console output in tests.
-  });
-
-  // Step 5: Clean up by clearing all tasks
-  await t.step("clear tasks as final cleanup", async () => {
-    await clearAllTasks();
-    const tasks = await loadTasks();
-    assertEquals(tasks.length, 0);  // Ensure all tasks are cleared
   });
 });

@@ -25,3 +25,25 @@ export interface BulkResult {
     errors: Array<{id: number, error: string}>;
     rolledBack: boolean;
 }
+
+export interface ExportOptions {
+    format: 'json' | 'csv';
+    outputPath?: string;
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    tags?: string;
+}
+
+export interface ImportOptions {
+    format: 'json' | 'csv';
+    inputPath: string;
+    mode: 'merge' | 'replace';
+    validateOnly?: boolean;
+}
+
+export interface ImportResult {
+    success: boolean;
+    message: string;
+    importedCount?: number;
+    errors?: string[];
+}
