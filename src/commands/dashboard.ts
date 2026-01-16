@@ -262,8 +262,11 @@ export async function dashboardCommand() {
                     break;
                 case "/":
                     // Enter search mode
-                    cleanup();
                     try {
+                        // Exit raw mode for input prompt
+                        Deno.stdin.setRaw(false);
+                        // Clear screen to ensure clean display
+                        console.clear();
                         const newSearchTerm = await Input.prompt("Search tasks:");
                         searchTerm = newSearchTerm.trim();
                         searchMode = searchTerm.length > 0;
@@ -276,6 +279,7 @@ export async function dashboardCommand() {
                         searchTerm = "";
                         searchMode = false;
                     }
+                    // Return to raw mode for dashboard
                     Deno.stdin.setRaw(true);
                     break;
                 case "\u001b": // ESC key
