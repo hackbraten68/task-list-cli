@@ -12,7 +12,7 @@ import { importCommand } from "./src/commands/import.ts";
 if (import.meta.main) {
   await new Command()
     .name("lazytask")
-    .version("0.6.0")
+    .version("0.7.0")
     .description("LazyTask - A lazydocker-inspired Task Management TUI")
     .default("dashboard")
     .command("dashboard", "Open the TUI dashboard")
