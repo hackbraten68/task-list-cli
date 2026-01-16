@@ -653,22 +653,28 @@ export async function dashboardCommand() {
             switch (keys) {
                 case "j":
                 case "\u001b[B": // Down arrow
-                    if (editMode === "add" && currentField === "priority") {
-                        // Cycle priority down
-                        const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
-                        const currentIndex = priorities.indexOf(editData.priority || "medium");
-                        editData.priority = priorities[(currentIndex + 1) % priorities.length];
+                    if (editMode === "add") {
+                        if (currentField === "priority") {
+                            // Cycle priority down
+                            const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
+                            const currentIndex = priorities.indexOf(editData.priority || "medium");
+                            editData.priority = priorities[(currentIndex + 1) % priorities.length];
+                        }
+                        // Ignore other navigation in add mode
                     } else {
                         selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
                     }
                     break;
                 case "k":
                 case "\u001b[A": // Up arrow
-                    if (editMode === "add" && currentField === "priority") {
-                        // Cycle priority up
-                        const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
-                        const currentIndex = priorities.indexOf(editData.priority || "medium");
-                        editData.priority = priorities[(currentIndex - 1 + priorities.length) % priorities.length];
+                    if (editMode === "add") {
+                        if (currentField === "priority") {
+                            // Cycle priority up
+                            const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
+                            const currentIndex = priorities.indexOf(editData.priority || "medium");
+                            editData.priority = priorities[(currentIndex - 1 + priorities.length) % priorities.length];
+                        }
+                        // Ignore other navigation in add mode
                     } else {
                         selectedIndex = Math.max(0, selectedIndex - 1);
                     }
@@ -715,6 +721,28 @@ export async function dashboardCommand() {
           }
           break;
         case "u":
+          if (editMode === "add") break; // Ignore in add mode
+          if (multiSelectMode && selectedTasks.size > 0) {
+            // Show bulk actions menu
+            cleanup();
+            const updatedSelection = await showBulkActionsMenu(
+              tasks,
+              Array.from(selectedTasks),
+            );
+            // Update the selectedTasks set with the returned selection
+            selectedTasks.clear();
+            updatedSelection.forEach((id) => selectedTasks.add(id));
+            Deno.stdin.setRaw(true);
+          } else if (!multiSelectMode && tasks[selectedIndex]) {
+            cleanup();
+            await updateCommand(tasks[selectedIndex].id, {
+              modal: true,
+              renderBackground: () =>
+                render(tasks, { lines: [], width: 60, height: 8 }),
+            });
+            Deno.stdin.setRaw(true);
+          }
+          break;
         case "\r": // Enter
           if (editMode === "add") {
             // Save the task
@@ -739,28 +767,10 @@ export async function dashboardCommand() {
             }
             editMode = "view";
             editData = {};
-          } else if (multiSelectMode && selectedTasks.size > 0) {
-            // Show bulk actions menu
-            cleanup();
-            const updatedSelection = await showBulkActionsMenu(
-              tasks,
-              Array.from(selectedTasks),
-            );
-            // Update the selectedTasks set with the returned selection
-            selectedTasks.clear();
-            updatedSelection.forEach((id) => selectedTasks.add(id));
-            Deno.stdin.setRaw(true);
-          } else if (!multiSelectMode && tasks[selectedIndex]) {
-            cleanup();
-            await updateCommand(tasks[selectedIndex].id, {
-              modal: true,
-              renderBackground: () =>
-                render(tasks, { lines: [], width: 60, height: 8 }),
-            });
-            Deno.stdin.setRaw(true);
           }
           break;
         case "d":
+          if (editMode === "add") break; // Ignore in add mode
           if (tasks[selectedIndex]) {
             cleanup();
             await deleteCommand(tasks[selectedIndex].id, {
@@ -772,6 +782,7 @@ export async function dashboardCommand() {
           }
           break;
         case "m":
+          if (editMode === "add") break; // Ignore in add mode
           if (tasks[selectedIndex]) {
             cleanup();
             await markCommand(undefined, tasks[selectedIndex].id, {
@@ -783,6 +794,7 @@ export async function dashboardCommand() {
           }
           break;
         case "s":
+          if (editMode === "add") break; // Ignore in add mode
           statsViewMode = !statsViewMode;
           // Reset selection when switching to stats mode
           if (statsViewMode) {
@@ -792,11 +804,13 @@ export async function dashboardCommand() {
           }
           break;
         case "/":
+          if (editMode === "add") break; // Ignore in add mode
           // Enter exact search mode
           fuzzyMode = false;
           await performSearch();
           break;
         case "?":
+          if (editMode === "add") break; // Ignore in add mode
           // Enter fuzzy search mode
           fuzzyMode = true;
           await performSearch();
