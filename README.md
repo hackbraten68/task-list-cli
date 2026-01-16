@@ -349,6 +349,11 @@ Access export, import, and backup functionality through the menu system.
 - Creates timestamped JSON backup automatically
 - No user input required
 
+**Clear All Tasks:**
+- Permanently deletes all tasks from the system
+- Requires explicit confirmation with warning
+- Useful for starting fresh or resetting data
+
 ### Settings (Future)
 The settings menu will include:
 - **Theme Selection**: Color scheme customization

@@ -1,6 +1,6 @@
 import { colors } from "cliffy/ansi";
 import { Select, Input } from "cliffy/prompt";
-import { loadTasks, bulkMarkTasks, bulkDeleteTasks, bulkUpdateTasks, exportTasks, importTasks } from "../storage.ts";
+import { loadTasks, saveTasks, bulkMarkTasks, bulkDeleteTasks, bulkUpdateTasks, exportTasks, importTasks } from "../storage.ts";
 import { UI } from "../ui.ts";
 import { calculateStats, TaskStats } from "../stats.ts";
 import { addCommand } from "./add.ts";
@@ -60,6 +60,7 @@ async function showDataManagementMenu(): Promise<void> {
             { name: "[EXPORT] Export Tasks", value: "export" },
             { name: "[IMPORT] Import Tasks", value: "import" },
             { name: "[BACKUP] Manual Backup", value: "backup" },
+            { name: "[CLEAR] Clear All Tasks", value: "clear" },
             { name: "[BACK] Back to Menu", value: "back" }
         ]
     });
@@ -73,6 +74,9 @@ async function showDataManagementMenu(): Promise<void> {
             break;
         case "backup":
             await handleBackup();
+            break;
+        case "clear":
+            await handleClearAllTasks();
             break;
         case "back":
             await showMainMenu();
@@ -230,6 +234,36 @@ async function handleBackup(): Promise<void> {
     await Input.prompt("Press Enter to continue...");
 }
 
+async function handleClearAllTasks(): Promise<void> {
+    console.clear();
+    UI.header();
+
+    UI.error("⚠️  WARNING: This will permanently delete ALL tasks!");
+    console.log("This action cannot be undone.");
+    console.log("");
+
+    const confirm = await Select.prompt({
+        message: "Are you sure you want to clear all tasks?",
+        options: [
+            { name: "No, cancel", value: "cancel" },
+            { name: "Yes, clear all tasks", value: "confirm" }
+        ]
+    });
+
+    if (confirm === "confirm") {
+        await saveTasks([]);
+        UI.success("[SUCCESS] All tasks have been cleared.");
+        console.log("You can now add new tasks or import from backup.");
+    } else {
+        UI.info("[CANCELLED] Operation cancelled - no tasks were deleted.");
+    }
+
+    console.log("");
+    await Input.prompt("Press Enter to return to dashboard...");
+
+    // Return to dashboard (don't call showDataManagementMenu)
+}
+
 export async function dashboardCommand() {
     let selectedIndex = 0;
     let selectedTasks = new Set<number>(); // Multi-selection state
@@ -258,7 +292,7 @@ export async function dashboardCommand() {
 
     async function render(tasks: Task[], modal?: { lines: string[], width: number, height: number }, stats?: TaskStats) {
         UI.clearScreen();
-        UI.header();
+        UI.header(tasks.length);
 
         // Show search status if active
         if (searchMode) {
