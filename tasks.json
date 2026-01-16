@@ -1,1 +1,147 @@
-[]
+[
+  {
+    "id": 2,
+    "description": "🍎 Buy organic groceries",
+    "details": "Need kale, almond milk, and some seasonal fruits.",
+    "status": "todo",
+    "priority": "low",
+    "createdAt": "2026-01-16T10:08:52.329Z",
+    "updatedAt": "2026-01-16T10:08:52.329Z",
+    "tags": []
+  },
+  {
+    "id": 3,
+    "description": "📦 Ship customer orders",
+    "details": "Batch 402, 403, and 405 are ready for dispatch.",
+    "status": "todo",
+    "priority": "high",
+    "createdAt": "2026-01-16T10:08:52.329Z",
+    "updatedAt": "2026-01-16T10:08:52.329Z",
+    "tags": []
+  },
+  {
+    "id": 4,
+    "description": "🧘 Morning Meditation",
+    "details": "20 minutes of mindfulness to start the day right.",
+    "status": "done",
+    "priority": "medium",
+    "createdAt": "2026-01-16T10:08:52.329Z",
+    "updatedAt": "2026-01-16T10:08:52.329Z",
+    "tags": []
+  },
+  {
+    "id": 5,
+    "description": "💻 Refactor API layer",
+    "details": "Move to a more robust middleware pattern and add better error handling.",
+    "status": "in-progress",
+    "priority": "high",
+    "createdAt": "2026-01-16T10:08:52.329Z",
+    "updatedAt": "2026-01-16T10:08:52.329Z",
+    "tags": []
+  },
+  {
+    "id": 6,
+    "description": "🎸 Practice Guitar",
+    "details": "Work on the solo for 'Sultans of Swing'.",
+    "status": "todo",
+    "priority": "low",
+    "createdAt": "2026-01-16T10:08:52.329Z",
+    "updatedAt": "2026-01-16T10:08:52.329Z",
+    "tags": []
+  },
+  {
+    "id": 7,
+    "description": "📅 Quarterly Planning",
+    "details": "Meet with the team to set goals for Q2.",
+    "status": "todo",
+    "priority": "medium",
+    "createdAt": "2026-01-16T10:08:52.329Z",
+    "updatedAt": "2026-01-16T10:08:52.329Z",
+    "tags": []
+  },
+  {
+    "id": 8,
+    "description": "Buy groceries for the meeting",
+    "status": "todo",
+    "priority": "medium",
+    "tags": [
+      "shopping",
+      "urgent"
+    ],
+    "createdAt": "2026-01-16T10:08:52.329Z",
+    "updatedAt": "2026-01-16T10:08:52.329Z"
+  },
+  {
+    "id": 9,
+    "description": "Prepare presentation slides",
+    "details": "Meeting with client tomorrow",
+    "status": "todo",
+    "priority": "medium",
+    "tags": [
+      "work",
+      "meeting"
+    ],
+    "createdAt": "2026-01-16T10:08:52.329Z",
+    "updatedAt": "2026-01-16T10:08:52.329Z"
+  },
+  {
+    "id": 10,
+    "description": "Review code changes",
+    "status": "todo",
+    "priority": "medium",
+    "tags": [
+      "work",
+      "urgent"
+    ],
+    "createdAt": "2026-01-16T10:08:52.329Z",
+    "updatedAt": "2026-01-16T10:08:52.329Z"
+  },
+  {
+    "id": 11,
+    "description": "Prepare meeting agenda",
+    "details": "Discuss project timeline",
+    "status": "todo",
+    "priority": "medium",
+    "tags": [
+      "meeting",
+      "work"
+    ],
+    "createdAt": "2026-01-16T10:08:52.329Z",
+    "updatedAt": "2026-01-16T10:08:52.329Z"
+  },
+  {
+    "id": 13,
+    "description": "test",
+    "details": "",
+    "priority": "medium",
+    "tags": [],
+    "status": "todo",
+    "createdAt": "2026-01-16T11:35:09.545Z",
+    "updatedAt": "2026-01-16T11:35:09.545Z"
+  },
+  {
+    "id": 14,
+    "description": "awesome",
+    "details": "aweomserthhh",
+    "priority": "medium",
+    "tags": [
+      "urgent,wor"
+    ],
+    "status": "todo",
+    "createdAt": "2026-01-16T11:55:26.160Z",
+    "updatedAt": "2026-01-16T11:55:26.160Z"
+  },
+  {
+    "id": 15,
+    "description": "jjkkaa",
+    "details": "jksudmroha/?",
+    "priority": "critical",
+    "dueDate": "2026-01-17",
+    "tags": [
+      "urgent,work,love"
+    ],
+    "status": "todo",
+    "createdAt": "2026-01-16T12:51:48.026Z",
+    "updatedAt": "2026-01-16T12:51:48.026Z"
+  }
+]
