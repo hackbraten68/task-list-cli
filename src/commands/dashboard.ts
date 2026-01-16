@@ -366,9 +366,74 @@ export async function dashboardCommand() {
     const { columns, rows } = Deno.consoleSize();
     const terminalWidth = Math.max(80, columns - 4);
     const height = Math.max(10, rows - 12);
+    const isDimmed = !!modal;
 
     // Create sidebar
     const sidebarWidth = editMode === "add" ? Math.floor(terminalWidth * 0.2) : Math.floor(terminalWidth * 0.35);
+    let sidebarTitle: string;
+    let sidebarLines: string[];
+    let mainPanelTitle: string;
+    let detailLines: string[];
+
+    if (editMode === "add") {
+      sidebarTitle = "Preview";
+      sidebarLines = [];
+      sidebarLines.push("");
+      sidebarLines.push(`  ${colors.bold.cyan("New Task Preview")}`);
+      sidebarLines.push("");
+      sidebarLines.push(`  ${colors.bold.white("Description:")} ${editData.description || colors.dim("(empty)")}`);
+      sidebarLines.push(`  ${colors.bold.white("Priority:")}    ${editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("medium")}`);
+      sidebarLines.push(`  ${colors.bold.white("Details:")}     ${editData.details || colors.dim("(none)")}`);
+      sidebarLines.push(`  ${colors.bold.white("Due Date:")}   ${editData.dueDate || colors.dim("(none)")}`);
+      sidebarLines.push(`  ${colors.bold.white("Tags:")}        ${editData.tags && editData.tags.length > 0 ? editData.tags.join(", ") : colors.dim("(none)")}`);
+      sidebarLines.push("");
+      sidebarLines.push(`  ${colors.dim("Press Enter to save")}`);
+      // Fill remaining height
+      while (sidebarLines.length < height - 2) {
+        sidebarLines.push("");
+      }
+    } else if (statsViewMode) {
+      // Stats view: show statistics in sidebar
+      const stats = calculateStats(tasks);
+      sidebarTitle = "Statistics";
+      sidebarLines = UI.renderStatsPanel(stats, sidebarWidth, height);
+    } else {
+      // Tasks view: show task list in sidebar
+      sidebarTitle = "Tasks";
+      sidebarLines = tasks.map((t, i) => {
+        const isCurrent = i === selectedIndex;
+        const isMultiSelected = selectedTasks.has(t.id);
+
+        let prefix = "  ";
+        if (isCurrent && multiSelectMode) {
+          prefix = colors.bold.magenta("❯ ");
+        } else if (isCurrent) {
+          prefix = colors.bold.cyan("❯ ");
+        }
+
+        const statusIcon = t.status === "done"
+          ? colors.green("✔")
+          : t.status === "in-progress"
+          ? colors.yellow("●")
+          : colors.red("●");
+
+        // Add selection indicator for multi-selected tasks
+        const selectIndicator = isMultiSelected
+          ? colors.bold.blue("[✓] ")
+          : "    ";
+        const line =
+          `${selectIndicator}${prefix}${statusIcon} ${t.description}`;
+
+        // Highlight current selection or multi-selected tasks
+        if (isCurrent && !multiSelectMode) {
+          return colors.bgRgb24(line, { r: 50, g: 50, b: 50 });
+        } else if (isMultiSelected) {
+          return colors.bgRgb24(line, { r: 30, g: 30, b: 60 });
+        }
+        return line;
+      });
+    }
+
     const sidebar = UI.box(
       sidebarTitle,
       sidebarLines,
@@ -377,6 +442,94 @@ export async function dashboardCommand() {
       !isDimmed,
       isDimmed,
     );
+
+    // Build detail lines for main panel
+    const selectedTask = tasks[selectedIndex];
+    detailLines = [];
+
+    if (multiSelectMode && selectedTasks.size > 0) {
+      // Show multi-selection summary
+      const selectedTaskList = Array.from(selectedTasks).map((id) =>
+        tasks.find((t) => t.id === id)
+      ).filter(Boolean) as Task[];
+
+      detailLines.push("");
+      detailLines.push(`  ${colors.bold.magenta("Multi-Selection Mode")}`);
+      detailLines.push(
+        `  ${colors.bold.white("Selected:")}     ${selectedTasks.size} tasks`,
+      );
+      detailLines.push("");
+      detailLines.push(`  ${colors.bold.white("Selected Tasks:")}`);
+
+      const summaries = selectedTaskList.slice(0, 10).map((task) =>
+        `    ${task.id}: ${task.description.substring(0, 40)}${
+          task.description.length > 40 ? "..." : ""
+        }`
+      );
+      detailLines.push(...summaries);
+
+      if (selectedTaskList.length > 10) {
+        detailLines.push(`    ... and ${selectedTaskList.length - 10} more`);
+      }
+
+      detailLines.push("");
+      detailLines.push(`  ${colors.dim("Press Enter for bulk actions")}`);
+      detailLines.push(
+        `  ${colors.dim("Press Tab to exit multi-select mode")}`,
+      );
+      mainPanelTitle = "Details";
+    } else if (selectedTask) {
+      // Show single task details
+      detailLines.push("");
+      detailLines.push(
+        `  ${colors.bold.white("ID:")}          ${
+          colors.dim(selectedTask.id.toString())
+        }`,
+      );
+      detailLines.push(
+        `  ${colors.bold.white("Title:")}       ${selectedTask.description}`,
+      );
+      detailLines.push(
+        `  ${colors.bold.white("Status:")}      ${
+          UI.statusPipe(selectedTask.status)
+        }`,
+      );
+      detailLines.push(
+        `  ${colors.bold.white("Priority:")}    ${
+          UI.priorityPipe(selectedTask.priority)
+        }`,
+      );
+      detailLines.push(
+        `  ${colors.bold.white("Tags:")}        ${
+          selectedTask.tags && selectedTask.tags.length > 0
+            ? selectedTask.tags.join(", ")
+            : colors.dim("-")
+        }`,
+      );
+      detailLines.push(
+        `  ${colors.bold.white("Due Date:")}    ${
+          selectedTask.dueDate
+            ? colors.cyan(selectedTask.dueDate)
+            : colors.dim("-")
+        }`,
+      );
+      detailLines.push("");
+      detailLines.push(
+        `  ${colors.dim("Created at: " + selectedTask.createdAt)}`,
+      );
+      detailLines.push(
+        `  ${colors.dim("Updated at: " + selectedTask.updatedAt)}`,
+      );
+      detailLines.push("");
+      detailLines.push(`  ${colors.bold.white("Details:")}`);
+      detailLines.push(
+        `  ${selectedTask.details || colors.dim("No details provided.")}`,
+      );
+      mainPanelTitle = "Details";
+    } else {
+      detailLines.push("\n  No tasks available.");
+      mainPanelTitle = "Details";
+    }
 
     let panels: string[][];
 
