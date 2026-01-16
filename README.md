@@ -212,6 +212,7 @@ All bulk operations include:
 | `j` / `↓` | Select next task |
 | `k` / `↑` | Select previous task |
 | `Tab` | Enter multi-select mode |
+| `/` | Search tasks |
 | `s` | Toggle statistics view |
 | `a` | Add new task |
 | `u` / `⏎` | Update selected task |
@@ -228,6 +229,20 @@ All bulk operations include:
 | `Tab` | Exit multi-select mode |
 | `⏎` | Show bulk actions menu |
 | `q` / `⌃C` | Quit |
+
+### Search Mode
+| Key | Action |
+|-----|--------|
+| `j` / `↓` | Select next task |
+| `k` / `↑` | Select previous task |
+| `ESC` | Clear search |
+| `/` | New search |
+| `q` / `⌃C` | Quit |
+
+**Search indicators:**
+- Header shows active search term and match count
+- `ESC` clears search and returns to all tasks
+- Search works across description, details, and tags
 
 **Multi-select indicators:**
 - `[✓]` - Task is selected

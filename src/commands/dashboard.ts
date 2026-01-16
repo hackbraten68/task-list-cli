@@ -1,5 +1,5 @@
 import { colors } from "cliffy/ansi";
-import { Select } from "cliffy/prompt";
+import { Select, Input } from "cliffy/prompt";
 import { loadTasks, bulkMarkTasks, bulkDeleteTasks, bulkUpdateTasks } from "../storage.ts";
 import { UI } from "../ui.ts";
 import { calculateStats, TaskStats } from "../stats.ts";
@@ -10,11 +10,24 @@ import { markCommand } from "./mark.ts";
 import { Task, TaskPriority } from "../types.ts";
 import { getTaskSummaries } from "../utils/task-selection.ts";
 
+function filterTasksBySearch(tasks: Task[], searchTerm: string): Task[] {
+    if (!searchTerm) return tasks;
+
+    const term = searchTerm.toLowerCase();
+    return tasks.filter(task =>
+        task.description.toLowerCase().includes(term) ||
+        (task.details && task.details.toLowerCase().includes(term)) ||
+        (task.tags && task.tags.some(tag => tag.toLowerCase().includes(term)))
+    );
+}
+
 export async function dashboardCommand() {
     let selectedIndex = 0;
     let selectedTasks = new Set<number>(); // Multi-selection state
     let multiSelectMode = false;
     let statsViewMode = false; // Toggle between tasks and stats view
+    let searchTerm = ""; // Current search term
+    let searchMode = false; // Whether search is active
     let running = true;
 
     // Set stdin to raw mode
@@ -35,6 +48,11 @@ export async function dashboardCommand() {
     async function render(tasks: Task[], modal?: { lines: string[], width: number, height: number }, stats?: TaskStats) {
         UI.clearScreen();
         UI.header();
+
+        // Show search status if active
+        if (searchMode) {
+            console.log(`  🔍 Search: "${searchTerm}" (${tasks.length} matches)`);
+        }
 
         const { columns, rows } = Deno.consoleSize();
         const terminalWidth = Math.max(80, columns - 4);
@@ -133,20 +151,24 @@ export async function dashboardCommand() {
         const mainPanel = UI.box("Details", detailLines, mainWidth, height, false, isDimmed);
 
         UI.renderLayout([sidebar, mainPanel], modal);
-        UI.footer(multiSelectMode, selectedTasks.size, statsViewMode, stats?.completionRate, stats?.overdue);
+        UI.footer(multiSelectMode, selectedTasks.size, statsViewMode, stats?.completionRate, stats?.overdue, searchMode);
     }
 
     try {
         while (running) {
-            const tasks = await loadTasks();
-            if (tasks.length > 0 && selectedIndex >= tasks.length) {
-                selectedIndex = tasks.length - 1;
+            let tasks = await loadTasks();
+
+            // Apply search filter if active
+            const filteredTasks = searchMode ? filterTasksBySearch(tasks, searchTerm) : tasks;
+
+            if (filteredTasks.length > 0 && selectedIndex >= filteredTasks.length) {
+                selectedIndex = filteredTasks.length - 1;
             }
 
-            // Calculate stats for footer status bar
+            // Calculate stats for footer status bar (use original tasks for stats)
             const stats = calculateStats(tasks);
 
-            await render(tasks, undefined, stats);
+            await render(filteredTasks, undefined, stats);
 
             const reader = Deno.stdin.readable.getReader();
             const { value, done } = await reader.read();
@@ -233,6 +255,34 @@ export async function dashboardCommand() {
                     statsViewMode = !statsViewMode;
                     // Reset selection when switching to stats mode
                     if (statsViewMode) {
+                        selectedIndex = 0;
+                        selectedTasks.clear();
+                        multiSelectMode = false;
+                    }
+                    break;
+                case "/":
+                    // Enter search mode
+                    cleanup();
+                    try {
+                        const newSearchTerm = await Input.prompt("Search tasks:");
+                        searchTerm = newSearchTerm.trim();
+                        searchMode = searchTerm.length > 0;
+                        // Reset selection when entering search mode
+                        selectedIndex = 0;
+                        selectedTasks.clear();
+                        multiSelectMode = false;
+                    } catch {
+                        // User cancelled search
+                        searchTerm = "";
+                        searchMode = false;
+                    }
+                    Deno.stdin.setRaw(true);
+                    break;
+                case "\u001b": // ESC key
+                    if (searchMode) {
+                        // Clear search
+                        searchTerm = "";
+                        searchMode = false;
                         selectedIndex = 0;
                         selectedTasks.clear();
                         multiSelectMode = false;
