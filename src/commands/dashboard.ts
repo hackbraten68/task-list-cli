@@ -290,13 +290,30 @@ export async function dashboardCommand() {
   // Set stdin to raw mode
   Deno.stdin.setRaw(true);
 
-  const cleanup = () => {
-    try {
-      Deno.stdin.setRaw(false);
-    } catch {
-      // Ignore cleanup errors
-    }
-  };
+    const cleanup = () => {
+        try {
+            Deno.stdin.setRaw(false);
+        } catch {
+            // Ignore cleanup errors
+        }
+    };
+
+    const appendToCurrentField = (char: string) => {
+      if (editMode === "add") {
+        if (currentField === "description") {
+          editData.description = (editData.description || "") + char;
+        } else if (currentField === "details") {
+          editData.details = (editData.details || "") + char;
+        } else if (currentField === "dueDate") {
+          editData.dueDate = (editData.dueDate || "") + char;
+        } else if (currentField === "tags") {
+          // For tags, append to first tag
+          const currentTags = editData.tags || [];
+          const currentTag = currentTags[0] || "";
+          editData.tags = [currentTag + char];
+        }
+      }
+    };
 
   async function performSearch() {
     // Enter search mode with footer replacement
@@ -721,7 +738,11 @@ export async function dashboardCommand() {
           }
           break;
         case "u":
-          if (editMode === "add") break; // Ignore in add mode
+          if (editMode === "add") {
+            // Append 'u' to current field in add mode
+            appendToCurrentField("u");
+            break;
+          }
           if (multiSelectMode && selectedTasks.size > 0) {
             // Show bulk actions menu
             cleanup();
@@ -770,7 +791,11 @@ export async function dashboardCommand() {
           }
           break;
         case "d":
-          if (editMode === "add") break; // Ignore in add mode
+          if (editMode === "add") {
+            // Append 'd' to current field in add mode
+            appendToCurrentField("d");
+            break;
+          }
           if (tasks[selectedIndex]) {
             cleanup();
             await deleteCommand(tasks[selectedIndex].id, {
@@ -782,7 +807,11 @@ export async function dashboardCommand() {
           }
           break;
         case "m":
-          if (editMode === "add") break; // Ignore in add mode
+          if (editMode === "add") {
+            // Append 'm' to current field in add mode
+            appendToCurrentField("m");
+            break;
+          }
           if (tasks[selectedIndex]) {
             cleanup();
             await markCommand(undefined, tasks[selectedIndex].id, {
@@ -794,7 +823,11 @@ export async function dashboardCommand() {
           }
           break;
         case "s":
-          if (editMode === "add") break; // Ignore in add mode
+          if (editMode === "add") {
+            // Append 's' to current field in add mode
+            appendToCurrentField("s");
+            break;
+          }
           statsViewMode = !statsViewMode;
           // Reset selection when switching to stats mode
           if (statsViewMode) {
@@ -804,13 +837,21 @@ export async function dashboardCommand() {
           }
           break;
         case "/":
-          if (editMode === "add") break; // Ignore in add mode
+          if (editMode === "add") {
+            // Append '/' to current field in add mode
+            appendToCurrentField("/");
+            break;
+          }
           // Enter exact search mode
           fuzzyMode = false;
           await performSearch();
           break;
         case "?":
-          if (editMode === "add") break; // Ignore in add mode
+          if (editMode === "add") {
+            // Append '?' to current field in add mode
+            appendToCurrentField("?");
+            break;
+          }
           // Enter fuzzy search mode
           fuzzyMode = true;
           await performSearch();
