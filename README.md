@@ -284,6 +284,8 @@ id,description,details,status,priority,dueDate,tags,createdAt,updatedAt
 | `u` / `⏎` | Update selected task |
 | `d` | Delete selected task |
 | `m` | Mark status |
+| `o` | Cycle sort field |
+| `r` | Reverse sort order |
 | `h` | Help & Settings menu |
 | `q` / `⌃C` | Quit |
 
