@@ -107,7 +107,7 @@ async function showHelpMenu(): Promise<void> {
     console.log("a             - Add new task");
     console.log("/             - Search tasks");
     console.log("s             - Toggle statistics view");
-    console.log("? or h        - Help & Settings menu");
+    console.log("h             - Help & Settings menu");
     console.log("q or Ctrl+C   - Quit");
     console.log("");
     await Input.prompt("Press Enter to continue...");
@@ -513,7 +513,6 @@ export async function dashboardCommand() {
                         multiSelectMode = false;
                     }
                     break;
-                case "?":
                 case "h": // Help/Settings menu
                     cleanup();
                     await showMainMenu();
