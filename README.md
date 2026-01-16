@@ -279,6 +279,7 @@ id,description,details,status,priority,dueDate,tags,createdAt,updatedAt
 | `u` / `⏎` | Update selected task |
 | `d` | Delete selected task |
 | `m` | Mark status |
+| `h` | Help & Settings menu |
 | `q` / `⌃C` | Quit |
 
 ### Multi-Select Mode
@@ -299,6 +300,59 @@ id,description,details,status,priority,dueDate,tags,createdAt,updatedAt
 | `ESC` | Clear search |
 | `/` | New search |
 | `q` / `⌃C` | Quit |
+
+## 🗂️ Menu System
+
+LazyTask features a hierarchical menu system accessible via the `h` key for advanced features and settings.
+
+### Accessing the Menu
+Press `h` in the dashboard to open the main menu.
+
+### Menu Structure
+```
+LazyTask Menu
+├── [DATA] Data Management
+│   ├── [EXPORT] Export Tasks...
+│   ├── [IMPORT] Import Tasks...
+│   └── [BACKUP] Manual Backup
+├── [SETTINGS] Settings
+│   ├── [THEME] Theme Selection
+│   ├── [PREFS] UI Preferences
+│   └── [KEYS] Keyboard Shortcuts
+└── [HELP] Help & Info
+    ├── [REF] Keyboard Reference
+    ├── [DOCS] Feature Documentation
+    └── [ABOUT] About
+```
+
+### Data Management
+Access export, import, and backup functionality through the menu system.
+
+**Export Tasks:**
+- Choose format: JSON or CSV
+- Specify output file path
+- Apply optional filters (status, priority, tags)
+
+**Import Tasks:**
+- Choose format: JSON or CSV
+- Specify input file path
+- Select mode: Merge, Replace, or Validate-only
+
+**Manual Backup:**
+- Creates timestamped JSON backup automatically
+- No user input required
+
+### Settings (Future)
+The settings menu will include:
+- **Theme Selection**: Color scheme customization
+- **UI Preferences**: Layout and display options
+- **Keyboard Shortcuts**: Custom keybindings
+
+### Navigation
+- Use arrow keys or `j`/`k` to navigate menu options
+- Press `Enter` to select an option
+- Each submenu includes a "Back" option to return to the previous level
+- Press `q` or `Ctrl+C` to exit the menu system
 
 **Search indicators:**
 - Header shows active search term and match count
