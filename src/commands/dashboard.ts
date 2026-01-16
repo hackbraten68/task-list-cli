@@ -280,9 +280,12 @@ export async function dashboardCommand() {
   let searchTerm = ""; // Current search term
   let searchMode = false; // Whether search is active
   let fuzzyMode = false; // Whether fuzzy search is active
-  let currentSortField = "id"; // Current sort field
-  let currentSortOrder: "asc" | "desc" = "asc"; // Current sort order
-  let running = true;
+   let currentSortField = "id"; // Current sort field
+   let currentSortOrder: "asc" | "desc" = "asc"; // Current sort order
+   let editMode: "view" | "add" | "update" | "delete" = "view"; // Current edit mode
+   let editData: Partial<Task> = {}; // Data for editing/adding
+   let currentField: keyof Pick<Task, "description" | "priority" | "details" | "dueDate" | "tags"> = "description"; // Current form field
+   let running = true;
 
   // Set stdin to raw mode
   Deno.stdin.setRaw(true);
@@ -422,6 +425,7 @@ export async function dashboardCommand() {
     );
 
     const selectedTask = tasks[selectedIndex];
+    let mainPanelTitle: string;
     const detailLines: string[] = [];
 
     if (multiSelectMode && selectedTasks.size > 0) {
@@ -454,6 +458,7 @@ export async function dashboardCommand() {
       detailLines.push(
         `  ${colors.dim("Press Tab to exit multi-select mode")}`,
       );
+      mainPanelTitle = "Details";
     } else if (selectedTask) {
       // Show single task details
       detailLines.push("");
@@ -501,12 +506,40 @@ export async function dashboardCommand() {
       detailLines.push(
         `  ${selectedTask.details || colors.dim("No details provided.")}`,
       );
+      mainPanelTitle = "Details";
+    } else if (editMode === "add") {
+      // Render add task form
+      detailLines.push("");
+      detailLines.push(`  ${colors.bold.cyan("Adding New Task")}`);
+      detailLines.push("");
+
+      const descLabel = currentField === "description" ? colors.bold.yellow("➜") : "  ";
+      detailLines.push(`${descLabel} ${colors.bold.white("Description:")} ${editData.description || colors.dim("(required)")}`);
+
+      const priorityLabel = currentField === "priority" ? colors.bold.yellow("➜") : "  ";
+      const priorityValue = editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("(optional)");
+      detailLines.push(`${priorityLabel} ${colors.bold.white("Priority:")}    ${priorityValue}`);
+
+      const detailsLabel = currentField === "details" ? colors.bold.yellow("➜") : "  ";
+      detailLines.push(`${detailsLabel} ${colors.bold.white("Details:")}     ${editData.details || colors.dim("(optional)")}`);
+
+      const dueDateLabel = currentField === "dueDate" ? colors.bold.yellow("➜") : "  ";
+      detailLines.push(`${dueDateLabel} ${colors.bold.white("Due Date:")}   ${editData.dueDate || colors.dim("(optional)")}`);
+
+      const tagsLabel = currentField === "tags" ? colors.bold.yellow("➜") : "  ";
+      detailLines.push(`${tagsLabel} ${colors.bold.white("Tags:")}        ${editData.tags ? editData.tags.join(", ") : colors.dim("(optional)")}`);
+
+      detailLines.push("");
+      detailLines.push(`  ${colors.dim("Tab/Shift-Tab: Navigate • Enter: Save • Esc: Cancel")}`);
+
+      mainPanelTitle = "Add Task";
     } else {
       detailLines.push("\n  No tasks available.");
+      mainPanelTitle = "Details";
     }
 
     const mainPanel = UI.box(
-      "Details",
+      mainPanelTitle,
       detailLines,
       mainWidth,
       height,
@@ -571,27 +604,58 @@ export async function dashboardCommand() {
 
       const keys = new TextDecoder().decode(value);
 
-      switch (keys) {
-        case "j":
-        case "\u001b[B": // Down arrow
-          selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
-          break;
-        case "k":
-        case "\u001b[A": // Up arrow
-          selectedIndex = Math.max(0, selectedIndex - 1);
-          break;
+            switch (keys) {
+                case "j":
+                case "\u001b[B": // Down arrow
+                    if (editMode === "add" && currentField === "priority") {
+                        // Cycle priority down
+                        const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
+                        const currentIndex = priorities.indexOf(editData.priority || "medium");
+                        editData.priority = priorities[(currentIndex + 1) % priorities.length];
+                    } else {
+                        selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
+                    }
+                    break;
+                case "k":
+                case "\u001b[A": // Up arrow
+                    if (editMode === "add" && currentField === "priority") {
+                        // Cycle priority up
+                        const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
+                        const currentIndex = priorities.indexOf(editData.priority || "medium");
+                        editData.priority = priorities[(currentIndex - 1 + priorities.length) % priorities.length];
+                    } else {
+                        selectedIndex = Math.max(0, selectedIndex - 1);
+                    }
+                    break;
         case "a":
-          cleanup();
-          await addCommand(undefined, {
-            modal: true,
-            renderBackground: () => render(tasks),
-          });
-          Deno.stdin.setRaw(true);
+          if (editMode === "view") {
+            // Enter add mode
+            editMode = "add";
+            editData = {
+              description: "",
+              priority: "medium",
+              details: "",
+              dueDate: "",
+              tags: [],
+            };
+            currentField = "description";
+          } else if (editMode === "add") {
+            // Cancel add mode
+            editMode = "view";
+            editData = {};
+          }
           break;
-        case "\t": // Tab - Toggle multi-select mode
-          multiSelectMode = !multiSelectMode;
-          if (!multiSelectMode) {
-            selectedTasks.clear(); // Clear selections when exiting multi-select
+        case "\t": // Tab - navigate to next field or toggle multi-select
+          if (editMode === "add") {
+            const fields: (keyof Pick<Task, "description" | "priority" | "details" | "dueDate" | "tags">)[] = ["description", "priority", "details", "dueDate", "tags"];
+            const currentIndex = fields.indexOf(currentField);
+            currentField = fields[(currentIndex + 1) % fields.length];
+          } else {
+            // Original Tab behavior for multi-select
+            multiSelectMode = !multiSelectMode;
+            if (!multiSelectMode) {
+              selectedTasks.clear(); // Clear selections when exiting multi-select
+            }
           }
           break;
         case " ": // Space - Select/deselect current task (multi-select mode)
@@ -606,7 +670,30 @@ export async function dashboardCommand() {
           break;
         case "u":
         case "\r": // Enter
-          if (multiSelectMode && selectedTasks.size > 0) {
+          if (editMode === "add") {
+            // Save the task
+            if (editData.description && editData.description.trim()) {
+              const tasks = await loadTasks();
+              const newTask: Task = {
+                id: Math.max(0, ...tasks.map(t => t.id)) + 1,
+                description: editData.description.trim(),
+                details: editData.details?.trim() || "",
+                priority: editData.priority || "medium",
+                dueDate: editData.dueDate?.trim() || undefined,
+                tags: editData.tags || [],
+                status: "todo",
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              };
+              tasks.push(newTask);
+              await saveTasks(tasks);
+              UI.success(`Task added successfully! (ID: ${newTask.id})`);
+            } else {
+              UI.error("Description is required");
+            }
+            editMode = "view";
+            editData = {};
+          } else if (multiSelectMode && selectedTasks.size > 0) {
             // Show bulk actions menu
             cleanup();
             const updatedSelection = await showBulkActionsMenu(
@@ -669,7 +756,11 @@ export async function dashboardCommand() {
           await performSearch();
           break;
         case "\u001b": // ESC key
-          if (searchMode) {
+          if (editMode === "add") {
+            // Cancel add mode
+            editMode = "view";
+            editData = {};
+          } else if (searchMode) {
             // Clear search
             searchTerm = "";
             searchMode = false;
@@ -702,11 +793,45 @@ export async function dashboardCommand() {
           currentSortOrder = currentSortOrder === "asc" ? "desc" : "asc";
           break;
         }
-        case "q":
-        case "\u0003": // Ctrl+C
-          running = false;
-          break;
-      }
+
+
+                case "\u007f": // Backspace
+                    if (editMode === "add") {
+                        if (currentField === "description" && editData.description) {
+                            editData.description = editData.description.slice(0, -1);
+                        } else if (currentField === "details" && editData.details) {
+                            editData.details = editData.details.slice(0, -1);
+                        } else if (currentField === "dueDate" && editData.dueDate) {
+                            editData.dueDate = editData.dueDate.slice(0, -1);
+                        } else if (currentField === "tags" && editData.tags && editData.tags[0]) {
+                            const currentTag = editData.tags[0];
+                            editData.tags = [currentTag.slice(0, -1)];
+                        }
+                    }
+                    break;
+
+                case "q":
+                case "\u0003": // Ctrl+C
+                    running = false;
+                    break;
+                default:
+                    // Handle text input when in add mode
+                    if (editMode === "add" && keys && keys.length === 1 && keys >= ' ' && keys <= '~') {
+                        if (currentField === "description") {
+                            editData.description = (editData.description || "") + keys;
+                        } else if (currentField === "details") {
+                            editData.details = (editData.details || "") + keys;
+                        } else if (currentField === "dueDate") {
+                            editData.dueDate = (editData.dueDate || "") + keys;
+                        } else if (currentField === "tags") {
+                            // Simple tag input - append to first tag
+                            const currentTags = editData.tags || [];
+                            const currentTag = currentTags[0] || "";
+                            editData.tags = [currentTag + keys];
+                        }
+                    }
+                    break;
+            }
     }
   } finally {
     cleanup();
