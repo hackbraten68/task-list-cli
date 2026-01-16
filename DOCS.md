@@ -1,6 +1,9 @@
 # Aufgabenverwaltung mit Deno
 
-In diesem Kurs lernen Sie, wie Sie eine einfache Aufgabenverwaltungsanwendung in Deno erstellen können. Die Anwendung ermöglicht das Hinzufügen, Aktualisieren, Löschen und Auflisten von Aufgaben. Wir werden den Code Schritt für Schritt durchgehen und die wichtigsten Funktionen erläutern.
+In diesem Kurs lernen Sie, wie Sie eine einfache Aufgabenverwaltungsanwendung in
+Deno erstellen können. Die Anwendung ermöglicht das Hinzufügen, Aktualisieren,
+Löschen und Auflisten von Aufgaben. Wir werden den Code Schritt für Schritt
+durchgehen und die wichtigsten Funktionen erläutern.
 
 ## Inhaltsverzeichnis
 
@@ -15,17 +18,20 @@ In diesem Kurs lernen Sie, wie Sie eine einfache Aufgabenverwaltungsanwendung in
 
 ## Einführung
 
-Diese Anwendung wird mit Deno, einer modernen JavaScript- und TypeScript-Laufzeitumgebung, entwickelt. Sie ermöglicht die Verwaltung von Aufgaben über die Kommandozeile.
+Diese Anwendung wird mit Deno, einer modernen JavaScript- und
+TypeScript-Laufzeitumgebung, entwickelt. Sie ermöglicht die Verwaltung von
+Aufgaben über die Kommandozeile.
 
 ## Installation
 
-Um das Projekt auszuführen, benötigen Sie Deno. Besuchen Sie die [offizielle Deno-Website](https://deno.land/) für Anweisungen zur Installation.
+Um das Projekt auszuführen, benötigen Sie Deno. Besuchen Sie die
+[offizielle Deno-Website](https://deno.land/) für Anweisungen zur Installation.
 
 ## Codeübersicht
 
 Hier ist der vollständige Code der Anwendung:
 
-```typescript
+````typescript
 import { parse } from "https://deno.land/std@0.177.0/flags/mod.ts";
 
 const TASK_FILE = "tasks.json";
@@ -65,7 +71,7 @@ const Colors = {
   bgCyan: "\x1b[46m",
   bgWhite: "\x1b[47m",
 };
-```
+````
 
 ### Funktionen
 
@@ -85,7 +91,8 @@ function formatDate(dateString: string): string {
 
 #### `loadTasks(): Promise<Task[]>`
 
-Lädt die Aufgaben aus der `tasks.json`-Datei. Gibt eine leere Liste zurück, wenn die Datei nicht gefunden wird.
+Lädt die Aufgaben aus der `tasks.json`-Datei. Gibt eine leere Liste zurück, wenn
+die Datei nicht gefunden wird.
 
 ```typescript
 async function loadTasks(): Promise<Task[]> {
@@ -198,7 +205,9 @@ Listet alle Aufgaben auf, optional gefiltert nach ihrem Status.
 ```typescript
 async function listTasks(status?: string) {
   const tasks = await loadTasks();
-  const filteredTasks = status ? tasks.filter((task) => task.status === status) : tasks;
+  const filteredTasks = status
+    ? tasks.filter((task) => task.status === status)
+    : tasks;
 
   filteredTasks.forEach((task) => {
     let statusColor = Colors.reset;
@@ -221,14 +230,20 @@ async function listTasks(status?: string) {
         break;
     }
 
-    console.log(`${task.id}: ${task.description} [${backgroundColor}${statusColor}${task.status}${Colors.reset}] (Created: ${formatDate(task.createdAt)}, Updated: ${formatDate(task.updatedAt)})`);
+    console.log(
+      `${task.id}: ${task.description} [${backgroundColor}${statusColor}${task.status}${Colors.reset}] (Created: ${
+        formatDate(task.createdAt)
+      }, Updated: ${formatDate(task.updatedAt)})`,
+    );
   });
 }
 ```
 
 ### Interaktive Benutzerführung
 
-Die Funktionen `interactiveAddTask`, `selectTask` und `interactiveUpdateTask` ermöglichen die Benutzerinteraktion über die Konsole, um Aufgaben hinzuzufügen und zu aktualisieren.
+Die Funktionen `interactiveAddTask`, `selectTask` und `interactiveUpdateTask`
+ermöglichen die Benutzerinteraktion über die Konsole, um Aufgaben hinzuzufügen
+und zu aktualisieren.
 
 #### `interactiveAddTask()`
 
@@ -237,8 +252,10 @@ Fragt den Benutzer nach einer neuen Aufgabenbeschreibung und optionalen Details.
 ```typescript
 async function interactiveAddTask() {
   const description = await promptUser("Please enter the task description: ");
-  const addDetails = await promptUser("Would you like to add details to this task? (y/n): ");
-  
+  const addDetails = await promptUser(
+    "Would you like to add details to this task? (y/n): ",
+  );
+
   if (addDetails.toLowerCase() === "y") {
     const details = await promptUser("Please enter the task details: ");
     await addTask(`${description}\nDetails: ${details}`);
@@ -250,7 +267,8 @@ async function interactiveAddTask() {
 
 #### `selectTask()`
 
-Listet alle Aufgaben auf und ermöglicht dem Benutzer, eine Aufgabe zur Aktualisierung auszuwählen.
+Listet alle Aufgaben auf und ermöglicht dem Benutzer, eine Aufgabe zur
+Aktualisierung auszuwählen.
 
 ```typescript
 async function selectTask(): Promise<number | null> {
@@ -266,9 +284,11 @@ async function selectTask(): Promise<number | null> {
     console.log(`${task.id}: ${task.description}`);
   });
 
-  const selectedIndex = await promptUser("Enter the task ID you want to update: ");
+  const selectedIndex = await promptUser(
+    "Enter the task ID you want to update: ",
+  );
   const taskId = parseInt(selectedIndex, 10);
-  
+
   if (tasks.some((task) => task.id === taskId)) {
     return taskId;
   }
@@ -286,7 +306,9 @@ Fragt den Benutzer nach der neuen Beschreibung der ausgewählten Aufgabe.
 async function interactiveUpdateTask() {
   const taskId = await selectTask();
   if (taskId) {
-    const newDescription = await promptUser("Please enter the new description for the task: ");
+    const newDescription = await promptUser(
+      "Please enter the new description for the task: ",
+    );
     await updateTask(taskId, newDescription);
   }
 }
@@ -310,6 +332,10 @@ async function main() {
 
 ### Fazit
 
-In diesem Kurs haben wir eine einfache Aufgabenverwaltungsanwendung in Deno erstellt. Sie können diese Anwendung erweitern, um zusätzliche Funktionen hinzuzufügen oder die Benutzeroberfläche zu verbessern. Viel Spaß beim Programmieren!
+In diesem Kurs haben wir eine einfache Aufgabenverwaltungsanwendung in Deno
+erstellt. Sie können diese Anwendung erweitern, um zusätzliche Funktionen
+hinzuzufügen oder die Benutzeroberfläche zu verbessern. Viel Spaß beim
+Programmieren!
 
-Fühle dich frei, Anpassungen vorzunehmen oder zusätzliche Abschnitte hinzuzufügen, um den Kurs weiter zu verbessern!
+Fühle dich frei, Anpassungen vorzunehmen oder zusätzliche Abschnitte
+hinzuzufügen, um den Kurs weiter zu verbessern!
