@@ -259,10 +259,9 @@ async function handleClearAllTasks(): Promise<void> {
     }
 
     console.log("");
-    await Input.prompt("Press Enter to return to menu...");
+    await Input.prompt("Press Enter to return to dashboard...");
 
-    // Return to data management menu to show success
-    await showDataManagementMenu();
+    // Return to dashboard (don't call showDataManagementMenu)
 }
 
 export async function dashboardCommand() {
