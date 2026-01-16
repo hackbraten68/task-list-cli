@@ -223,7 +223,7 @@ export const UI = {
     } else {
       footerStr += colors.bold("j/k") + " or " + colors.bold("↑/↓") + "  " +
         colors.bold("Tab") + " Multi-Select  " +
-        colors.bold("/") + " Exact Search  " +
+        colors.bold("/") + " Search  " +
         colors.bold("?") + " Fuzzy Search  " +
         colors.bold("s") + " Statistics  " +
         colors.bold("a") + " Add  " +
