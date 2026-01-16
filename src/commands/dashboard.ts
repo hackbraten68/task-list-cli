@@ -643,6 +643,41 @@ export async function dashboardCommand() {
         isDimmed,
       );
       panels = [sidebar, mainPanel];
+    } else if (editMode === "delete") {
+      // Two-panel layout with delete confirmation in main
+      const mainWidth = terminalWidth - sidebarWidth - 2;
+
+      const selectedTask = tasks[selectedIndex];
+      const confirmLines: string[] = [];
+      confirmLines.push("");
+      confirmLines.push(`  ${colors.bold.red("🗑️  Delete Task Confirmation")}`);
+      confirmLines.push("");
+
+      if (selectedTask) {
+        confirmLines.push(`  ${colors.bold.white("Task:")} ${selectedTask.description}`);
+        confirmLines.push(`  ${colors.bold.white("ID:")} ${selectedTask.id}`);
+        confirmLines.push("");
+        confirmLines.push(`  ${colors.bold.red("⚠️  This action cannot be undone!")}`);
+        confirmLines.push("");
+        confirmLines.push(`  ${colors.dim("Delete this task?")}`);
+        confirmLines.push("");
+        confirmLines.push(`  ${colors.bold.green("Y")}es  ${colors.bold.red("N")}o  ${colors.dim("Esc")} Cancel`);
+      }
+
+      // Fill to height
+      while (confirmLines.length < height - 2) {
+        confirmLines.push("");
+      }
+
+      const mainPanel = UI.box(
+        "Confirm Delete",
+        confirmLines,
+        mainWidth,
+        height,
+        false,
+        isDimmed,
+      );
+      panels = [sidebar, mainPanel];
     } else {
       // Two-panel layout: sidebar, details
       const mainWidth = terminalWidth - sidebarWidth - 2;
@@ -901,14 +936,21 @@ export async function dashboardCommand() {
             appendToCurrentField("d");
             break;
           }
-          if (tasks[selectedIndex]) {
-            cleanup();
-            await deleteCommand(tasks[selectedIndex].id, {
-              modal: true,
-              renderBackground: () =>
-                render(tasks, { lines: [], width: 60, height: 6 }),
-            });
-            Deno.stdin.setRaw(true);
+          if (editMode === "view") {
+            if (multiSelectMode && selectedTasks.size > 0) {
+              // Show bulk actions menu for multi-select (preserve existing functionality)
+              cleanup();
+              const updatedSelection = await showBulkActionsMenu(
+                tasks,
+                Array.from(selectedTasks),
+              );
+              selectedTasks.clear();
+              updatedSelection.forEach((id) => selectedTasks.add(id));
+              Deno.stdin.setRaw(true);
+            } else if (!multiSelectMode && tasks[selectedIndex]) {
+              // Enter inline delete confirmation mode
+              editMode = "delete";
+            }
           }
           break;
         case "m":
@@ -998,8 +1040,8 @@ export async function dashboardCommand() {
           await performSearch();
           break;
         case "\u001b": // ESC key
-          if (editMode === "add" || editMode === "update") {
-            // Cancel add/update mode
+          if (editMode === "add" || editMode === "update" || editMode === "delete") {
+            // Cancel add/update/delete mode
             editMode = "view";
             editData = {};
           } else if (searchMode) {
@@ -1052,6 +1094,35 @@ export async function dashboardCommand() {
                     }
                     break;
 
+                case "y":
+                case "Y":
+                    if (editMode === "delete") {
+                        // Confirm deletion
+                        const taskId = tasks[selectedIndex].id;
+                        const result = await bulkDeleteTasks([taskId]);
+                        if (result.successCount > 0) {
+                            UI.success(`Task deleted successfully! (ID: ${taskId})`);
+                            // Adjust selection after deletion
+                            if (selectedIndex >= tasks.length - 1) {
+                                selectedIndex = Math.max(0, tasks.length - 2);
+                            }
+                        } else if (result.errors.length > 0) {
+                            UI.error(`Delete failed: ${result.errors[0].error}`);
+                        }
+                        editMode = "view";
+                        break;
+                    }
+                    // Fall through to other handling if not in delete mode
+                    break;
+                case "n":
+                case "N":
+                    if (editMode === "delete") {
+                        // Cancel deletion
+                        editMode = "view";
+                        break;
+                    }
+                    // Fall through to other handling if not in delete mode
+                    break;
                 case "q":
                 case "\u0003": // Ctrl+C
                     running = false;
