@@ -5,17 +5,22 @@ import { format } from "@std/datetime";
 import { TaskStats } from "./stats.ts";
 
 export const UI = {
-    header() {
+    header(taskCount?: number) {
         const art = `
-    
+
     ██╗      █████╗ ███████╗██╗   ██╗███████╗ █████╗  ███████╗██╗  ██╗
     ██║     ██╔══██╗╚══███╔╝╚██╗ ██╔╝╚══██╔═╝ ██╔══██╗██╔════╝██║ ██╔╝
-    ██║     ███████║  ███╔╝  ╚████╔╝    ██║   ███████║███████╗█████╔╝ 
-    ██║     ██╔══██║ ███╔╝    ╚██╔╝     ██║   ██╔══██║╚════██║██╔═██╗ 
+    ██║     ███████║  ███╔╝  ╚████╔╝    ██║   ███████║███████╗█████╔╝
+    ██║     ██╔══██║ ███╔╝    ╚██╔╝     ██║   ██╔══██║╚════██║██╔═██╗
     ███████╗██║  ██║███████╗   ██║      ██║   ██║  ██║███████║██║  ██╗
     ╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝      ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝`;
         console.log(colors.bold.cyan(art));
-        console.log(colors.dim("          " + new Date().toLocaleDateString("en-US", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })) + "\n");
+        console.log(colors.dim("          " + new Date().toLocaleDateString("en-US", { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })));
+
+        if (taskCount !== undefined && taskCount > 0) {
+            console.log(colors.dim(`          ${taskCount} task${taskCount !== 1 ? 's' : ''}`));
+        }
+        console.log("");
     },
 
     success(text: string) {
