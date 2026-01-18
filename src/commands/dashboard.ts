@@ -37,13 +37,25 @@ async function showMainMenu(UI: any): Promise<void> {
   console.clear();
   UI.header();
 
+  console.log("╔════════════════════════════════════════════════════════════════╗");
+  console.log("║                        LazyTask Menu                          ║");
+  console.log("╠════════════════════════════════════════════════════════════════╣");
+  console.log("║                                                                ║");
+  console.log("║ 📊 [DATA] Data Management         Import/Export tasks          ║");
+  console.log("║ ⚙️  [SETTINGS] Settings               Theme & preferences        ║");
+  console.log("║ ❓ [HELP] Help & Info               Keyboard shortcuts           ║");
+  console.log("║ ⬅️  [BACK] Back to Dashboard       Return to main app           ║");
+  console.log("║                                                                ║");
+  console.log("╚════════════════════════════════════════════════════════════════╝");
+  console.log("");
+
   const choice = await Select.prompt({
-    message: "LazyTask Menu:",
+    message: "Choose an option:",
     options: [
-      { name: "[DATA] Data Management", value: "data" },
-      { name: "[SETTINGS] Settings", value: "settings" },
-      { name: "[HELP] Help & Info", value: "help" },
-      { name: "[BACK] Back to Dashboard", value: "back" },
+      { name: "📊 Data Management - Import/Export tasks", value: "data" },
+      { name: "⚙️  Settings - Theme & preferences", value: "settings" },
+      { name: "❓ Help & Info - Keyboard shortcuts", value: "help" },
+      { name: "⬅️  Back to Dashboard - Return to main app", value: "back" },
     ],
   });
 
@@ -95,15 +107,102 @@ async function showDataManagementMenu(UI: any): Promise<void> {
 }
 
 async function showSettingsMenu(UI: any): Promise<void> {
-  // Future: Theme selection, UI preferences, etc.
   console.clear();
   UI.header();
-  UI.info("Settings menu coming soon!");
-  console.log("Future features:");
-  console.log("- Theme selection");
-  console.log("- UI preferences");
-  console.log("- Keyboard shortcuts");
-  await Input.prompt("Press Enter to continue...");
+
+  console.log("╔════════════════════════════════════════════════════════════════╗");
+  console.log("║                       Settings Menu                           ║");
+  console.log("╠════════════════════════════════════════════════════════════════╣");
+  console.log("║                                                                ║");
+  console.log("║ 🎨 [THEME] Theme Selection         Light/Dark mode             ║");
+  console.log("║ 📊 [STATS] Progress Display         Completion bar style       ║");
+  console.log("║ 🔤 [SORT] Default Sort Order       ID/Date/Priority            ║");
+  console.log("║ ⚠️  [CONFIRM] Confirmations         Delete/archive warnings     ║");
+  console.log("║                                                                ║");
+  console.log("║ ⚙️  Advanced Settings (Coming Soon):                           ║");
+  console.log("║     • Custom key bindings                                     ║");
+  console.log("║     • Auto-save preferences                                   ║");
+  console.log("║     • Notification settings                                   ║");
+  console.log("║                                                                ║");
+  console.log("╚════════════════════════════════════════════════════════════════╝");
+  console.log("");
+
+  const choice = await Select.prompt({
+    message: "Choose a setting to configure:",
+    options: [
+      { name: "🎨 Theme Selection - Choose light or dark mode", value: "theme" },
+      { name: "📊 Progress Display - Completion bar appearance", value: "progress" },
+      { name: "🔤 Default Sort Order - Initial task sorting", value: "sort" },
+      { name: "⚠️  Confirmations - Warning preferences", value: "confirm" },
+      { name: "⬅️  Back to Main Menu", value: "back" },
+    ],
+  });
+
+  switch (choice) {
+    case "theme":
+      console.clear();
+      UI.header();
+      console.log("🎨 Theme Selection");
+      console.log("==================");
+      console.log("");
+      console.log("Available themes:");
+      console.log("• Light - Clean, bright interface");
+      console.log("• Dark - Easy on the eyes (default)");
+      console.log("");
+      UI.info("Theme selection will be implemented in a future update!");
+      await Input.prompt("Press Enter to continue...");
+      await showSettingsMenu(UI);
+      break;
+    case "progress":
+      console.clear();
+      UI.header();
+      console.log("📊 Progress Display");
+      console.log("===================");
+      console.log("");
+      console.log("Progress bar styles:");
+      console.log("• Classic - ███████░░░░░ 75%");
+      console.log("• Minimal - ██████████ (no percentage)");
+      console.log("• Detailed - ████████░░ 4/5 tasks");
+      console.log("");
+      UI.info("Progress display customization coming soon!");
+      await Input.prompt("Press Enter to continue...");
+      await showSettingsMenu(UI);
+      break;
+    case "sort":
+      console.clear();
+      UI.header();
+      console.log("🔤 Default Sort Order");
+      console.log("=====================");
+      console.log("");
+      console.log("Available sort options:");
+      console.log("• ID - Creation order (default)");
+      console.log("• Due Date - Urgent tasks first");
+      console.log("• Priority - High priority first");
+      console.log("• Status - Completed tasks last");
+      console.log("");
+      UI.info("Default sort order settings will be available soon!");
+      await Input.prompt("Press Enter to continue...");
+      await showSettingsMenu(UI);
+      break;
+    case "confirm":
+      console.clear();
+      UI.header();
+      console.log("⚠️  Confirmation Settings");
+      console.log("========================");
+      console.log("");
+      console.log("Confirmation preferences:");
+      console.log("• Delete tasks - Show warning before deletion");
+      console.log("• Bulk operations - Confirm before processing");
+      console.log("• Archive tasks - Prompt before archiving");
+      console.log("");
+      UI.info("Confirmation settings will be configurable soon!");
+      await Input.prompt("Press Enter to continue...");
+      await showSettingsMenu(UI);
+      break;
+    case "back":
+      await showMainMenu(UI);
+      break;
+  }
 }
 
 async function showHelpMenu(UI: any): Promise<void> {
