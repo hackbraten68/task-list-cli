@@ -9,7 +9,8 @@ import {
   loadTasks,
   saveTasks,
 } from "../storage.ts";
-import { UI } from "../ui.ts";
+import { createUI, getUIImplementation } from "../ui/factory.ts";
+import { ResizeHandler } from "../ui/resize-handler.ts";
 import { calculateStats, TaskStats } from "../stats.ts";
 import { addCommand } from "./add.ts";
 import { updateCommand } from "./update.ts";
@@ -273,6 +274,20 @@ async function handleClearAllTasks(): Promise<void> {
 }
 
 export async function dashboardCommand() {
+  const UI = createUI(getUIImplementation());
+
+  // Set up resize handling for responsive UI
+  let resizeHandler: ResizeHandler | null = null;
+  if (UI.constructor.name === 'TuiUI') {
+    // Create a mock layout for resize handling (will be improved)
+    const mockLayout = {
+      updateSize: () => {},
+      getCurrentSize: () => Deno.consoleSize()
+    };
+    resizeHandler = new ResizeHandler(mockLayout as any);
+    resizeHandler.startListening();
+  }
+
   let selectedIndex = 0;
   let selectedTasks = new Set<number>(); // Multi-selection state
   let multiSelectMode = false;
@@ -282,7 +297,7 @@ export async function dashboardCommand() {
   let fuzzyMode = false; // Whether fuzzy search is active
    let currentSortField = "id"; // Current sort field
    let currentSortOrder: "asc" | "desc" = "asc"; // Current sort order
-   let editMode: "view" | "add" | "update" | "delete" = "view"; // Current edit mode
+   let editMode: "view" | "add" | "update" = "view"; // Current edit mode
    let editData: Partial<Task> = {}; // Data for editing/adding
     let currentField: keyof Pick<Task, "description" | "priority" | "status" | "details" | "dueDate" | "tags"> = "description"; // Current form field
    let running = true;
@@ -643,41 +658,7 @@ export async function dashboardCommand() {
         isDimmed,
       );
       panels = [sidebar, mainPanel];
-    } else if (editMode === "delete") {
-      // Two-panel layout with delete confirmation in main
-      const mainWidth = terminalWidth - sidebarWidth - 2;
 
-      const selectedTask = tasks[selectedIndex];
-      const confirmLines: string[] = [];
-      confirmLines.push("");
-      confirmLines.push(`  ${colors.bold.red("🗑️  Delete Task Confirmation")}`);
-      confirmLines.push("");
-
-      if (selectedTask) {
-        confirmLines.push(`  ${colors.bold.white("Task:")} ${selectedTask.description}`);
-        confirmLines.push(`  ${colors.bold.white("ID:")} ${selectedTask.id}`);
-        confirmLines.push("");
-        confirmLines.push(`  ${colors.bold.red("⚠️  This action cannot be undone!")}`);
-        confirmLines.push("");
-        confirmLines.push(`  ${colors.dim("Delete this task?")}`);
-        confirmLines.push("");
-        confirmLines.push(`  ${colors.bold.green("Y")}es  ${colors.bold.red("N")}o  ${colors.dim("Esc")} Cancel`);
-      }
-
-      // Fill to height
-      while (confirmLines.length < height - 2) {
-        confirmLines.push("");
-      }
-
-      const mainPanel = UI.box(
-        "Confirm Delete",
-        confirmLines,
-        mainWidth,
-        height,
-        false,
-        isDimmed,
-      );
-      panels = [sidebar, mainPanel];
     } else {
       // Two-panel layout: sidebar, details
       const mainWidth = terminalWidth - sidebarWidth - 2;
@@ -704,8 +685,20 @@ export async function dashboardCommand() {
   }
 
   try {
+    let lastTerminalSize = Deno.consoleSize();
+
     while (running) {
       let tasks = await loadTasks();
+
+      // Check for terminal resize
+      const currentSize = Deno.consoleSize();
+      const sizeChanged = currentSize.columns !== lastTerminalSize.columns ||
+                         currentSize.rows !== lastTerminalSize.rows;
+
+      if (sizeChanged && resizeHandler) {
+        resizeHandler.triggerResize();
+        lastTerminalSize = currentSize;
+      }
 
       // Apply search filter if active
       let processedTasks: Task[];
@@ -739,6 +732,7 @@ export async function dashboardCommand() {
       // Calculate stats for footer status bar (use original tasks for stats)
       const stats = calculateStats(tasks);
 
+      // Re-render if size changed or first iteration
       await render(processedTasks, undefined, stats);
 
       const reader = Deno.stdin.readable.getReader();
@@ -747,10 +741,16 @@ export async function dashboardCommand() {
 
       if (done) break;
 
-      const keys = new TextDecoder().decode(value);
+       const keys = new TextDecoder().decode(value);
 
-            switch (keys) {
-                case "j":
+       // Handle modal input first
+       if (UI.handleModalKey && UI.handleModalKey(keys)) {
+         console.log("Modal key handled");
+         continue; // Modal handled the key, skip normal processing
+       }
+
+       switch (keys) {
+        case "j":
                     if (editMode === "add" || editMode === "update") {
                         // Append 'j' to current field in add/update mode
                         appendToCurrentField("j");
@@ -846,6 +846,24 @@ export async function dashboardCommand() {
             }
           }
           break;
+        case "b":
+          console.log("B KEY PRESSED");
+          if (editMode === "view" && multiSelectMode && selectedTasks.size > 0) {
+            console.log("Conditions met, showing bulk modal");
+            // Show bulk actions menu (alternative to 'u')
+            const modalPromise = showBulkActionsMenu(
+              tasks,
+              Array.from(selectedTasks),
+              UI,
+            );
+            // Render immediately to show the modal
+            await render(processedTasks, undefined, stats);
+            const updatedSelection = await modalPromise;
+            // Update the selectedTasks set with the returned selection
+            selectedTasks.clear();
+            updatedSelection.forEach((id) => selectedTasks.add(id));
+          }
+          break;
         case "u":
           if (editMode === "add" || editMode === "update") {
             // Append 'u' to current field in add/update mode
@@ -855,28 +873,17 @@ export async function dashboardCommand() {
           if (editMode === "view") {
             if (multiSelectMode && selectedTasks.size > 0) {
               // Show bulk actions menu
-              cleanup();
-              const updatedSelection = await showBulkActionsMenu(
+              const modalPromise = showBulkActionsMenu(
                 tasks,
                 Array.from(selectedTasks),
+                UI,
               );
+              // Render immediately to show the modal
+              await render(processedTasks, undefined, stats);
+              const updatedSelection = await modalPromise;
               // Update the selectedTasks set with the returned selection
               selectedTasks.clear();
               updatedSelection.forEach((id) => selectedTasks.add(id));
-              Deno.stdin.setRaw(true);
-            } else if (!multiSelectMode && tasks[selectedIndex]) {
-              // Enter inline update mode
-              const selectedTask = tasks[selectedIndex];
-              editMode = "update";
-              editData = {
-                description: selectedTask.description,
-                priority: selectedTask.priority,
-                status: selectedTask.status,
-                details: selectedTask.details || "",
-                dueDate: selectedTask.dueDate || "",
-                tags: selectedTask.tags || [],
-              };
-              currentField = "description";
             }
           }
           break;
@@ -943,13 +950,30 @@ export async function dashboardCommand() {
               const updatedSelection = await showBulkActionsMenu(
                 tasks,
                 Array.from(selectedTasks),
+                UI,
               );
               selectedTasks.clear();
               updatedSelection.forEach((id) => selectedTasks.add(id));
               Deno.stdin.setRaw(true);
             } else if (!multiSelectMode && tasks[selectedIndex]) {
-              // Enter inline delete confirmation mode
-              editMode = "delete";
+              // Show delete confirmation modal
+              const task = tasks[selectedIndex];
+              const confirmed = await UI.confirm(
+                `Delete task "${task.description}" (ID: ${task.id})?\nThis action cannot be undone!`,
+                "Confirm Delete"
+              );
+              if (confirmed) {
+                const result = await bulkDeleteTasks([task.id]);
+                if (result.successCount > 0) {
+                  UI.success(`Task deleted successfully! (ID: ${task.id})`);
+                  // Adjust selection after deletion
+                  if (selectedIndex >= tasks.length - 1) {
+                    selectedIndex = Math.max(0, tasks.length - 2);
+                  }
+                } else if (result.errors.length > 0) {
+                  UI.error(`Delete failed: ${result.errors[0].error}`);
+                }
+              }
             }
           }
           break;
@@ -1040,7 +1064,7 @@ export async function dashboardCommand() {
           await performSearch();
           break;
         case "\u001b": // ESC key
-          if (editMode === "add" || editMode === "update" || editMode === "delete") {
+          if (editMode === "add" || editMode === "update") {
             // Cancel add/update/delete mode
             editMode = "view";
             editData = {};
@@ -1094,35 +1118,7 @@ export async function dashboardCommand() {
                     }
                     break;
 
-                case "y":
-                case "Y":
-                    if (editMode === "delete") {
-                        // Confirm deletion
-                        const taskId = tasks[selectedIndex].id;
-                        const result = await bulkDeleteTasks([taskId]);
-                        if (result.successCount > 0) {
-                            UI.success(`Task deleted successfully! (ID: ${taskId})`);
-                            // Adjust selection after deletion
-                            if (selectedIndex >= tasks.length - 1) {
-                                selectedIndex = Math.max(0, tasks.length - 2);
-                            }
-                        } else if (result.errors.length > 0) {
-                            UI.error(`Delete failed: ${result.errors[0].error}`);
-                        }
-                        editMode = "view";
-                        break;
-                    }
-                    // Fall through to other handling if not in delete mode
-                    break;
-                case "n":
-                case "N":
-                    if (editMode === "delete") {
-                        // Cancel deletion
-                        editMode = "view";
-                        break;
-                    }
-                    // Fall through to other handling if not in delete mode
-                    break;
+
                 case "q":
                 case "\u0003": // Ctrl+C
                     running = false;
@@ -1148,6 +1144,9 @@ export async function dashboardCommand() {
     }
   } finally {
     cleanup();
+    if (resizeHandler) {
+      resizeHandler.stopListening();
+    }
   }
 
   UI.clearScreen();
@@ -1161,153 +1160,144 @@ export async function dashboardCommand() {
 async function showBulkActionsMenu(
   tasks: Task[],
   selectedIds: number[],
+  UI: any,
 ): Promise<number[]> {
   const taskSummaries = getTaskSummaries(tasks, selectedIds);
 
-  console.clear();
-  UI.header();
-
-  console.log(`  ${colors.bold.magenta("Bulk Actions Menu")}`);
-  console.log(`  ${colors.dim("Selected tasks:")}`);
-  taskSummaries.forEach((summary) => console.log(`    ${summary}`));
-  console.log("");
-
-  const action = await Select.prompt({
-    message: "Choose bulk action:",
-    options: [
-      { name: "Mark as...", value: "mark" },
-      { name: "Update properties", value: "update" },
-      { name: "Delete selected", value: "delete" },
-      { name: "Cancel", value: "cancel" },
-    ],
-  });
-
-  if (action === "cancel") {
-    return selectedIds; // Return unchanged selection
-  }
+  const content = [
+    `Selected tasks (${selectedIds.length}):`,
+    ...taskSummaries.map(s => `  ${s}`),
+    "",
+    "Choose an action:",
+  ];
 
   try {
+    const action = await UI.showModal({
+      title: "Bulk Actions",
+      content,
+      actions: [
+        { label: "Mark Status", action: () => "mark" },
+        { label: "Update Properties", action: () => "update" },
+        { label: "Delete Tasks", action: () => "delete" },
+        { label: "Cancel", action: () => "cancel" },
+      ],
+      width: 60,
+      height: 15,
+    });
+
+    if (action === "cancel") {
+      return selectedIds;
+    }
+
     if (action === "mark") {
-      const statusOptions = ["todo", "in-progress", "done"];
-      const selectedStatus = await Select.prompt({
-        message: `Mark ${selectedIds.length} tasks as:`,
-        options: statusOptions,
+      const status = await UI.showModal({
+        title: "Mark Tasks As",
+        content: [`Mark ${selectedIds.length} tasks as:`],
+        actions: [
+          { label: "Todo", action: () => "todo" },
+          { label: "In Progress", action: () => "in-progress" },
+          { label: "Done", action: () => "done" },
+          { label: "Cancel", action: () => "cancel" },
+        ],
+        width: 40,
+        height: 10,
       });
 
-      const result = await bulkMarkTasks(selectedIds, selectedStatus);
-      console.log("");
+      if (status === "cancel") return selectedIds;
+
+      UI.info("Processing bulk status update...");
+      const result = await bulkMarkTasks(selectedIds, status as TaskStatus);
       if (result.successCount > 0) {
-        UI.success(`${result.successCount} tasks marked as ${selectedStatus}.`);
+        UI.success(`${result.successCount} tasks marked as ${status}.`);
       }
       if (result.errors.length > 0) {
-        result.errors.forEach((error) => {
-          UI.error(`Task ${error.id}: ${error.error}`);
-        });
-        // Return only the failed task IDs to keep them selected
+        result.errors.forEach((error) => UI.error(`Task ${error.id}: ${error.error}`));
         return result.errors.map((error) => error.id);
       }
-      // All tasks marked successfully, return empty selection
       return [];
     } else if (action === "update") {
-      console.log("");
-      console.log("Update properties for selected tasks:");
-
       const changes: Partial<Task> = {};
 
-      // Priority update
-      const priorityOptions = ["skip", "low", "medium", "high", "critical"];
-      const prioritySelection = await Select.prompt({
-        message: "Update priority:",
-        options: [
-          { name: "Skip - keep current", value: "skip" },
-          { name: "Low", value: "low" },
-          { name: "Medium", value: "medium" },
-          { name: "High", value: "high" },
-          { name: "Critical", value: "critical" },
+      // Priority modal
+      const priority = await UI.showModal({
+        title: "Update Priority",
+        content: [`Update priority for ${selectedIds.length} tasks:`],
+        actions: [
+          { label: "Skip (keep current)", action: () => "skip" },
+          { label: "Low", action: () => "low" },
+          { label: "Medium", action: () => "medium" },
+          { label: "High", action: () => "high" },
+          { label: "Critical", action: () => "critical" },
         ],
+        width: 40,
+        height: 12,
       });
 
-      if (prioritySelection !== "skip") {
-        changes.priority = prioritySelection as TaskPriority;
+      if (priority !== "skip") {
+        changes.priority = priority as TaskPriority;
       }
 
-      // Tags update (simplified for TUI)
-      const tagsOptions = ["skip", "clear", "urgent", "work", "personal"];
-      const tagsSelection = await Select.prompt({
-        message: "Update tags:",
-        options: [
-          { name: "Skip - keep current", value: "skip" },
-          { name: "Clear all tags", value: "clear" },
-          { name: "Add 'urgent' tag", value: "urgent" },
-          { name: "Add 'work' tag", value: "work" },
-          { name: "Add 'personal' tag", value: "personal" },
+      // Tags modal
+      const tagsAction = await UI.showModal({
+        title: "Update Tags",
+        content: [`Update tags for ${selectedIds.length} tasks:`],
+        actions: [
+          { label: "Skip (keep current)", action: () => "skip" },
+          { label: "Clear all tags", action: () => "clear" },
+          { label: "Add 'urgent'", action: () => "urgent" },
+          { label: "Add 'work'", action: () => "work" },
+          { label: "Add 'personal'", action: () => "personal" },
         ],
+        width: 40,
+        height: 12,
       });
 
-      if (tagsSelection === "clear") {
+      if (tagsAction === "clear") {
         changes.tags = [];
-      } else if (tagsSelection !== "skip") {
-        changes.tags = [tagsSelection];
+      } else if (tagsAction !== "skip") {
+        changes.tags = [tagsAction as string];
       }
 
       if (Object.keys(changes).length > 0) {
+        UI.info("Processing bulk property updates...");
         const result = await bulkUpdateTasks(selectedIds, changes);
         if (result.successCount > 0) {
           UI.success(`${result.successCount} tasks updated.`);
         }
         if (result.errors.length > 0) {
-          result.errors.forEach((error) => {
-            UI.error(`Task ${error.id}: ${error.error}`);
-          });
-          // Return only the failed task IDs to keep them selected
+          result.errors.forEach((error) => UI.error(`Task ${error.id}: ${error.error}`));
           return result.errors.map((error) => error.id);
         }
-        // All tasks updated successfully, return empty selection
         return [];
       } else {
         UI.info("No changes made.");
-        return selectedIds; // No changes made, keep original selection
+        return selectedIds;
       }
     } else if (action === "delete") {
-      const confirmOptions = ["no", "yes"];
-      const confirmed = await Select.prompt({
-        message: `Delete ${selectedIds.length} selected tasks?`,
-        options: [
-          { name: "No, cancel", value: "no" },
-          { name: "Yes, delete them", value: "yes" },
-        ],
-      });
+      const confirmed = await UI.confirm(
+        `Delete ${selectedIds.length} selected tasks?\nThis action cannot be undone!`,
+        "Confirm Bulk Delete"
+      );
 
-      if (confirmed === "yes") {
+      if (confirmed) {
+        UI.info("Processing bulk deletion...");
         const result = await bulkDeleteTasks(selectedIds);
         if (result.successCount > 0) {
           UI.success(`${result.successCount} tasks deleted.`);
         }
         if (result.errors.length > 0) {
-          result.errors.forEach((error) => {
-            UI.error(`Task ${error.id}: ${error.error}`);
-          });
-          // Return only the failed task IDs to keep them selected
+          result.errors.forEach((error) => UI.error(`Task ${error.id}: ${error.error}`));
           return result.errors.map((error) => error.id);
         }
-        // All tasks deleted successfully, return empty selection
         return [];
       }
-      return selectedIds; // If not confirmed, keep original selection
+      return selectedIds;
     }
 
-    // Wait for user to see results
-    console.log("");
-    console.log("Press any key to continue...");
-    // Simple timeout for TUI - user can press any key to continue
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    return selectedIds; // Should not reach here
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     UI.error(`Bulk operation failed: ${message}`);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    return selectedIds; // On error, keep original selection
+    return selectedIds;
   }
-
-  // Fallback return (should not be reached)
-  return selectedIds;
 }

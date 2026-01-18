@@ -1,14 +1,16 @@
 {
   "tasks": {
-    "dev": "deno run --watch main.ts",
-    "add": "deno run -A main.ts add",
-    "update": "deno run -A main.ts update",
-    "delete": "deno run -A main.ts delete",
-    "clear-all": "deno run -A main.ts clear-all",
-    "mark-in-progress": "deno run -A main.ts mark-in-progress",
-    "mark-done": "deno run -A main.ts mark-done",
-    "list": "deno run -A main.ts list",
-    "dashboard": "deno run -A main.ts dashboard",
+    "dev": "deno run --allow-env --watch main.ts",
+    "dev-tui": "LAZYTASK_UI=tui deno run --allow-env --watch main.ts dashboard",
+    "dev-cliffy": "LAZYTASK_UI=cliffy deno run --allow-env --watch main.ts dashboard",
+    "add": "deno run --allow-env -A main.ts add",
+    "update": "deno run --allow-env -A main.ts update",
+    "delete": "deno run --allow-env -A main.ts delete",
+    "clear-all": "deno run --allow-env -A main.ts clear-all",
+    "mark-in-progress": "deno run --allow-env -A main.ts mark-in-progress",
+    "mark-done": "deno run --allow-env -A main.ts mark-done",
+    "list": "deno run --allow-env -A main.ts list",
+    "dashboard": "deno run --allow-env -A main.ts dashboard",
     "install": "deno install --global --config deno.json -A -f -n lazytask main.ts"
   },
   "imports": {
@@ -22,6 +24,7 @@
     "cliffy": "jsr:@cliffy/command@1.0.0-rc.4",
     "cliffy/table": "jsr:@cliffy/table@1.0.0-rc.4",
     "cliffy/prompt": "jsr:@cliffy/prompt@1.0.0-rc.4",
-    "cliffy/ansi": "jsr:@cliffy/ansi@1.0.0-rc.4"
+    "cliffy/ansi": "jsr:@cliffy/ansi@1.0.0-rc.4",
+    "tui": "https://deno.land/x/tui@2.1.11/mod.ts"
   }
 }
