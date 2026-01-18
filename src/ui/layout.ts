@@ -99,6 +99,40 @@ export class ResponsiveLayout {
     }
   }
 
+  // Stats sidebar area (hacker stats panel)
+  get statsSidebar(): Rectangle {
+    const totalWidth = Math.max(this.size.value.columns - 4, this.minWidth - 4); // Account for margins
+    const totalHeight = Math.max(this.size.value.rows, this.minHeight);
+    const availableHeight = Math.max(10, totalHeight - 2);
+
+    // Dynamic width calculation with bounds checking - increased max width for better balance
+    const sidebarWidth = Math.max(25, Math.min(50, totalWidth - 45));
+
+    return {
+      column: 1,
+      row: 2,
+      width: sidebarWidth,
+      height: availableHeight
+    };
+  }
+
+  // Task list area when stats sidebar is visible
+  get taskListWithStats(): Rectangle {
+    const totalWidth = Math.max(this.size.value.columns - 4, this.minWidth - 4); // Account for margins
+    const totalHeight = Math.max(this.size.value.rows, this.minHeight);
+    const availableHeight = Math.max(10, totalHeight - 2);
+
+    const sidebarWidth = this.statsSidebar.width;
+    const taskWidth = Math.max(40, totalWidth - sidebarWidth - 2); // 2-character spacing
+
+    return {
+      column: sidebarWidth + 3, // Account for spacing
+      row: 2,
+      width: taskWidth,
+      height: availableHeight
+    };
+  }
+
   // Footer area (fixed)
   get footer(): Rectangle {
     return {

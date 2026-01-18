@@ -194,19 +194,27 @@ export class TuiUI implements UIInterface {
     // Check if modal is active from state
     const hasModal = this.state.modalActive.value || modal;
 
-    // Match CliffyUI renderLayout behavior
-    const maxHeight = Math.max(...panels.map((p) => p.length));
-    const layoutLines: string[] = [];
+    // Handle single panel (pre-combined layout) vs multiple panels
+    let layoutLines: string[];
 
-    for (let i = 0; i < maxHeight; i++) {
-      let row = "";
-      for (const panel of panels) {
-        row += (panel[i] ||
-          " ".repeat(
-            panel[0]?.replace(/\u001b\[[0-9;]*m/g, "").length || 0,
-          )) + " ";
+    if (panels.length === 1) {
+      // Single panel - use as-is (already combined)
+      layoutLines = panels[0];
+    } else {
+      // Multiple panels - concatenate side by side
+      const maxHeight = Math.max(...panels.map((p) => p.length));
+      layoutLines = [];
+
+      for (let i = 0; i < maxHeight; i++) {
+        let row = "";
+        for (const panel of panels) {
+          row += (panel[i] ||
+            " ".repeat(
+              panel[0]?.replace(/\u001b\[[0-9;]*m/g, "").length || 0,
+            )) + "  "; // Use 2 spaces for consistent spacing with layout calculations
+        }
+        layoutLines.push(row);
       }
-      layoutLines.push(row);
     }
 
     if (hasModal) {
@@ -264,7 +272,7 @@ export class TuiUI implements UIInterface {
     } else if (statsSidebarVisible) {
       footerStr += colors.bold("j/k/↑↓") + " Navigate  " + colors.bold("s") + " Hide Stats  " + colors.bold("a") + " Add  " + colors.bold("u") + " Update  " + colors.bold("d") + " Delete  " + colors.bold("q") + " Quit";
     } else if (multiSelectMode) {
-      footerStr += colors.bold("j/k/↑↓") + " Navigate  " + colors.bold("Space") + " Select";
+      footerStr += colors.bold("j/k/↑↓") + " Navigate  " + colors.bold("Space") + " Select  " + colors.bold("Enter") + " Bulk Menu  " + colors.bold("d") + " Quick Del";
       if (selectedCount && selectedCount > 0) {
         footerStr += `  ${colors.bold.magenta(`[${selectedCount} selected]`)}`;
       }
