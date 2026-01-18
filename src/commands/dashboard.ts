@@ -33,7 +33,7 @@ function filterTasksBySearch(tasks: Task[], searchTerm: string): Task[] {
 }
 
 // Menu system functions
-async function showMainMenu(): Promise<void> {
+async function showMainMenu(UI: any): Promise<void> {
   console.clear();
   UI.header();
 
@@ -49,13 +49,13 @@ async function showMainMenu(): Promise<void> {
 
   switch (choice) {
     case "data":
-      await showDataManagementMenu();
+      await showDataManagementMenu(UI);
       break;
     case "settings":
-      await showSettingsMenu();
+      await showSettingsMenu(UI);
       break;
     case "help":
-      await showHelpMenu();
+      await showHelpMenu(UI);
       break;
     case "back":
       // Just return to dashboard
@@ -63,7 +63,7 @@ async function showMainMenu(): Promise<void> {
   }
 }
 
-async function showDataManagementMenu(): Promise<void> {
+async function showDataManagementMenu(UI: any): Promise<void> {
   const choice = await Select.prompt({
     message: "Data Management:",
     options: [
@@ -89,12 +89,12 @@ async function showDataManagementMenu(): Promise<void> {
       await handleClearAllTasks();
       break;
     case "back":
-      await showMainMenu();
+      await showMainMenu(UI);
       break;
   }
 }
 
-async function showSettingsMenu(): Promise<void> {
+async function showSettingsMenu(UI: any): Promise<void> {
   // Future: Theme selection, UI preferences, etc.
   console.clear();
   UI.header();
@@ -106,7 +106,7 @@ async function showSettingsMenu(): Promise<void> {
   await Input.prompt("Press Enter to continue...");
 }
 
-async function showHelpMenu(): Promise<void> {
+async function showHelpMenu(UI: any): Promise<void> {
   console.clear();
   UI.header();
   console.log("╔════════════════════════════════════════════════════════════════╗");
@@ -1098,7 +1098,7 @@ export async function dashboardCommand() {
             break;
           }
           cleanup();
-          await showMainMenu();
+          await showMainMenu(UI);
           Deno.stdin.setRaw(true);
           break;
           fuzzyMode = false;
@@ -1131,7 +1131,7 @@ export async function dashboardCommand() {
           break;
         case "h": // Help/Settings menu
           cleanup();
-          await showMainMenu();
+          await showMainMenu(UI);
           Deno.stdin.setRaw(true);
           break;
         case "o": { // Cycle sort field
