@@ -1,5 +1,5 @@
 // src/ui/tui-ui.ts
-import { UIInterface, ModalOptions, ModalAction } from "./types.ts";
+import { ModalAction, ModalOptions, UIInterface } from "./types.ts";
 import { Task, TaskPriority, TaskStatus } from "../types.ts";
 import { TaskStats } from "../stats.ts";
 import { AppState } from "./state.ts";
@@ -7,7 +7,7 @@ import { ResponsiveLayout } from "./layout.ts";
 import { ResizeHandler } from "./resize-handler.ts";
 import { createTaskTable } from "./components/task-table.ts";
 import { CliffyUI } from "./cliffy-ui.ts";
-import { colors, ansi } from "cliffy/ansi";
+import { ansi, colors } from "cliffy/ansi";
 
 // Full deno_tui implementation
 export class TuiUI implements UIInterface {
@@ -26,9 +26,14 @@ export class TuiUI implements UIInterface {
       // Start listening for resize events
       this.resizeHandler.startListening();
 
-      console.log("✅ TuiUI initialized successfully with reactive state management");
+      console.log(
+        "✅ TuiUI initialized successfully with reactive state management",
+      );
     } catch (error) {
-      console.warn("⚠️  TuiUI initialization warning:", error instanceof Error ? error.message : String(error));
+      console.warn(
+        "⚠️  TuiUI initialization warning:",
+        error instanceof Error ? error.message : String(error),
+      );
       throw error; // Re-throw to trigger fallback in factory
     }
   }
@@ -52,7 +57,9 @@ export class TuiUI implements UIInterface {
     ╚══════╝╚═╝  ╚═╝╚══════╝   ╚═╝      ╚═╝   ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝`));
 
     if (taskCount !== undefined && taskCount > 0) {
-      console.log(colors.dim(`          ${taskCount} task${taskCount !== 1 ? "s" : ""}`));
+      console.log(
+        colors.dim(`          ${taskCount} task${taskCount !== 1 ? "s" : ""}`),
+      );
     }
     console.log("");
   }
@@ -115,7 +122,14 @@ export class TuiUI implements UIInterface {
     );
   }
 
-  box(title: string, lines: string[], width: number, height: number, focused?: boolean, dimmed?: boolean): string[] {
+  box(
+    title: string,
+    lines: string[],
+    width: number,
+    height: number,
+    focused?: boolean,
+    dimmed?: boolean,
+  ): string[] {
     // Match the original UI.box() implementation
     let color: (s: string) => string = (s: string) =>
       focused ? colors.bold.cyan(s) : colors.dim.white(s);
@@ -157,7 +171,12 @@ export class TuiUI implements UIInterface {
     return out;
   }
 
-  drawModal(title: string, content: string[], width: number, height: number): string[] {
+  drawModal(
+    title: string,
+    content: string[],
+    width: number,
+    height: number,
+  ): string[] {
     // Use double-line borders for modal distinction
     const color = colors.bold.cyan;
 
@@ -190,7 +209,10 @@ export class TuiUI implements UIInterface {
     return out;
   }
 
-  renderLayout(panels: string[][], modal?: { lines: string[]; width: number; height: number }): void {
+  renderLayout(
+    panels: string[][],
+    modal?: { lines: string[]; width: number; height: number },
+  ): void {
     // Check if modal is active from state
     const hasModal = this.state.modalActive.value || modal;
 
@@ -240,7 +262,7 @@ export class TuiUI implements UIInterface {
           this.state.modalTitle.value,
           this.state.modalContent.value,
           this.state.modalWidth.value,
-          this.state.modalHeight.value
+          this.state.modalHeight.value,
         );
         modalWidth = this.state.modalWidth.value;
         modalHeight = this.state.modalHeight.value;
@@ -260,25 +282,45 @@ export class TuiUI implements UIInterface {
     }
   }
 
-  footer(multiSelectMode?: boolean, selectedCount?: number, statsViewMode?: boolean, completionRate?: number, overdueCount?: number, searchMode?: boolean, editMode?: "view" | "add" | "update", statsSidebarVisible?: boolean): void {
+  footer(
+    multiSelectMode?: boolean,
+    selectedCount?: number,
+    statsViewMode?: boolean,
+    completionRate?: number,
+    overdueCount?: number,
+    searchMode?: boolean,
+    editMode?: "view" | "add" | "update",
+    statsSidebarVisible?: boolean,
+  ): void {
     let footerStr = "  " + colors.bgWhite.black(" KEYS ") + " ";
 
     if (editMode === "add" || editMode === "update") {
-      footerStr += colors.bold("↑↓") + " Navigate Fields  " + colors.bold("←→") + " Cycle Values  " + colors.bold("Enter") + " Save  " + colors.bold("Esc") + " Cancel";
+      footerStr += colors.bold("↑↓") + " Navigate Fields  " +
+        colors.bold("←→") + " Cycle Values  " + colors.bold("Enter") +
+        " Save  " + colors.bold("Esc") + " Cancel";
     } else if (statsViewMode) {
-      footerStr += colors.bold("s") + " Tasks View  " + colors.bold("q") + " Quit";
+      footerStr += colors.bold("s") + " Tasks View  " + colors.bold("q") +
+        " Quit";
     } else if (searchMode) {
-      footerStr += colors.bold("j/k/↑↓") + " Navigation  " + colors.bold("ESC") + " Clear Search  " + colors.bold("q") + " Quit";
+      footerStr += colors.bold("j/k/↑↓") + " Navigation  " +
+        colors.bold("ESC") + " Clear Search  " + colors.bold("q") + " Quit";
     } else if (statsSidebarVisible) {
-      footerStr += colors.bold("j/k/↑↓") + " Navigate  " + colors.bold("s") + " Hide Stats  " + colors.bold("a") + " Add  " + colors.bold("u") + " Update  " + colors.bold("d") + " Delete  " + colors.bold("q") + " Quit";
+      footerStr += colors.bold("j/k/↑↓") + " Navigate  " + colors.bold("s") +
+        " Hide Stats  " + colors.bold("a") + " Add  " + colors.bold("u") +
+        " Update  " + colors.bold("d") + " Delete  " + colors.bold("q") +
+        " Quit";
     } else if (multiSelectMode) {
-      footerStr += colors.bold("j/k/↑↓") + " Navigate  " + colors.bold("Space") + " Select  " + colors.bold("Enter") + " Bulk Menu  " + colors.bold("d") + " Quick Del";
+      footerStr += colors.bold("j/k/↑↓") + " Navigate  " +
+        colors.bold("Space") + " Select  " + colors.bold("Enter") +
+        " Bulk Menu  " + colors.bold("d") + " Quick Del";
       if (selectedCount && selectedCount > 0) {
         footerStr += `  ${colors.bold.magenta(`[${selectedCount} selected]`)}`;
       }
       footerStr += "  " + colors.bold("q") + " Quit";
     } else {
-      footerStr += colors.bold("j/k/↑↓") + " Navigate  " + colors.bold("a") + " Add  " + colors.bold("u") + " Update  " + colors.bold("d") + " Delete  " + colors.bold("q") + " Quit";
+      footerStr += colors.bold("j/k/↑↓") + " Navigate  " + colors.bold("a") +
+        " Add  " + colors.bold("u") + " Update  " + colors.bold("d") +
+        " Delete  " + colors.bold("q") + " Quit";
     }
 
     // Completion status
@@ -335,32 +377,62 @@ export class TuiUI implements UIInterface {
     lines.push(`  ${colors.bold.cyan("📊 Task Statistics")}`);
     lines.push("");
 
-    lines.push(`  ${colors.bold.white("Total Tasks:")}     ${colors.bold(stats.total.toString())}`);
+    lines.push(
+      `  ${colors.bold.white("Total Tasks:")}     ${
+        colors.bold(stats.total.toString())
+      }`,
+    );
     lines.push("");
 
-    const completionBar = this.progressBar(stats.byStatus.done, stats.total, Math.min(width - 20, 25));
-    lines.push(`  ${colors.bold.white("Completion:")}      ${colors.green(completionBar)}`);
+    const completionBar = this.progressBar(
+      stats.byStatus.done,
+      stats.total,
+      Math.min(width - 20, 25),
+    );
+    lines.push(
+      `  ${colors.bold.white("Completion:")}      ${
+        colors.green(completionBar)
+      }`,
+    );
     lines.push("");
 
     lines.push(`  ${colors.bold.white("Status Breakdown:")}`);
     lines.push(`    ${colors.red("●")} Todo:         ${stats.byStatus.todo}`);
-    lines.push(`    ${colors.yellow("●")} In Progress:  ${stats.byStatus["in-progress"]}`);
-    lines.push(`    ${colors.green("✔")} Done:          ${stats.byStatus.done}`);
+    lines.push(
+      `    ${colors.yellow("●")} In Progress:  ${
+        stats.byStatus["in-progress"]
+      }`,
+    );
+    lines.push(
+      `    ${colors.green("✔")} Done:          ${stats.byStatus.done}`,
+    );
     lines.push("");
 
     lines.push(`  ${colors.bold.white("Priority Levels:")}`);
     lines.push(`    ${colors.blue("Low:")}           ${stats.byPriority.low}`);
-    lines.push(`    ${colors.yellow("Medium:")}        ${stats.byPriority.medium}`);
+    lines.push(
+      `    ${colors.yellow("Medium:")}        ${stats.byPriority.medium}`,
+    );
     lines.push(`    ${colors.red("High:")}           ${stats.byPriority.high}`);
-    lines.push(`    ${colors.bold.red("Critical:")}      ${stats.byPriority.critical}`);
+    lines.push(
+      `    ${colors.bold.red("Critical:")}      ${stats.byPriority.critical}`,
+    );
     lines.push("");
 
     if (stats.overdue > 0) {
-      lines.push(`  ${colors.bold.red("⚠️  Overdue:")}       ${colors.bold.red(stats.overdue.toString())} tasks`);
+      lines.push(
+        `  ${colors.bold.red("⚠️  Overdue:")}       ${
+          colors.bold.red(stats.overdue.toString())
+        } tasks`,
+      );
       lines.push("");
     }
 
-    lines.push(`  ${colors.bold.white("Recent Activity:")} ${stats.recentActivity} tasks this week`);
+    lines.push(
+      `  ${
+        colors.bold.white("Recent Activity:")
+      } ${stats.recentActivity} tasks this week`,
+    );
 
     return lines.slice(0, height);
   }
@@ -369,8 +441,16 @@ export class TuiUI implements UIInterface {
     const { title, content, actions, width = 50, height = 10 } = options;
 
     // Create modal content with actions
-    const actionLabels = actions.map((a: ModalAction, i: number) => `${i + 1}. ${a.label}`);
-    const modalContent = [...content, "", ...actionLabels, "", "Press ESC to cancel"];
+    const actionLabels = actions.map((a: ModalAction, i: number) =>
+      `${i + 1}. ${a.label}`
+    );
+    const modalContent = [
+      ...content,
+      "",
+      ...actionLabels,
+      "",
+      "Press ESC to cancel",
+    ];
 
     const modalLines = this.drawModal(title, modalContent, width, height);
 
@@ -410,7 +490,7 @@ export class TuiUI implements UIInterface {
     if (!this.state.modalActive.value) return false;
 
     // Handle ESC to cancel
-    if (key === 'escape' || key === '\u001b') {
+    if (key === "escape" || key === "\u001b") {
       this.dismissModal("cancel");
       return true;
     }
@@ -480,20 +560,20 @@ export class TuiUI implements UIInterface {
     const key = new TextDecoder().decode(buffer.slice(0, bytesRead));
 
     // Handle escape sequences
-    if (key.startsWith('\u001b[')) {
+    if (key.startsWith("\u001b[")) {
       // Arrow keys, function keys, etc.
-      if (key === '\u001b[A') return 'up';
-      if (key === '\u001b[B') return 'down';
-      if (key === '\u001b[C') return 'right';
-      if (key === '\u001b[D') return 'left';
-      return 'escape-sequence';
+      if (key === "\u001b[A") return "up";
+      if (key === "\u001b[B") return "down";
+      if (key === "\u001b[C") return "right";
+      if (key === "\u001b[D") return "left";
+      return "escape-sequence";
     }
 
     // Handle plain ESC
-    if (key === '\u001b') return 'escape';
+    if (key === "\u001b") return "escape";
 
     // Return single character
-    return key.replace(/\u0000/g, '')[0] || '';
+    return key.replace(/\u0000/g, "")[0] || "";
   }
 
   private async readKey(): Promise<string> {

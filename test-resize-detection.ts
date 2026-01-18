@@ -21,7 +21,7 @@ async function testResizeDetection() {
   resizeHandler.startListening();
 
   // Wait a bit
-  await new Promise(resolve => setTimeout(resolve, 200));
+  await new Promise((resolve) => setTimeout(resolve, 200));
 
   console.log("After listening period:", resizeHandler.getCurrentSize());
 

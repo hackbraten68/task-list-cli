@@ -1,5 +1,5 @@
 // src/ui/state.ts
-import { Signal, Computed } from "https://deno.land/x/tui@2.1.11/mod.ts";
+import { Computed, Signal } from "https://deno.land/x/tui@2.1.11/mod.ts";
 import { Task } from "../types.ts";
 import { ModalAction } from "./types.ts";
 
@@ -10,12 +10,16 @@ export class AppState {
   multiSelectMode = new Signal(false);
   selectedTasks = new Signal(new Set<number>());
   searchTerm = new Signal("");
-  currentSortField = new Signal<"id" | "description" | "status" | "priority" | "dueDate" | "createdAt">("id");
+  currentSortField = new Signal<
+    "id" | "description" | "status" | "priority" | "dueDate" | "createdAt"
+  >("id");
   currentSortOrder = new Signal<"asc" | "desc">("asc");
 
   // UI state signals
   editMode = new Signal<"view" | "add" | "update">("view");
-  currentField = new Signal<"description" | "priority" | "status" | "details" | "dueDate" | "tags">("description");
+  currentField = new Signal<
+    "description" | "priority" | "status" | "details" | "dueDate" | "tags"
+  >("description");
 
   // Modal state
   modalActive = new Signal(false);
@@ -36,7 +40,8 @@ export class AppState {
       filtered = filtered.filter((task: Task) =>
         task.description.toLowerCase().includes(term) ||
         (task.details && task.details.toLowerCase().includes(term)) ||
-        (task.tags && task.tags.some((tag: string) => tag.toLowerCase().includes(term)))
+        (task.tags &&
+          task.tags.some((tag: string) => tag.toLowerCase().includes(term)))
       );
     }
 

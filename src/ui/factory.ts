@@ -3,15 +3,21 @@ import { UIInterface } from "./types.ts";
 import { CliffyUI } from "./cliffy-ui.ts";
 import { TuiUI } from "./tui-ui.ts";
 
-export function createUI(implementation: "cliffy" | "tui" = "cliffy"): UIInterface {
+export function createUI(
+  implementation: "cliffy" | "tui" = "cliffy",
+): UIInterface {
   try {
     if (implementation === "tui") {
       console.log("🔄 Initializing deno_tui interface...");
       return new TuiUI();
     }
   } catch (error) {
-    console.warn("⚠️  deno_tui initialization failed, falling back to Cliffy UI");
-    console.warn(`Error: ${error instanceof Error ? error.message : String(error)}`);
+    console.warn(
+      "⚠️  deno_tui initialization failed, falling back to Cliffy UI",
+    );
+    console.warn(
+      `Error: ${error instanceof Error ? error.message : String(error)}`,
+    );
   }
   return new CliffyUI();
 }

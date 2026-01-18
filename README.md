@@ -2,7 +2,8 @@
 
 **A modern, lazydocker-inspired Task Management TUI**
 
-*Priority-based task management with interactive dashboard, bulk operations, and flexible tagging*
+_Priority-based task management with interactive dashboard, bulk operations, and
+flexible tagging_
 
 ## ⚡ Quick Start
 
@@ -39,11 +40,13 @@ source ~/.bashrc
 ## 📋 Core Commands
 
 ### Dashboard (TUI)
+
 ```bash
 lazytask  # Interactive task management
 ```
 
 **Key Bindings:**
+
 - `j/k` or `↓/↑` - Navigate tasks
 - `a` - Add task
 - `u` - Update task
@@ -53,6 +56,7 @@ lazytask  # Interactive task management
 - `q` - Quit
 
 ### CLI Operations
+
 ```bash
 # Add tasks
 lazytask add "Review code" --priority high --tags "work,urgent"
@@ -73,6 +77,7 @@ lazytask delete 1
 ## 🎛️ Dashboard Features
 
 ### Multi-Select Mode
+
 - Press `Tab` to enter multi-select
 - `Space` to select/deselect tasks
 - `[✓]` shows selected tasks
@@ -80,12 +85,14 @@ lazytask delete 1
 - `d` - Quick delete selected tasks
 
 ### Statistics View
+
 - Press `s` to toggle statistics
 - Completion progress bar
 - Task distribution by status/priority
 - Overdue task alerts
 
 ### Bulk Operations
+
 ```bash
 # CLI bulk operations
 lazytask bulk-mark done "1,2,3,5-8"
@@ -96,16 +103,20 @@ lazytask bulk-update "1,2,3" --priority high
 ## 🏷️ Task Options
 
 ### Priorities
+
 - `low`, `medium`, `high`, `critical`
 
 ### Status
+
 - `todo`, `in-progress`, `done`
 
 ### Tags
+
 - Comma-separated: `--tags "work,urgent"`
 - Filter by tags: `--tags work`
 
 ### Due Dates
+
 - Format: `YYYY-MM-DD`
 - Example: `--due-date 2024-12-31`
 
@@ -132,6 +143,7 @@ lazytask import --format csv tasks.csv
 ## 🔧 Options Reference
 
 ### Add/Update Options
+
 ```bash
 -p, --priority <level>    # Priority level
 -d, --details <text>      # Task description
@@ -140,6 +152,7 @@ lazytask import --format csv tasks.csv
 ```
 
 ### List/Filter Options
+
 ```bash
 -s, --status <status>     # Filter by status
 -p, --priority <level>    # Filter by priority
@@ -150,6 +163,7 @@ lazytask import --format csv tasks.csv
 ```
 
 ### Export/Import Options
+
 ```bash
 -f, --format <json|csv>   # File format
 -o, --output <file>       # Output file
@@ -159,6 +173,7 @@ lazytask import --format csv tasks.csv
 ## 🚀 Version 0.8.0
 
 **UI Overhaul Release**
+
 - Complete TUI redesign with modern interface
 - Enhanced multi-select with visual indicators
 - Improved bulk operations system

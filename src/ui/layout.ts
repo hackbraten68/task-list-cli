@@ -21,12 +21,15 @@ export class ResponsiveLayout {
       const size = Deno.consoleSize();
       this.size.value = {
         columns: Math.max(this.minWidth, size.columns),
-        rows: Math.max(this.minHeight, size.rows)
+        rows: Math.max(this.minHeight, size.rows),
       };
     } catch (error) {
       // Fallback for environments without console size access
       this.size.value = { columns: this.minWidth, rows: this.minHeight };
-      console.warn("Could not get console size:", error instanceof Error ? error.message : String(error));
+      console.warn(
+        "Could not get console size:",
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 
@@ -34,7 +37,7 @@ export class ResponsiveLayout {
   setSize(columns: number, rows: number): void {
     this.size.value = {
       columns: Math.max(this.minWidth, columns),
-      rows: Math.max(this.minHeight, rows)
+      rows: Math.max(this.minHeight, rows),
     };
   }
 
@@ -44,7 +47,7 @@ export class ResponsiveLayout {
       column: 1,
       row: 1,
       width: this.size.value.columns,
-      height: 1
+      height: 1,
     };
   }
 
@@ -61,7 +64,7 @@ export class ResponsiveLayout {
         column: sidebarWidth + 2,
         row: 2,
         width: Math.max(40, totalWidth - sidebarWidth - 2),
-        height: availableHeight
+        height: availableHeight,
       };
     } else {
       // Narrow screen: full width task list
@@ -69,7 +72,7 @@ export class ResponsiveLayout {
         column: 1,
         row: 2,
         width: totalWidth,
-        height: availableHeight
+        height: availableHeight,
       };
     }
   }
@@ -86,7 +89,7 @@ export class ResponsiveLayout {
         column: 1,
         row: 2,
         width: Math.max(25, Math.floor(totalWidth * 0.35)),
-        height: availableHeight
+        height: availableHeight,
       };
     } else {
       // Hide sidebar on narrow screens
@@ -94,7 +97,7 @@ export class ResponsiveLayout {
         column: 1,
         row: 1,
         width: 0,
-        height: 0
+        height: 0,
       };
     }
   }
@@ -112,7 +115,7 @@ export class ResponsiveLayout {
       column: 1,
       row: 2,
       width: sidebarWidth,
-      height: availableHeight
+      height: availableHeight,
     };
   }
 
@@ -129,7 +132,7 @@ export class ResponsiveLayout {
       column: sidebarWidth + 3, // Account for spacing
       row: 2,
       width: taskWidth,
-      height: availableHeight
+      height: availableHeight,
     };
   }
 
@@ -139,7 +142,7 @@ export class ResponsiveLayout {
       column: 1,
       row: Math.max(this.size.value.rows, this.minHeight),
       width: Math.max(this.size.value.columns, this.minWidth),
-      height: 1
+      height: 1,
     };
   }
 
@@ -152,7 +155,7 @@ export class ResponsiveLayout {
       column: Math.max(1, Math.floor((screenWidth - width) / 2)),
       row: Math.max(2, Math.floor((screenHeight - height) / 2)),
       width: Math.min(width, screenWidth - 2),
-      height: Math.min(height, screenHeight - 2)
+      height: Math.min(height, screenHeight - 2),
     };
   }
 
@@ -168,8 +171,12 @@ export class ResponsiveLayout {
   }
 
   // Utility: check if element should be visible
-  shouldShowElement(minWidth: number, minHeight: number = this.minHeight): boolean {
-    return this.size.value.columns >= minWidth && this.size.value.rows >= minHeight;
+  shouldShowElement(
+    minWidth: number,
+    minHeight: number = this.minHeight,
+  ): boolean {
+    return this.size.value.columns >= minWidth &&
+      this.size.value.rows >= minHeight;
   }
 
   // Get current terminal size

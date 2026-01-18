@@ -37,20 +37,49 @@ export class CliffyUI implements UIInterface {
     UI.clearScreen();
   }
 
-  box(title: string, lines: string[], width: number, height: number, focused?: boolean, dimmed?: boolean): string[] {
+  box(
+    title: string,
+    lines: string[],
+    width: number,
+    height: number,
+    focused?: boolean,
+    dimmed?: boolean,
+  ): string[] {
     return UI.box(title, lines, width, height, focused, dimmed);
   }
 
-  drawModal(title: string, content: string[], width: number, height: number): string[] {
+  drawModal(
+    title: string,
+    content: string[],
+    width: number,
+    height: number,
+  ): string[] {
     return UI.drawModal(title, content, width, height);
   }
 
-  renderLayout(panels: string[][], modal?: { lines: string[]; width: number; height: number }): void {
+  renderLayout(
+    panels: string[][],
+    modal?: { lines: string[]; width: number; height: number },
+  ): void {
     UI.renderLayout(panels, modal);
   }
 
-  footer(multiSelectMode?: boolean, selectedCount?: number, statsViewMode?: boolean, completionRate?: number, overdueCount?: number, searchMode?: boolean): void {
-    UI.footer(multiSelectMode, selectedCount, statsViewMode, completionRate, overdueCount, searchMode);
+  footer(
+    multiSelectMode?: boolean,
+    selectedCount?: number,
+    statsViewMode?: boolean,
+    completionRate?: number,
+    overdueCount?: number,
+    searchMode?: boolean,
+  ): void {
+    UI.footer(
+      multiSelectMode,
+      selectedCount,
+      statsViewMode,
+      completionRate,
+      overdueCount,
+      searchMode,
+    );
   }
 
   renderTasks(tasks: Task[]): void {
@@ -69,11 +98,15 @@ export class CliffyUI implements UIInterface {
     return UI.renderStatsPanel(stats, width, height);
   }
 
-  async showModal(options: import("./types.ts").ModalOptions): Promise<unknown> {
+  async showModal(
+    options: import("./types.ts").ModalOptions,
+  ): Promise<unknown> {
     // For legacy CLI, just log the modal content
     console.log(`\n${options.title}:`);
-    options.content.forEach(line => console.log(line));
-    options.actions.forEach((action, i) => console.log(`${i + 1}. ${action.label}`));
+    options.content.forEach((line) => console.log(line));
+    options.actions.forEach((action, i) =>
+      console.log(`${i + 1}. ${action.label}`)
+    );
     // In CLI mode, just execute first action or something simple
     if (options.actions.length > 0) {
       return await options.actions[0].action();

@@ -14,14 +14,20 @@ export class ResizeHandler {
   private updateSize() {
     try {
       const size = Deno.consoleSize();
-      if (size.columns !== this.currentSize.columns || size.rows !== this.currentSize.rows) {
+      if (
+        size.columns !== this.currentSize.columns ||
+        size.rows !== this.currentSize.rows
+      ) {
         this.currentSize = size;
         this.layout.updateSize();
         // Trigger re-render if needed (will be implemented when TuiUI is fully integrated)
       }
     } catch (error) {
       // Fallback for environments without console size access
-      console.warn("Could not get console size:", error instanceof Error ? error.message : String(error));
+      console.warn(
+        "Could not get console size:",
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 
@@ -39,7 +45,10 @@ export class ResizeHandler {
       });
     } catch (error) {
       // SIGWINCH not available on all platforms (e.g., Windows)
-      console.warn("Resize listening not available:", error instanceof Error ? error.message : String(error));
+      console.warn(
+        "Resize listening not available:",
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 

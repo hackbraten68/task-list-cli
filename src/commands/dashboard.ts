@@ -18,7 +18,13 @@ import { updateCommand } from "./update.ts";
 import { deleteCommand } from "./delete.ts";
 import { markCommand } from "./mark.ts";
 import { sortTasks } from "./list.ts";
-import { ExportOptions, ImportOptions, Task, TaskPriority, TaskStatus } from "../types.ts";
+import {
+  ExportOptions,
+  ImportOptions,
+  Task,
+  TaskPriority,
+  TaskStatus,
+} from "../types.ts";
 import { getTaskSummaries } from "../utils/task-selection.ts";
 import { FuzzySearchOptions, fuzzySearchTasks } from "../utils/fuzzy-search.ts";
 
@@ -37,16 +43,36 @@ function filterTasksBySearch(tasks: Task[], searchTerm: string): Task[] {
 async function showMainMenu(UI: any): Promise<void> {
   console.clear();
   UI.header();
-  console.log("╔════════════════════════════════════════════════════════════════╗");
-  console.log("║                        LazyTask Menu                          ║");
-  console.log("╠════════════════════════════════════════════════════════════════╣");
-  console.log("║                                                                ║");
-  console.log("║ 📊 [DATA] Data Management         Import/Export tasks          ║");
-  console.log("║ ⚙️  [SETTINGS] Settings               Theme & preferences        ║");
-  console.log("║ ❓ [HELP] Help & Info               Keyboard shortcuts           ║");
-  console.log("║ ⬅️  [BACK] Back to Dashboard       Return to main app           ║");
-  console.log("║                                                                ║");
-  console.log("╚════════════════════════════════════════════════════════════════╝");
+  console.log(
+    "╔════════════════════════════════════════════════════════════════╗",
+  );
+  console.log(
+    "║                        LazyTask Menu                          ║",
+  );
+  console.log(
+    "╠════════════════════════════════════════════════════════════════╣",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ 📊 [DATA] Data Management         Import/Export tasks          ║",
+  );
+  console.log(
+    "║ ⚙️  [SETTINGS] Settings               Theme & preferences        ║",
+  );
+  console.log(
+    "║ ❓ [HELP] Help & Info               Keyboard shortcuts           ║",
+  );
+  console.log(
+    "║ ⬅️  [BACK] Back to Dashboard       Return to main app           ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "╚════════════════════════════════════════════════════════════════╝",
+  );
   console.log("");
 
   const choice = await Select.prompt({
@@ -110,28 +136,64 @@ async function showSettingsMenu(UI: any): Promise<void> {
   console.clear();
   UI.header();
 
-  console.log("╔════════════════════════════════════════════════════════════════╗");
-  console.log("║                       Settings Menu                           ║");
-  console.log("╠════════════════════════════════════════════════════════════════╣");
-  console.log("║                                                                ║");
-  console.log("║ 🎨 [THEME] Theme Selection         Light/Dark mode             ║");
-  console.log("║ 📊 [STATS] Progress Display         Completion bar style       ║");
-  console.log("║ 🔤 [SORT] Default Sort Order       ID/Date/Priority            ║");
-  console.log("║ ⚠️  [CONFIRM] Confirmations         Delete/archive warnings     ║");
-  console.log("║                                                                ║");
-  console.log("║ ⚙️  Advanced Settings (Coming Soon):                           ║");
-  console.log("║     • Custom key bindings                                     ║");
-  console.log("║     • Auto-save preferences                                   ║");
-  console.log("║     • Notification settings                                   ║");
-  console.log("║                                                                ║");
-  console.log("╚════════════════════════════════════════════════════════════════╝");
+  console.log(
+    "╔════════════════════════════════════════════════════════════════╗",
+  );
+  console.log(
+    "║                       Settings Menu                           ║",
+  );
+  console.log(
+    "╠════════════════════════════════════════════════════════════════╣",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ 🎨 [THEME] Theme Selection         Light/Dark mode             ║",
+  );
+  console.log(
+    "║ 📊 [STATS] Progress Display         Completion bar style       ║",
+  );
+  console.log(
+    "║ 🔤 [SORT] Default Sort Order       ID/Date/Priority            ║",
+  );
+  console.log(
+    "║ ⚠️  [CONFIRM] Confirmations         Delete/archive warnings     ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ ⚙️  Advanced Settings (Coming Soon):                           ║",
+  );
+  console.log(
+    "║     • Custom key bindings                                     ║",
+  );
+  console.log(
+    "║     • Auto-save preferences                                   ║",
+  );
+  console.log(
+    "║     • Notification settings                                   ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "╚════════════════════════════════════════════════════════════════╝",
+  );
   console.log("");
 
   const choice = await Select.prompt({
     message: "Choose a setting to configure:",
     options: [
-      { name: "🎨 Theme Selection - Choose light or dark mode", value: "theme" },
-      { name: "📊 Progress Display - Completion bar appearance", value: "progress" },
+      {
+        name: "🎨 Theme Selection - Choose light or dark mode",
+        value: "theme",
+      },
+      {
+        name: "📊 Progress Display - Completion bar appearance",
+        value: "progress",
+      },
       { name: "🔤 Default Sort Order - Initial task sorting", value: "sort" },
       { name: "⚠️  Confirmations - Warning preferences", value: "confirm" },
       { name: "⬅️  Back to Main Menu", value: "back" },
@@ -208,46 +270,124 @@ async function showSettingsMenu(UI: any): Promise<void> {
 async function showHelpMenu(UI: any): Promise<void> {
   console.clear();
   UI.header();
-  console.log("╔════════════════════════════════════════════════════════════════╗");
-  console.log("║ LazyTask Help & Keyboard Shortcuts                           ║");
-  console.log("╠════════════════════════════════════════════════════════════════╣");
-  console.log("║                                                                ║");
-  console.log("║ 📍 Navigation & Selection                                     ║");
-  console.log("║ ──────────────────────                                        ║");
-  console.log("║ j/k or ↑/↓     Navigate tasks                                ║");
-  console.log("║ Tab            Toggle multi-select mode                      ║");
-  console.log("║ Space          Select/deselect (multi-select)                ║");
-  console.log("║ Enter          Update task / Bulk actions                    ║");
-  console.log("║                                                                ║");
-  console.log("║ 🛠️  Task Management                                           ║");
-  console.log("║ ────────────────────                                          ║");
-  console.log("║ a              Add new task                                   ║");
-  console.log("║ u              Update selected task                           ║");
-  console.log("║ d              Delete selected task                           ║");
-  console.log("║ m              Change task status                             ║");
-  console.log("║                                                                ║");
-  console.log("║ 🔍 View & Search                                              ║");
-  console.log("║ ───────────────                                               ║");
-  console.log("║ s              Toggle stats/tasks view                        ║");
-  console.log("║ /              Search tasks (exact match)                     ║");
-  console.log("║ ?              Fuzzy search tasks                             ║");
-  console.log("║ o              Cycle sort field                               ║");
-  console.log("║ r              Reverse sort order                             ║");
-  console.log("║                                                                ║");
-  console.log("║ ✏️  Add/Edit Mode                                              ║");
-  console.log("║ ───────────────                                               ║");
-  console.log("║ ↑↓/Tab         Navigate between fields                        ║");
-  console.log("║ ←→            Cycle values or navigate fields                 ║");
-  console.log("║ Enter          Save changes                                   ║");
-  console.log("║ Esc            Cancel changes                                 ║");
-  console.log("║                                                                ║");
-  console.log("║ 🌐 Global                                                      ║");
-  console.log("║ ──────                                                        ║");
-  console.log("║ h              Show this help                                 ║");
-  console.log("║ q/Ctrl+C       Quit application                               ║");
-  console.log("╚════════════════════════════════════════════════════════════════╝");
+  console.log(
+    "╔════════════════════════════════════════════════════════════════╗",
+  );
+  console.log(
+    "║ LazyTask Help & Keyboard Shortcuts                           ║",
+  );
+  console.log(
+    "╠════════════════════════════════════════════════════════════════╣",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ 📍 Navigation & Selection                                     ║",
+  );
+  console.log(
+    "║ ──────────────────────                                        ║",
+  );
+  console.log(
+    "║ j/k or ↑/↓     Navigate tasks                                ║",
+  );
+  console.log(
+    "║ Tab            Toggle multi-select mode                      ║",
+  );
+  console.log(
+    "║ Space          Select/deselect (multi-select)                ║",
+  );
+  console.log(
+    "║ Enter          Update task / Bulk actions                    ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ 🛠️  Task Management                                           ║",
+  );
+  console.log(
+    "║ ────────────────────                                          ║",
+  );
+  console.log(
+    "║ a              Add new task                                   ║",
+  );
+  console.log(
+    "║ u              Update selected task                           ║",
+  );
+  console.log(
+    "║ d              Delete selected task                           ║",
+  );
+  console.log(
+    "║ m              Change task status                             ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ 🔍 View & Search                                              ║",
+  );
+  console.log(
+    "║ ───────────────                                               ║",
+  );
+  console.log(
+    "║ s              Toggle stats/tasks view                        ║",
+  );
+  console.log(
+    "║ /              Search tasks (exact match)                     ║",
+  );
+  console.log(
+    "║ ?              Fuzzy search tasks                             ║",
+  );
+  console.log(
+    "║ o              Cycle sort field                               ║",
+  );
+  console.log(
+    "║ r              Reverse sort order                             ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ ✏️  Add/Edit Mode                                              ║",
+  );
+  console.log(
+    "║ ───────────────                                               ║",
+  );
+  console.log(
+    "║ ↑↓/Tab         Navigate between fields                        ║",
+  );
+  console.log(
+    "║ ←→            Cycle values or navigate fields                 ║",
+  );
+  console.log(
+    "║ Enter          Save changes                                   ║",
+  );
+  console.log(
+    "║ Esc            Cancel changes                                 ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ 🌐 Global                                                      ║",
+  );
+  console.log(
+    "║ ──────                                                        ║",
+  );
+  console.log(
+    "║ h              Show this help                                 ║",
+  );
+  console.log(
+    "║ q/Ctrl+C       Quit application                               ║",
+  );
+  console.log(
+    "╚════════════════════════════════════════════════════════════════╝",
+  );
   console.log("");
-  console.log("💡 Tip: Multi-select example - Tab → Space (select) → Enter → Choose action");
+  console.log(
+    "💡 Tip: Multi-select example - Tab → Space (select) → Enter → Choose action",
+  );
   console.log("");
   await Input.prompt("Press Enter to continue...");
 }
@@ -394,16 +534,16 @@ async function handleClearAllTasks(UI: any): Promise<void> {
   // Return to dashboard (don't call showDataManagementMenu)
 }
 
-export async function dashboardCommand() {
-  const UI = createUI(getUIImplementation());
+export async function dashboardCommand(uiImplementation?: "cliffy" | "tui") {
+  const UI = createUI(uiImplementation || getUIImplementation());
 
   // Set up resize handling for responsive UI
   let resizeHandler: ResizeHandler | null = null;
-  if (UI.constructor.name === 'TuiUI') {
+  if (UI.constructor.name === "TuiUI") {
     // Create a mock layout for resize handling (will be improved)
     const mockLayout = {
       updateSize: () => {},
-      getCurrentSize: () => Deno.consoleSize()
+      getCurrentSize: () => Deno.consoleSize(),
     };
     resizeHandler = new ResizeHandler(mockLayout as any);
     resizeHandler.startListening();
@@ -416,96 +556,106 @@ export async function dashboardCommand() {
   let searchTerm = ""; // Current search term
   let searchMode = false; // Whether search is active
   let fuzzyMode = false; // Whether fuzzy search is active
-    let currentSortField = "id"; // Current sort field
-    let currentSortOrder: "asc" | "desc" = "asc"; // Current sort order
-    let editMode: "view" | "add" | "update" = "view"; // Current edit mode
-    let editData: Partial<Task> = {}; // Data for editing/adding
-     let currentField: keyof Pick<Task, "description" | "priority" | "status" | "details" | "dueDate" | "tags"> = "description"; // Current form field
-    let running = true;
+  let currentSortField = "id"; // Current sort field
+  let currentSortOrder: "asc" | "desc" = "asc"; // Current sort order
+  let editMode: "view" | "add" | "update" = "view"; // Current edit mode
+  let editData: Partial<Task> = {}; // Data for editing/adding
+  let currentField: keyof Pick<
+    Task,
+    "description" | "priority" | "status" | "details" | "dueDate" | "tags"
+  > = "description"; // Current form field
+  let running = true;
 
-    // Helper function to strip ANSI codes from text
-    function stripAnsi(text: string): string {
-      return text.replace(/\u001b\[[0-9;]*m/g, '');
-    }
+  // Helper function to strip ANSI codes from text
+  function stripAnsi(text: string): string {
+    return text.replace(/\u001b\[[0-9;]*m/g, "");
+  }
 
-    // Helper function to wrap text at word boundaries
-    function wrapText(text: string, maxWidth: number, indentLength: number = 0): string[] {
-      const lines: string[] = [];
-      let remaining = text;
+  // Helper function to wrap text at word boundaries
+  function wrapText(
+    text: string,
+    maxWidth: number,
+    indentLength: number = 0,
+  ): string[] {
+    const lines: string[] = [];
+    let remaining = text;
 
-      while (remaining.length > 0) {
-        // Strip ANSI codes for length calculations
-        const visibleRemaining = stripAnsi(remaining);
+    while (remaining.length > 0) {
+      // Strip ANSI codes for length calculations
+      const visibleRemaining = stripAnsi(remaining);
 
-        // If the remaining text fits, add it and we're done
-        if (visibleRemaining.length <= maxWidth) {
-          lines.push(remaining);
-          break;
-        }
-
-        // Find the best place to break (last space within maxWidth of visible text)
-        let breakPoint = maxWidth;
-        let charCount = 0;
-        let actualBreakPoint = 0;
-
-        // Count through the text, tracking visible characters
-        for (let i = 0; i < remaining.length && charCount < maxWidth; i++) {
-          if (remaining[i] === '\u001b') {
-            // Skip ANSI escape sequence
-            while (i < remaining.length && remaining[i] !== 'm') {
-              i++;
-            }
-          } else {
-            charCount++;
-            actualBreakPoint = i + 1;
-          }
-        }
-
-        // Look for the last space before our break point
-        const lastSpace = remaining.lastIndexOf(' ', actualBreakPoint);
-        if (lastSpace > 0 && stripAnsi(remaining.substring(0, lastSpace)).length > indentLength) {
-          actualBreakPoint = lastSpace;
-        }
-
-        // Extract the line and add it
-        const line = remaining.substring(0, actualBreakPoint);
-        lines.push(line);
-
-        // Prepare remaining text with proper indentation
-        const remainingText = remaining.substring(actualBreakPoint).trim();
-        remaining = ' '.repeat(indentLength) + remainingText;
+      // If the remaining text fits, add it and we're done
+      if (visibleRemaining.length <= maxWidth) {
+        lines.push(remaining);
+        break;
       }
 
-      return lines;
+      // Find the best place to break (last space within maxWidth of visible text)
+      let breakPoint = maxWidth;
+      let charCount = 0;
+      let actualBreakPoint = 0;
+
+      // Count through the text, tracking visible characters
+      for (let i = 0; i < remaining.length && charCount < maxWidth; i++) {
+        if (remaining[i] === "\u001b") {
+          // Skip ANSI escape sequence
+          while (i < remaining.length && remaining[i] !== "m") {
+            i++;
+          }
+        } else {
+          charCount++;
+          actualBreakPoint = i + 1;
+        }
+      }
+
+      // Look for the last space before our break point
+      const lastSpace = remaining.lastIndexOf(" ", actualBreakPoint);
+      if (
+        lastSpace > 0 &&
+        stripAnsi(remaining.substring(0, lastSpace)).length > indentLength
+      ) {
+        actualBreakPoint = lastSpace;
+      }
+
+      // Extract the line and add it
+      const line = remaining.substring(0, actualBreakPoint);
+      lines.push(line);
+
+      // Prepare remaining text with proper indentation
+      const remainingText = remaining.substring(actualBreakPoint).trim();
+      remaining = " ".repeat(indentLength) + remainingText;
     }
+
+    return lines;
+  }
 
   // Set stdin to raw mode
   Deno.stdin.setRaw(true);
 
-    const cleanup = () => {
-        try {
-            Deno.stdin.setRaw(false);
-        } catch {
-            // Ignore cleanup errors
-        }
-    };
+  const cleanup = () => {
+    try {
+      Deno.stdin.setRaw(false);
+    } catch {
+      // Ignore cleanup errors
+    }
+  };
 
-    const appendToCurrentField = (char: string) => {
-      if (editMode === "add" || editMode === "update") {
-        if (currentField === "description") {
-          editData.description = (editData.description || "") + char;
-        } else if (currentField === "details") {
-          editData.details = (editData.details || "") + char;
-        } else if (currentField === "dueDate") {
-          editData.dueDate = (editData.dueDate || "") + char;
-        } else if (currentField === "tags") {
-          // For tags, append to first tag
-          const currentTags = editData.tags || [];
-          const currentTag = currentTags[0] || "";
-          editData.tags = [currentTag + char];
-        }
+  const appendToCurrentField = (char: string) => {
+    if (editMode === "add" || editMode === "update") {
+      if (currentField === "description") {
+        editData.description = (editData.description || "") + char;
+      } else if (currentField === "details") {
+        editData.details = (editData.details || "") + char;
+      } else if (currentField === "dueDate") {
+        editData.dueDate = (editData.dueDate || "") + char;
+      } else if (currentField === "tags") {
+        // For tags, append to first tag
+        const currentTags = editData.tags || [];
+        const currentTag = currentTags[0] || "";
+        editData.tags = [currentTag + char];
       }
-    };
+    }
+  };
 
   async function performSearch() {
     // Enter search mode with footer replacement
@@ -559,83 +709,147 @@ export async function dashboardCommand() {
 
     // Helper function for safe text padding
     const padText = (text: string, targetLength: number): string => {
-      const cleanText = text.replace(/\u001b\[[0-9;]*m/g, ''); // Strip ANSI codes
+      const cleanText = text.replace(/\u001b\[[0-9;]*m/g, ""); // Strip ANSI codes
       if (cleanText.length > targetLength) {
-        return cleanText.slice(0, targetLength - 3) + '...';
+        return cleanText.slice(0, targetLength - 3) + "...";
       }
-      return cleanText + ' '.repeat(Math.max(0, targetLength - cleanText.length));
+      return cleanText +
+        " ".repeat(Math.max(0, targetLength - cleanText.length));
     };
 
     if (isMinimal) {
       // Minimal mode for narrow terminals
-      lines.push(`┌─ STATS ─${'─'.repeat(Math.max(0, width - 9))}┐`);
+      lines.push(`┌─ STATS ─${"─".repeat(Math.max(0, width - 9))}┐`);
       lines.push(`│ 🤖 CPU: ${Math.floor(Math.random() * 100)}% │`);
-      const completion = stats.total > 0 ? Math.round((stats.byStatus.done / stats.total) * 100) : 0;
-      const progressBar = '█'.repeat(Math.floor(completion / 12.5)) + '░'.repeat(8 - Math.floor(completion / 12.5));
+      const completion = stats.total > 0
+        ? Math.round((stats.byStatus.done / stats.total) * 100)
+        : 0;
+      const progressBar = "█".repeat(Math.floor(completion / 12.5)) +
+        "░".repeat(8 - Math.floor(completion / 12.5));
       lines.push(`│ 📊 ${progressBar.slice(0, 8)} ${completion}% │`);
-      lines.push(`│ 🎯 ACT: ${stats.byStatus.todo + stats.byStatus["in-progress"]} │`);
+      lines.push(
+        `│ 🎯 ACT: ${stats.byStatus.todo + stats.byStatus["in-progress"]} │`,
+      );
       if (stats.overdue > 0) {
         lines.push(`│ ⚠️  OVD: ${stats.overdue} │`);
       }
       const velocity = Math.round(stats.recentActivity / 7 * 10) / 10;
       lines.push(`│ ↗ +${velocity}/day │`);
-      lines.push(`└${'─'.repeat(width)}┘`);
+      lines.push(`└${"─".repeat(width)}┘`);
     } else {
       // Full hacker mode with proper bounds checking
       const headerText = " STATISTICAL ANALYSIS ENGINE v2.1 ";
       const headerPadding = Math.max(0, width - headerText.length - 2);
-      lines.push(`┌${headerText}${'─'.repeat(headerPadding)}┐`);
+      lines.push(`┌${headerText}${"─".repeat(headerPadding)}┐`);
 
       // System status bar - ensure it fits exactly
-      const statusBar = `│ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │`;
-      lines.push(statusBar.slice(0, width + 1) + '│');
+      const statusBar =
+        `│ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │`;
+      lines.push(statusBar.slice(0, width + 1) + "│");
 
       // Processing animations with proper padding
-      lines.push(`│ 🤖 ${padText('PROCESSING TASK DATA...', width - 4)}│`);
-      lines.push(`│ ⚙️  ${padText('CALCULATING EFFICIENCY METRICS...', width - 5)}│`);
-      lines.push(`│ 🖥️  ${padText('ANALYZING PRIORITY DISTRIBUTIONS...', width - 5)}│`);
-      lines.push(`│ ${' '.repeat(Math.max(0, width))}│`);
+      lines.push(`│ 🤖 ${padText("PROCESSING TASK DATA...", width - 4)}│`);
+      lines.push(
+        `│ ⚙️  ${padText("CALCULATING EFFICIENCY METRICS...", width - 5)}│`,
+      );
+      lines.push(
+        `│ 🖥️  ${padText("ANALYZING PRIORITY DISTRIBUTIONS...", width - 5)}│`,
+      );
+      lines.push(`│ ${" ".repeat(Math.max(0, width))}│`);
 
       // Core metrics with safe formatting
-      const completion = stats.total > 0 ? Math.round((stats.byStatus.done / stats.total) * 100) : 0;
-      const progressBar = '█'.repeat(Math.floor(completion / 8)) + '░'.repeat(12 - Math.floor(completion / 8));
-      const completionText = `📊 COMPLETION RATE: ${progressBar.slice(0, 12)} ${completion}%`;
+      const completion = stats.total > 0
+        ? Math.round((stats.byStatus.done / stats.total) * 100)
+        : 0;
+      const progressBar = "█".repeat(Math.floor(completion / 8)) +
+        "░".repeat(12 - Math.floor(completion / 8));
+      const completionText = `📊 COMPLETION RATE: ${
+        progressBar.slice(0, 12)
+      } ${completion}%`;
       lines.push(`│ ${padText(completionText, width)}│`);
 
       // Activity summary with dynamic layout
       const activeTasks = stats.byStatus.todo + stats.byStatus["in-progress"];
       const completedTasks = stats.byStatus.done;
-      const activityText = `🎯 ACTIVE: ${activeTasks} | DONE: ${completedTasks} | TOTAL: ${stats.total}`;
+      const activityText =
+        `🎯 ACTIVE: ${activeTasks} | DONE: ${completedTasks} | TOTAL: ${stats.total}`;
       lines.push(`│ ${padText(activityText, width)}│`);
 
       // Priority heatmap with safe calculations
-      const maxPriority = Math.max(stats.byPriority.critical, stats.byPriority.high, stats.byPriority.medium, stats.byPriority.low) || 1;
-      const createBar = (count: number) => '█'.repeat(Math.floor((count / maxPriority) * 8)) + '░'.repeat(8 - Math.floor((count / maxPriority) * 8));
+      const maxPriority = Math.max(
+        stats.byPriority.critical,
+        stats.byPriority.high,
+        stats.byPriority.medium,
+        stats.byPriority.low,
+      ) || 1;
+      const createBar = (count: number) =>
+        "█".repeat(Math.floor((count / maxPriority) * 8)) +
+        "░".repeat(8 - Math.floor((count / maxPriority) * 8));
 
       const critBar = createBar(stats.byPriority.critical);
       const highBar = createBar(stats.byPriority.high);
       const medBar = createBar(stats.byPriority.medium);
       const lowBar = createBar(stats.byPriority.low);
 
-      lines.push(`│ 🔴 ${padText(`CRITICAL: ${critBar.slice(0, 8)} ${stats.byPriority.critical}`, width - 1)}│`);
-      lines.push(`│ 🟠 ${padText(`HIGH:     ${highBar.slice(0, 8)} ${stats.byPriority.high}`, width - 1)}│`);
-      lines.push(`│ 🟡 ${padText(`MEDIUM:   ${medBar.slice(0, 8)} ${stats.byPriority.medium}`, width - 1)}│`);
-      lines.push(`│ 🟢 ${padText(`LOW:      ${lowBar.slice(0, 8)} ${stats.byPriority.low}`, width - 1)}│`);
+      lines.push(
+        `│ 🔴 ${
+          padText(
+            `CRITICAL: ${critBar.slice(0, 8)} ${stats.byPriority.critical}`,
+            width - 1,
+          )
+        }│`,
+      );
+      lines.push(
+        `│ 🟠 ${
+          padText(
+            `HIGH:     ${highBar.slice(0, 8)} ${stats.byPriority.high}`,
+            width - 1,
+          )
+        }│`,
+      );
+      lines.push(
+        `│ 🟡 ${
+          padText(
+            `MEDIUM:   ${medBar.slice(0, 8)} ${stats.byPriority.medium}`,
+            width - 1,
+          )
+        }│`,
+      );
+      lines.push(
+        `│ 🟢 ${
+          padText(
+            `LOW:      ${lowBar.slice(0, 8)} ${stats.byPriority.low}`,
+            width - 1,
+          )
+        }│`,
+      );
 
-      lines.push(`│ ${' '.repeat(width)}│`);
+      lines.push(`│ ${" ".repeat(width)}│`);
 
       // Alerts
       if (stats.overdue > 0) {
-        lines.push(`│ ⚠️  OVERDUE TASKS: ${stats.overdue}${(' ').repeat(Math.max(0, width - 18))}│`);
+        lines.push(
+          `│ ⚠️  OVERDUE TASKS: ${stats.overdue}${
+            (" ").repeat(Math.max(0, width - 18))
+          }│`,
+        );
       }
-      lines.push(`│ 🚨 BLOCKERS: 0${(' ').repeat(Math.max(0, width - 15))}│`);
+      lines.push(`│ 🚨 BLOCKERS: 0${(" ").repeat(Math.max(0, width - 15))}│`);
 
-      lines.push(`│ ${' '.repeat(width)}│`);
+      lines.push(`│ ${" ".repeat(width)}│`);
 
       // Trend analysis
       const velocity = Math.round(stats.recentActivity / 7 * 10) / 10;
-      const trend = stats.recentActivity > 5 ? '↗↗' : stats.recentActivity > 2 ? '↗' : '→';
-      lines.push(`│ ↗ WEEKLY VELOCITY: +${velocity}/day | TREND: ${trend}${(' ').repeat(Math.max(0, width - 35))}│`);
+      const trend = stats.recentActivity > 5
+        ? "↗↗"
+        : stats.recentActivity > 2
+        ? "↗"
+        : "→";
+      lines.push(
+        `│ ↗ WEEKLY VELOCITY: +${velocity}/day | TREND: ${trend}${
+          (" ").repeat(Math.max(0, width - 35))
+        }│`,
+      );
 
       // AI insight (fake)
       const insights = [
@@ -643,20 +857,28 @@ export async function dashboardCommand() {
         "Consider prioritizing critical tasks",
         "Good work-life balance detected",
         "Efficiency optimal - keep it up!",
-        "Task completion rate above average"
+        "Task completion rate above average",
       ];
       const insight = insights[Math.floor(Math.random() * insights.length)];
-      lines.push(`│ 🧠 AI INSIGHT: "${insight.slice(0, width - 17)}"${(' ').repeat(Math.max(0, width - 17 - insight.length - 2))}│`);
+      lines.push(
+        `│ 🧠 AI INSIGHT: "${insight.slice(0, width - 17)}"${
+          (" ").repeat(Math.max(0, width - 17 - insight.length - 2))
+        }│`,
+      );
 
-      lines.push(`│ ${' '.repeat(width)}│`);
+      lines.push(`│ ${" ".repeat(width)}│`);
 
       // System status
       const cpu = Math.floor(Math.random() * 100);
       const mem = Math.floor(Math.random() * 100);
       const uptime = Math.floor(Math.random() * 24 * 7) / 10;
-      lines.push(`│ [STATUS: NOMINAL] [CPU: ${cpu}%] [MEM: ${mem}%] [UPTIME: ${uptime}hrs]${(' ').repeat(Math.max(0, width - 45))}│`);
+      lines.push(
+        `│ [STATUS: NOMINAL] [CPU: ${cpu}%] [MEM: ${mem}%] [UPTIME: ${uptime}hrs]${
+          (" ").repeat(Math.max(0, width - 45))
+        }│`,
+      );
 
-      lines.push(`└${'─'.repeat(width)}┘`);
+      lines.push(`└${"─".repeat(width)}┘`);
     }
 
     return lines;
@@ -721,12 +943,11 @@ export async function dashboardCommand() {
           : colors.red("●");
 
         // Add selection indicator for multi-selected tasks (compact)
-        const selectIndicator = isMultiSelected
-          ? colors.bold.blue("✓")
-          : " ";
+        const selectIndicator = isMultiSelected ? colors.bold.blue("✓") : " ";
 
-        const line =
-          `${selectIndicator}${selectIndicator.trim() ? " " : ""}${prefix}${prefix ? " " : ""}${statusIcon} ${t.description}`;
+        const line = `${selectIndicator}${
+          selectIndicator.trim() ? " " : ""
+        }${prefix}${prefix ? " " : ""}${statusIcon} ${t.description}`;
 
         // Highlight current selection or multi-selected tasks
         if (isCurrent && !multiSelectMode) {
@@ -777,11 +998,11 @@ export async function dashboardCommand() {
       }
 
       detailLines.push("");
-       detailLines.push(`  ${colors.dim("Press Enter for bulk actions")}`);
+      detailLines.push(`  ${colors.dim("Press Enter for bulk actions")}`);
       detailLines.push(
         `  ${colors.dim("Press Tab to exit multi-select mode")}`,
-       );
-     } else if (selectedTask) {
+      );
+    } else if (selectedTask) {
       // Show single task details
       detailLines.push("");
       detailLines.push(
@@ -823,22 +1044,23 @@ export async function dashboardCommand() {
       detailLines.push(
         `  ${colors.dim("Updated at: " + selectedTask.updatedAt)}`,
       );
-       detailLines.push("");
-        detailLines.push(`  ${colors.bold.white("Details:")}`);
+      detailLines.push("");
+      detailLines.push(`  ${colors.bold.white("Details:")}`);
 
-        // Wrap long details text to fit panel width
-        const detailsText = selectedTask.details || colors.dim("No details provided.");
-        const detailsContent = `  ${detailsText}`;
-        const panelWidth = terminalWidth - sidebarWidth - 2; // Calculate panel width
-        if (detailsContent.length <= panelWidth) {
-          detailLines.push(detailsContent);
-        } else {
-          const wrappedLines = wrapText(detailsContent, panelWidth, 2); // 2 spaces indent
-          detailLines.push(...wrappedLines);
-        }
+      // Wrap long details text to fit panel width
+      const detailsText = selectedTask.details ||
+        colors.dim("No details provided.");
+      const detailsContent = `  ${detailsText}`;
+      const panelWidth = terminalWidth - sidebarWidth - 2; // Calculate panel width
+      if (detailsContent.length <= panelWidth) {
+        detailLines.push(detailsContent);
       } else {
-       detailLines.push("\n  No tasks available.");
-     }
+        const wrappedLines = wrapText(detailsContent, panelWidth, 2); // 2 spaces indent
+        detailLines.push(...wrappedLines);
+      }
+    } else {
+      detailLines.push("\n  No tasks available.");
+    }
 
     let panels: string[][];
 
@@ -851,11 +1073,25 @@ export async function dashboardCommand() {
       formLines.push("");
       formLines.push(`  ${colors.bold.cyan("Add New Task")}`);
       formLines.push("");
-      formLines.push(`${currentField === "description" ? colors.bold.yellow("➜") : "  "} Description: ${editData.description || colors.dim("(required)")}`);
-      formLines.push(`${currentField === "priority" ? colors.bold.yellow("➜") : "  "} Priority:    ${editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("medium")}`);
+      formLines.push(
+        `${
+          currentField === "description" ? colors.bold.yellow("➜") : "  "
+        } Description: ${editData.description || colors.dim("(required)")}`,
+      );
+      formLines.push(
+        `${
+          currentField === "priority" ? colors.bold.yellow("➜") : "  "
+        } Priority:    ${
+          editData.priority
+            ? UI.priorityPipe(editData.priority)
+            : colors.dim("medium")
+        }`,
+      );
 
       // Handle details field with word wrapping
-      const detailsLabel = `${currentField === "details" ? colors.bold.yellow("➜") : "  "} Details:     `;
+      const detailsLabel = `${
+        currentField === "details" ? colors.bold.yellow("➜") : "  "
+      } Details:     `;
       const detailsValue = editData.details || colors.dim("(optional)");
       const detailsContent = detailsLabel + detailsValue;
       if (detailsContent.length <= mainWidth) {
@@ -863,23 +1099,53 @@ export async function dashboardCommand() {
         formLines.push(detailsContent);
       } else {
         // Wrap to multiple lines
-        const wrappedLines = wrapText(detailsContent, mainWidth, detailsLabel.length);
+        const wrappedLines = wrapText(
+          detailsContent,
+          mainWidth,
+          detailsLabel.length,
+        );
         formLines.push(...wrappedLines);
       }
-      formLines.push(`${currentField === "dueDate" ? colors.bold.yellow("➜") : "  "} Due Date:   ${editData.dueDate || colors.dim("(optional)")}`);
-      formLines.push(`${currentField === "tags" ? colors.bold.yellow("➜") : "  "} Tags:        ${editData.tags ? editData.tags.join(", ") : colors.dim("(optional)")}`);
+      formLines.push(
+        `${
+          currentField === "dueDate" ? colors.bold.yellow("➜") : "  "
+        } Due Date:   ${editData.dueDate || colors.dim("(optional)")}`,
+      );
+      formLines.push(
+        `${
+          currentField === "tags" ? colors.bold.yellow("➜") : "  "
+        } Tags:        ${
+          editData.tags ? editData.tags.join(", ") : colors.dim("(optional)")
+        }`,
+      );
       formLines.push("");
-      formLines.push(`  ${colors.dim("↑↓/Tab: Navigate • ←→: Cycle • Enter: Save • Esc: Cancel")}`);
+      formLines.push(
+        `  ${
+          colors.dim("↑↓/Tab: Navigate • ←→: Cycle • Enter: Save • Esc: Cancel")
+        }`,
+      );
 
       const previewLines: string[] = [];
       previewLines.push("");
       previewLines.push(`  ${colors.bold.white("Preview")}`);
       previewLines.push("");
-      previewLines.push(`  ${colors.bold.white("Title:")} ${editData.description || colors.dim("...")}`);
-      previewLines.push(`  ${colors.bold.white("Priority:")} ${editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("Medium")}`);
+      previewLines.push(
+        `  ${colors.bold.white("Title:")} ${
+          editData.description || colors.dim("...")
+        }`,
+      );
+      previewLines.push(
+        `  ${colors.bold.white("Priority:")} ${
+          editData.priority
+            ? UI.priorityPipe(editData.priority)
+            : colors.dim("Medium")
+        }`,
+      );
       if (editData.details) {
         // Handle details with word wrapping in preview
-        const previewDetailsContent = `  ${colors.bold.white("Details:")} ${editData.details}`;
+        const previewDetailsContent = `  ${
+          colors.bold.white("Details:")
+        } ${editData.details}`;
         if (previewDetailsContent.length <= mainWidth) {
           previewLines.push(previewDetailsContent);
         } else {
@@ -891,7 +1157,9 @@ export async function dashboardCommand() {
         previewLines.push(`  ${colors.bold.white("Due:")} ${editData.dueDate}`);
       }
       if (editData.tags && editData.tags.length > 0) {
-        previewLines.push(`  ${colors.bold.white("Tags:")} ${editData.tags.join(", ")}`);
+        previewLines.push(
+          `  ${colors.bold.white("Tags:")} ${editData.tags.join(", ")}`,
+        );
       }
 
       // Combine form and preview with separator
@@ -923,12 +1191,32 @@ export async function dashboardCommand() {
       formLines.push("");
       formLines.push(`  ${colors.bold.cyan("Update Task")}`);
       formLines.push("");
-      formLines.push(`${currentField === "description" ? colors.bold.yellow("➜") : "  "} Description: ${editData.description || colors.dim("(required)")}`);
-      formLines.push(`${currentField === "priority" ? colors.bold.yellow("➜") : "  "} Priority:    ${editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("medium")}`);
-      formLines.push(`${currentField === "status" ? colors.bold.yellow("➜") : "  "} Status:      ${editData.status ? UI.statusPipe(editData.status) : colors.dim("todo")}`);
+      formLines.push(
+        `${
+          currentField === "description" ? colors.bold.yellow("➜") : "  "
+        } Description: ${editData.description || colors.dim("(required)")}`,
+      );
+      formLines.push(
+        `${
+          currentField === "priority" ? colors.bold.yellow("➜") : "  "
+        } Priority:    ${
+          editData.priority
+            ? UI.priorityPipe(editData.priority)
+            : colors.dim("medium")
+        }`,
+      );
+      formLines.push(
+        `${
+          currentField === "status" ? colors.bold.yellow("➜") : "  "
+        } Status:      ${
+          editData.status ? UI.statusPipe(editData.status) : colors.dim("todo")
+        }`,
+      );
 
       // Handle details field with word wrapping
-      const detailsLabel = `${currentField === "details" ? colors.bold.yellow("➜") : "  "} Details:     `;
+      const detailsLabel = `${
+        currentField === "details" ? colors.bold.yellow("➜") : "  "
+      } Details:     `;
       const detailsValue = editData.details || colors.dim("(optional)");
       const detailsContent = detailsLabel + detailsValue;
       if (detailsContent.length <= mainWidth) {
@@ -936,24 +1224,58 @@ export async function dashboardCommand() {
         formLines.push(detailsContent);
       } else {
         // Wrap to multiple lines
-        const wrappedLines = wrapText(detailsContent, mainWidth, detailsLabel.length);
+        const wrappedLines = wrapText(
+          detailsContent,
+          mainWidth,
+          detailsLabel.length,
+        );
         formLines.push(...wrappedLines);
       }
-      formLines.push(`${currentField === "dueDate" ? colors.bold.yellow("➜") : "  "} Due Date:   ${editData.dueDate || colors.dim("(optional)")}`);
-      formLines.push(`${currentField === "tags" ? colors.bold.yellow("➜") : "  "} Tags:        ${editData.tags ? editData.tags.join(", ") : colors.dim("(optional)")}`);
+      formLines.push(
+        `${
+          currentField === "dueDate" ? colors.bold.yellow("➜") : "  "
+        } Due Date:   ${editData.dueDate || colors.dim("(optional)")}`,
+      );
+      formLines.push(
+        `${
+          currentField === "tags" ? colors.bold.yellow("➜") : "  "
+        } Tags:        ${
+          editData.tags ? editData.tags.join(", ") : colors.dim("(optional)")
+        }`,
+      );
       formLines.push("");
-      formLines.push(`  ${colors.dim("↑↓/Tab: Navigate • ←→: Cycle • Enter: Save • Esc: Cancel")}`);
+      formLines.push(
+        `  ${
+          colors.dim("↑↓/Tab: Navigate • ←→: Cycle • Enter: Save • Esc: Cancel")
+        }`,
+      );
 
       const previewLines: string[] = [];
       previewLines.push("");
       previewLines.push(`  ${colors.bold.white("Preview")}`);
       previewLines.push("");
-      previewLines.push(`  ${colors.bold.white("Title:")} ${editData.description || colors.dim("...")}`);
-      previewLines.push(`  ${colors.bold.white("Priority:")} ${editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("Medium")}`);
-      previewLines.push(`  ${colors.bold.white("Status:")} ${editData.status ? UI.statusPipe(editData.status) : colors.dim("Todo")}`);
+      previewLines.push(
+        `  ${colors.bold.white("Title:")} ${
+          editData.description || colors.dim("...")
+        }`,
+      );
+      previewLines.push(
+        `  ${colors.bold.white("Priority:")} ${
+          editData.priority
+            ? UI.priorityPipe(editData.priority)
+            : colors.dim("Medium")
+        }`,
+      );
+      previewLines.push(
+        `  ${colors.bold.white("Status:")} ${
+          editData.status ? UI.statusPipe(editData.status) : colors.dim("Todo")
+        }`,
+      );
       if (editData.details) {
         // Handle details with word wrapping in preview
-        const previewDetailsContent = `  ${colors.bold.white("Details:")} ${editData.details}`;
+        const previewDetailsContent = `  ${
+          colors.bold.white("Details:")
+        } ${editData.details}`;
         if (previewDetailsContent.length <= mainWidth) {
           previewLines.push(previewDetailsContent);
         } else {
@@ -965,7 +1287,9 @@ export async function dashboardCommand() {
         previewLines.push(`  ${colors.bold.white("Due:")} ${editData.dueDate}`);
       }
       if (editData.tags && editData.tags.length > 0) {
-        previewLines.push(`  ${colors.bold.white("Tags:")} ${editData.tags.join(", ")}`);
+        previewLines.push(
+          `  ${colors.bold.white("Tags:")} ${editData.tags.join(", ")}`,
+        );
       }
 
       // Combine form and preview with separator
@@ -988,7 +1312,6 @@ export async function dashboardCommand() {
         isDimmed,
       );
       panels = [sidebar, mainPanel];
-
     } else {
       // Two-panel layout: sidebar, details or statistics
       const mainWidth = terminalWidth - sidebarWidth - 2;
@@ -998,8 +1321,11 @@ export async function dashboardCommand() {
       if (statsSidebarVisible) {
         // Show statistics instead of task details
         const stats = calculateStats(tasks);
-        const completionRate = stats.total > 0 ? Math.round((stats.byStatus.done / stats.total) * 100) : 0;
-        const progressBar = '█'.repeat(Math.floor(completionRate / 10)) + '░'.repeat(10 - Math.floor(completionRate / 10));
+        const completionRate = stats.total > 0
+          ? Math.round((stats.byStatus.done / stats.total) * 100)
+          : 0;
+        const progressBar = "█".repeat(Math.floor(completionRate / 10)) +
+          "░".repeat(10 - Math.floor(completionRate / 10));
 
         mainPanelLines = [
           `  Total Tasks:  ${stats.total}`,
@@ -1034,8 +1360,6 @@ export async function dashboardCommand() {
       panels = [sidebar, mainPanel];
     }
 
-
-
     UI.renderLayout(panels, modal);
     UI.footer(
       multiSelectMode && !statsSidebarVisible, // Disable multi-select indicator in stats mode
@@ -1058,7 +1382,7 @@ export async function dashboardCommand() {
       // Check for terminal resize
       const currentSize = Deno.consoleSize();
       const sizeChanged = currentSize.columns !== lastTerminalSize.columns ||
-                          currentSize.rows !== lastTerminalSize.rows;
+        currentSize.rows !== lastTerminalSize.rows;
 
       if (sizeChanged && resizeHandler) {
         resizeHandler.triggerResize();
@@ -1103,7 +1427,7 @@ export async function dashboardCommand() {
       // Skip normal input processing if modal is active
       if (UI.isModalActive && UI.isModalActive()) {
         // Modal is handling input, wait a bit and continue
-        await new Promise(resolve => setTimeout(resolve, 50));
+        await new Promise((resolve) => setTimeout(resolve, 50));
         continue;
       }
 
@@ -1113,89 +1437,170 @@ export async function dashboardCommand() {
 
       if (done) break;
 
-       const keys = new TextDecoder().decode(value);
+      const keys = new TextDecoder().decode(value);
 
-       // Handle modal input first
-       if (UI.handleModalKey && UI.handleModalKey(keys)) {
-         continue; // Modal handled the key, skip normal processing
-       }
+      // Handle modal input first
+      if (UI.handleModalKey && UI.handleModalKey(keys)) {
+        continue; // Modal handled the key, skip normal processing
+      }
 
-       switch (keys) {
+      switch (keys) {
         case "j":
-                    if (editMode === "add" || editMode === "update") {
-                        // Append 'j' to current field in add/update mode
-                        appendToCurrentField("j");
-                    } else {
-                        selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
-                    }
-                    break;
+          if (editMode === "add" || editMode === "update") {
+            // Append 'j' to current field in add/update mode
+            appendToCurrentField("j");
+          } else {
+            selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
+          }
+          break;
 
-                case "k":
-                    if (editMode === "add" || editMode === "update") {
-                        // Append 'k' to current field in add/update mode
-                        appendToCurrentField("k");
-                    } else {
-                        selectedIndex = Math.max(0, selectedIndex - 1);
-                    }
-                    break;
-                 case "\u001b[A": // Up arrow - Navigate to previous field
-                     if (editMode === "add" || editMode === "update") {
-                         const fields: (keyof Pick<Task, "description" | "priority" | "status" | "details" | "dueDate" | "tags">)[] = ["description", "priority", "status", "details", "dueDate", "tags"];
-                         const currentIndex = fields.indexOf(currentField);
-                         currentField = fields[(currentIndex - 1 + fields.length) % fields.length];
-                     } else {
-                         selectedIndex = Math.max(0, selectedIndex - 1);
-                     }
-                     break;
-                  case "\u001b[B": // Down arrow - Navigate to next field
-                      if (editMode === "add" || editMode === "update") {
-                          const fields: (keyof Pick<Task, "description" | "priority" | "status" | "details" | "dueDate" | "tags">)[] = ["description", "priority", "status", "details", "dueDate", "tags"];
-                          const currentIndex = fields.indexOf(currentField);
-                          currentField = fields[(currentIndex + 1) % fields.length];
-                      } else {
-                          selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
-                      }
-                      break;
-                 case "\u001b[D": // Left arrow - Cycle value down or navigate to previous field
-                     if (editMode === "add" || editMode === "update") {
-                         if (currentField === "priority") {
-                             // Cycle priority down
-                             const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
-                             const currentIndex = priorities.indexOf(editData.priority || "medium");
-                             editData.priority = priorities[(currentIndex - 1 + priorities.length) % priorities.length];
-                         } else if (currentField === "status") {
-                             // Cycle status down
-                             const statuses: TaskStatus[] = ["todo", "in-progress", "done"];
-                             const currentIndex = statuses.indexOf(editData.status || "todo");
-                             editData.status = statuses[(currentIndex - 1 + statuses.length) % statuses.length];
-                         } else {
-                             // Navigate to previous field for non-cycling fields
-                             const fields: (keyof Pick<Task, "description" | "priority" | "status" | "details" | "dueDate" | "tags">)[] = ["description", "priority", "status", "details", "dueDate", "tags"];
-                             const currentIndex = fields.indexOf(currentField);
-                             currentField = fields[(currentIndex - 1 + fields.length) % fields.length];
-                         }
-                     }
-                     break;
-                 case "\u001b[C": // Right arrow - Cycle value up or navigate to next field
-                     if (editMode === "add" || editMode === "update") {
-                         if (currentField === "priority") {
-                             // Cycle priority up
-                             const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
-                             const currentIndex = priorities.indexOf(editData.priority || "medium");
-                             editData.priority = priorities[(currentIndex + 1) % priorities.length];
-                         } else if (currentField === "status") {
-                             // Cycle status up
-                             const statuses: TaskStatus[] = ["todo", "in-progress", "done"];
-                             const currentIndex = statuses.indexOf(editData.status || "todo");
-                             editData.status = statuses[(currentIndex + 1) % statuses.length];
-                         } else {
-                             // Navigate to next field for non-cycling fields
-                             const fields: (keyof Pick<Task, "description" | "priority" | "status" | "details" | "dueDate" | "tags">)[] = ["description", "priority", "status", "details", "dueDate", "tags"];
-                             const currentIndex = fields.indexOf(currentField);
-                             currentField = fields[(currentIndex + 1) % fields.length];
-                         }
-                     }
-                     break;
+        case "k":
+          if (editMode === "add" || editMode === "update") {
+            // Append 'k' to current field in add/update mode
+            appendToCurrentField("k");
+          } else {
+            selectedIndex = Math.max(0, selectedIndex - 1);
+          }
+          break;
+        case "\u001b[A": // Up arrow - Navigate to previous field
+          if (editMode === "add" || editMode === "update") {
+            const fields: (keyof Pick<
+              Task,
+              | "description"
+              | "priority"
+              | "status"
+              | "details"
+              | "dueDate"
+              | "tags"
+            >)[] = [
+              "description",
+              "priority",
+              "status",
+              "details",
+              "dueDate",
+              "tags",
+            ];
+            const currentIndex = fields.indexOf(currentField);
+            currentField =
+              fields[(currentIndex - 1 + fields.length) % fields.length];
+          } else {
+            selectedIndex = Math.max(0, selectedIndex - 1);
+          }
+          break;
+        case "\u001b[B": // Down arrow - Navigate to next field
+          if (editMode === "add" || editMode === "update") {
+            const fields: (keyof Pick<
+              Task,
+              | "description"
+              | "priority"
+              | "status"
+              | "details"
+              | "dueDate"
+              | "tags"
+            >)[] = [
+              "description",
+              "priority",
+              "status",
+              "details",
+              "dueDate",
+              "tags",
+            ];
+            const currentIndex = fields.indexOf(currentField);
+            currentField = fields[(currentIndex + 1) % fields.length];
+          } else {
+            selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
+          }
+          break;
+        case "\u001b[D": // Left arrow - Cycle value down or navigate to previous field
+          if (editMode === "add" || editMode === "update") {
+            if (currentField === "priority") {
+              // Cycle priority down
+              const priorities: TaskPriority[] = [
+                "low",
+                "medium",
+                "high",
+                "critical",
+              ];
+              const currentIndex = priorities.indexOf(
+                editData.priority || "medium",
+              );
+              editData.priority = priorities[
+                (currentIndex - 1 + priorities.length) % priorities.length
+              ];
+            } else if (currentField === "status") {
+              // Cycle status down
+              const statuses: TaskStatus[] = ["todo", "in-progress", "done"];
+              const currentIndex = statuses.indexOf(editData.status || "todo");
+              editData.status = statuses[
+                (currentIndex - 1 + statuses.length) % statuses.length
+              ];
+            } else {
+              // Navigate to previous field for non-cycling fields
+              const fields: (keyof Pick<
+                Task,
+                | "description"
+                | "priority"
+                | "status"
+                | "details"
+                | "dueDate"
+                | "tags"
+              >)[] = [
+                "description",
+                "priority",
+                "status",
+                "details",
+                "dueDate",
+                "tags",
+              ];
+              const currentIndex = fields.indexOf(currentField);
+              currentField =
+                fields[(currentIndex - 1 + fields.length) % fields.length];
+            }
+          }
+          break;
+        case "\u001b[C": // Right arrow - Cycle value up or navigate to next field
+          if (editMode === "add" || editMode === "update") {
+            if (currentField === "priority") {
+              // Cycle priority up
+              const priorities: TaskPriority[] = [
+                "low",
+                "medium",
+                "high",
+                "critical",
+              ];
+              const currentIndex = priorities.indexOf(
+                editData.priority || "medium",
+              );
+              editData.priority =
+                priorities[(currentIndex + 1) % priorities.length];
+            } else if (currentField === "status") {
+              // Cycle status up
+              const statuses: TaskStatus[] = ["todo", "in-progress", "done"];
+              const currentIndex = statuses.indexOf(editData.status || "todo");
+              editData.status = statuses[(currentIndex + 1) % statuses.length];
+            } else {
+              // Navigate to next field for non-cycling fields
+              const fields: (keyof Pick<
+                Task,
+                | "description"
+                | "priority"
+                | "status"
+                | "details"
+                | "dueDate"
+                | "tags"
+              >)[] = [
+                "description",
+                "priority",
+                "status",
+                "details",
+                "dueDate",
+                "tags",
+              ];
+              const currentIndex = fields.indexOf(currentField);
+              currentField = fields[(currentIndex + 1) % fields.length];
+            }
+          }
+          break;
         case "a":
           if (editMode === "add" || editMode === "update") {
             // Append 'a' to current field in add/update mode
@@ -1217,7 +1622,22 @@ export async function dashboardCommand() {
           break;
         case "\t": // Tab - navigate to next field or toggle multi-select (disabled in stats mode)
           if (editMode === "add" || editMode === "update") {
-            const fields: (keyof Pick<Task, "description" | "priority" | "status" | "details" | "dueDate" | "tags">)[] = ["description", "priority", "status", "details", "dueDate", "tags"];
+            const fields: (keyof Pick<
+              Task,
+              | "description"
+              | "priority"
+              | "status"
+              | "details"
+              | "dueDate"
+              | "tags"
+            >)[] = [
+              "description",
+              "priority",
+              "status",
+              "details",
+              "dueDate",
+              "tags",
+            ];
             const currentIndex = fields.indexOf(currentField);
             currentField = fields[(currentIndex + 1) % fields.length];
           } else if (!statsSidebarVisible) {
@@ -1232,7 +1652,9 @@ export async function dashboardCommand() {
           if (editMode === "add" || editMode === "update") {
             // Append space to current field in add/update mode
             appendToCurrentField(" ");
-          } else if (multiSelectMode && !statsSidebarVisible && tasks[selectedIndex]) {
+          } else if (
+            multiSelectMode && !statsSidebarVisible && tasks[selectedIndex]
+          ) {
             // Multi-select only available when stats are not visible
             const taskId = tasks[selectedIndex].id;
             if (selectedTasks.has(taskId)) {
@@ -1264,14 +1686,14 @@ export async function dashboardCommand() {
             currentField = "description";
           }
           break;
-         case "\r": // Enter (CR)
-         case "\n": // Enter (LF)
-           if (editMode === "add") {
+        case "\r": // Enter (CR)
+        case "\n": // Enter (LF)
+          if (editMode === "add") {
             // Save the task
             if (editData.description && editData.description.trim()) {
               const tasks = await loadTasks();
               const newTask: Task = {
-                id: Math.max(0, ...tasks.map(t => t.id)) + 1,
+                id: Math.max(0, ...tasks.map((t) => t.id)) + 1,
                 description: editData.description.trim(),
                 details: editData.details?.trim() || "",
                 priority: editData.priority || "medium",
@@ -1287,9 +1709,9 @@ export async function dashboardCommand() {
             } else {
               UI.error("Description is required");
             }
-             editMode = "view";
-             editData = {};
-           } else if (editMode === "update") {
+            editMode = "view";
+            editData = {};
+          } else if (editMode === "update") {
             // Update the task
             if (editData.description && editData.description.trim()) {
               const taskId = tasks[selectedIndex].id;
@@ -1308,65 +1730,67 @@ export async function dashboardCommand() {
               } else if (result.errors.length > 0) {
                 UI.error(`Update failed: ${result.errors[0].error}`);
               }
-             } else {
-               UI.error("Description is required");
-              }
-              editMode = "view";
-              editData = {};
-            } else if (editMode === "view" && multiSelectMode && selectedTasks.size > 0) {
-              // Use the original working modal system
-              const modalPromise = showBulkActionsMenu(
-                tasks,
-                Array.from(selectedTasks),
-                UI,
-                render,
-              );
-              // Render immediately to show the modal
-              await render(processedTasks, undefined, stats);
-              const updatedSelection = await modalPromise;
-              selectedTasks.clear();
-              updatedSelection.forEach((id) => selectedTasks.add(id));
-              // Re-render to clear the modal from screen
-              await render(processedTasks, undefined, stats);
+            } else {
+              UI.error("Description is required");
             }
+            editMode = "view";
+            editData = {};
+          } else if (
+            editMode === "view" && multiSelectMode && selectedTasks.size > 0
+          ) {
+            // Use the original working modal system
+            const modalPromise = showBulkActionsMenu(
+              tasks,
+              Array.from(selectedTasks),
+              UI,
+              render,
+            );
+            // Render immediately to show the modal
+            await render(processedTasks, undefined, stats);
+            const updatedSelection = await modalPromise;
+            selectedTasks.clear();
+            updatedSelection.forEach((id) => selectedTasks.add(id));
+            // Re-render to clear the modal from screen
+            await render(processedTasks, undefined, stats);
+          }
+          break;
+        case "d":
+          if (editMode === "add" || editMode === "update") {
+            // Append 'd' to current field in add/update mode
+            appendToCurrentField("d");
             break;
-         case "d":
-           if (editMode === "add" || editMode === "update") {
-             // Append 'd' to current field in add/update mode
-             appendToCurrentField("d");
-             break;
-           }
-           if (editMode === "view") {
-             if (multiSelectMode && selectedTasks.size > 0) {
-               UI.info("Quick bulk delete triggered");
-               // Quick bulk delete without confirmation
-               const selectedIds = Array.from(selectedTasks);
-               const result = await bulkDeleteTasks(selectedIds);
-               UI.info(`Bulk delete result: success=${result.successCount}`);
-               if (result.successCount > 0) {
-                 UI.success(`Quick deleted ${result.successCount} tasks!`);
-               }
-               if (result.errors.length > 0) {
-                 UI.error(`Failed to delete ${result.errors.length} tasks`);
-               }
-               selectedTasks.clear();
-               multiSelectMode = false;
-             } else if (!multiSelectMode && tasks[selectedIndex]) {
-               // Single task delete
-               const task = tasks[selectedIndex];
-               UI.info(`Single delete: ${task.description} (ID: ${task.id})`);
-               // For now, delete directly without confirmation
-               const result = await bulkDeleteTasks([task.id]);
-               if (result.successCount > 0) {
-                 UI.success(`Task deleted successfully! (ID: ${task.id})`);
-                 // Adjust selection after deletion
-                 if (selectedIndex >= tasks.length - 1) {
-                   selectedIndex = Math.max(0, tasks.length - 2);
-                 }
-                } else if (result.errors.length > 0) {
-                  UI.error(`Delete failed: ${result.errors[0].error}`);
-                }
+          }
+          if (editMode === "view") {
+            if (multiSelectMode && selectedTasks.size > 0) {
+              UI.info("Quick bulk delete triggered");
+              // Quick bulk delete without confirmation
+              const selectedIds = Array.from(selectedTasks);
+              const result = await bulkDeleteTasks(selectedIds);
+              UI.info(`Bulk delete result: success=${result.successCount}`);
+              if (result.successCount > 0) {
+                UI.success(`Quick deleted ${result.successCount} tasks!`);
               }
+              if (result.errors.length > 0) {
+                UI.error(`Failed to delete ${result.errors.length} tasks`);
+              }
+              selectedTasks.clear();
+              multiSelectMode = false;
+            } else if (!multiSelectMode && tasks[selectedIndex]) {
+              // Single task delete
+              const task = tasks[selectedIndex];
+              UI.info(`Single delete: ${task.description} (ID: ${task.id})`);
+              // For now, delete directly without confirmation
+              const result = await bulkDeleteTasks([task.id]);
+              if (result.successCount > 0) {
+                UI.success(`Task deleted successfully! (ID: ${task.id})`);
+                // Adjust selection after deletion
+                if (selectedIndex >= tasks.length - 1) {
+                  selectedIndex = Math.max(0, tasks.length - 2);
+                }
+              } else if (result.errors.length > 0) {
+                UI.error(`Delete failed: ${result.errors[0].error}`);
+              }
+            }
           }
           break;
         case "m":
@@ -1391,8 +1815,8 @@ export async function dashboardCommand() {
             appendToCurrentField("s");
             break;
           }
-           // Toggle stats sidebar visibility (persists during session)
-           statsSidebarVisible = !statsSidebarVisible;
+          // Toggle stats sidebar visibility (persists during session)
+          statsSidebarVisible = !statsSidebarVisible;
           break;
         case "/":
           if (editMode === "add" || editMode === "update") {
@@ -1452,11 +1876,11 @@ export async function dashboardCommand() {
           await performSearch();
           break;
         case "\u001b": // ESC key
-           if (editMode === "add" || editMode === "update") {
-             // Cancel add/update/delete mode
-             editMode = "view";
-             editData = {};
-           }
+          if (editMode === "add" || editMode === "update") {
+            // Cancel add/update/delete mode
+            editMode = "view";
+            editData = {};
+          }
           break;
 
         case "o": { // Cycle sort field
@@ -1478,49 +1902,56 @@ export async function dashboardCommand() {
           break;
         }
 
-
-                case "\u007f": // Backspace
-                    if (editMode === "add" || editMode === "update") {
-                        if (currentField === "description" && editData.description) {
-                            editData.description = editData.description.slice(0, -1);
-                        } else if (currentField === "details" && editData.details) {
-                            editData.details = editData.details.slice(0, -1);
-                        } else if (currentField === "dueDate" && editData.dueDate) {
-                            editData.dueDate = editData.dueDate.slice(0, -1);
-                        } else if (currentField === "tags" && editData.tags && editData.tags[0]) {
-                            const currentTag = editData.tags[0];
-                            editData.tags = [currentTag.slice(0, -1)];
-                        }
-                    }
-                    break;
-
-
-                case "q":
-                case "\u0003": // Ctrl+C
-                    running = false;
-                    break;
-                 default:
-                     // Debug: log unhandled keys
-                     if (keys && keys.length > 0) {
-                       UI.info(`Unhandled key: ${JSON.stringify(keys)} (code: ${keys.charCodeAt(0)})`);
-                     }
-                     // Handle text input when in add mode
-                    if ((editMode === "add" || editMode === "update") && keys && keys.length === 1 && keys >= ' ' && keys <= '~') {
-                        if (currentField === "description") {
-                            editData.description = (editData.description || "") + keys;
-                        } else if (currentField === "details") {
-                            editData.details = (editData.details || "") + keys;
-                        } else if (currentField === "dueDate") {
-                            editData.dueDate = (editData.dueDate || "") + keys;
-                        } else if (currentField === "tags") {
-                            // Simple tag input - append to first tag
-                            const currentTags = editData.tags || [];
-                            const currentTag = currentTags[0] || "";
-                            editData.tags = [currentTag + keys];
-                        }
-                    }
-                    break;
+        case "\u007f": // Backspace
+          if (editMode === "add" || editMode === "update") {
+            if (currentField === "description" && editData.description) {
+              editData.description = editData.description.slice(0, -1);
+            } else if (currentField === "details" && editData.details) {
+              editData.details = editData.details.slice(0, -1);
+            } else if (currentField === "dueDate" && editData.dueDate) {
+              editData.dueDate = editData.dueDate.slice(0, -1);
+            } else if (
+              currentField === "tags" && editData.tags && editData.tags[0]
+            ) {
+              const currentTag = editData.tags[0];
+              editData.tags = [currentTag.slice(0, -1)];
             }
+          }
+          break;
+
+        case "q":
+        case "\u0003": // Ctrl+C
+          running = false;
+          break;
+        default:
+          // Debug: log unhandled keys
+          if (keys && keys.length > 0) {
+            UI.info(
+              `Unhandled key: ${JSON.stringify(keys)} (code: ${
+                keys.charCodeAt(0)
+              })`,
+            );
+          }
+          // Handle text input when in add mode
+          if (
+            (editMode === "add" || editMode === "update") && keys &&
+            keys.length === 1 && keys >= " " && keys <= "~"
+          ) {
+            if (currentField === "description") {
+              editData.description = (editData.description || "") + keys;
+            } else if (currentField === "details") {
+              editData.details = (editData.details || "") + keys;
+            } else if (currentField === "dueDate") {
+              editData.dueDate = (editData.dueDate || "") + keys;
+            } else if (currentField === "tags") {
+              // Simple tag input - append to first tag
+              const currentTags = editData.tags || [];
+              const currentTag = currentTags[0] || "";
+              editData.tags = [currentTag + keys];
+            }
+          }
+          break;
+      }
     }
   } finally {
     cleanup();
@@ -1547,7 +1978,7 @@ async function showBulkActionsMenu(
 
   const content = [
     `Selected tasks (${selectedIds.length}):`,
-    ...taskSummaries.map(s => `  ${s}`),
+    ...taskSummaries.map((s) => `  ${s}`),
     "",
     "Choose an action:",
   ];
@@ -1582,7 +2013,14 @@ async function showBulkActionsMenu(
         width: 40,
         height: 10,
       });
-      await render(tasks, undefined, { byStatus: { todo: 0, "in-progress": 0, done: 0 }, byPriority: { low: 0, medium: 0, high: 0, critical: 0 }, total: selectedIds.length, completed: 0, overdue: 0, recentActivity: 0 });
+      await render(tasks, undefined, {
+        byStatus: { todo: 0, "in-progress": 0, done: 0 },
+        byPriority: { low: 0, medium: 0, high: 0, critical: 0 },
+        total: selectedIds.length,
+        completed: 0,
+        overdue: 0,
+        recentActivity: 0,
+      });
       const status = await statusModalPromise;
 
       if (status === "cancel") return selectedIds;
@@ -1593,7 +2031,9 @@ async function showBulkActionsMenu(
         UI.success(`${result.successCount} tasks marked as ${status}.`);
       }
       if (result.errors.length > 0) {
-        result.errors.forEach((error) => UI.error(`Task ${error.id}: ${error.error}`));
+        result.errors.forEach((error) =>
+          UI.error(`Task ${error.id}: ${error.error}`)
+        );
         return result.errors.map((error) => error.id);
       }
       return [];
@@ -1614,7 +2054,14 @@ async function showBulkActionsMenu(
         width: 40,
         height: 12,
       });
-      await render(tasks, undefined, { byStatus: { todo: 0, "in-progress": 0, done: 0 }, byPriority: { low: 0, medium: 0, high: 0, critical: 0 }, total: selectedIds.length, completed: 0, overdue: 0, recentActivity: 0 });
+      await render(tasks, undefined, {
+        byStatus: { todo: 0, "in-progress": 0, done: 0 },
+        byPriority: { low: 0, medium: 0, high: 0, critical: 0 },
+        total: selectedIds.length,
+        completed: 0,
+        overdue: 0,
+        recentActivity: 0,
+      });
       const priority = await priorityModalPromise;
 
       if (priority !== "skip") {
@@ -1635,7 +2082,14 @@ async function showBulkActionsMenu(
         width: 40,
         height: 12,
       });
-      await render(tasks, undefined, { byStatus: { todo: 0, "in-progress": 0, done: 0 }, byPriority: { low: 0, medium: 0, high: 0, critical: 0 }, total: selectedIds.length, completed: 0, overdue: 0, recentActivity: 0 });
+      await render(tasks, undefined, {
+        byStatus: { todo: 0, "in-progress": 0, done: 0 },
+        byPriority: { low: 0, medium: 0, high: 0, critical: 0 },
+        total: selectedIds.length,
+        completed: 0,
+        overdue: 0,
+        recentActivity: 0,
+      });
       const tagsAction = await tagsModalPromise;
 
       if (tagsAction === "clear") {
@@ -1651,7 +2105,9 @@ async function showBulkActionsMenu(
           UI.success(`${result.successCount} tasks updated.`);
         }
         if (result.errors.length > 0) {
-          result.errors.forEach((error) => UI.error(`Task ${error.id}: ${error.error}`));
+          result.errors.forEach((error) =>
+            UI.error(`Task ${error.id}: ${error.error}`)
+          );
           return result.errors.map((error) => error.id);
         }
         return [];
@@ -1668,22 +2124,31 @@ async function showBulkActionsMenu(
           "This action cannot be undone!",
           "",
           "Selected tasks:",
-          ...selectedIds.slice(0, 5).map(id => {
-            const task = tasks.find(t => t.id === id);
+          ...selectedIds.slice(0, 5).map((id) => {
+            const task = tasks.find((t) => t.id === id);
             return task ? `  ${id}: ${task.description}` : `  ${id}: not found`;
           }),
-          ...(selectedIds.length > 5 ? [`  ... and ${selectedIds.length - 5} more`] : []),
+          ...(selectedIds.length > 5
+            ? [`  ... and ${selectedIds.length - 5} more`]
+            : []),
         ],
         actions: [
           { label: "DELETE ALL", action: () => "confirm" },
-          { label: "Cancel", action: () => "cancel" }
+          { label: "Cancel", action: () => "cancel" },
         ],
         width: 70,
-        height: 15
+        height: 15,
       });
 
       // Render to show the confirmation modal
-      await render(tasks, undefined, { byStatus: { todo: 0, "in-progress": 0, done: 0 }, byPriority: { low: 0, medium: 0, high: 0, critical: 0 }, total: selectedIds.length, completed: 0, overdue: 0, recentActivity: 0 });
+      await render(tasks, undefined, {
+        byStatus: { todo: 0, "in-progress": 0, done: 0 },
+        byPriority: { low: 0, medium: 0, high: 0, critical: 0 },
+        total: selectedIds.length,
+        completed: 0,
+        overdue: 0,
+        recentActivity: 0,
+      });
       const confirmAction = await confirmModalPromise;
 
       if (confirmAction === "confirm") {
@@ -1693,7 +2158,9 @@ async function showBulkActionsMenu(
           UI.success(`${result.successCount} tasks deleted.`);
         }
         if (result.errors.length > 0) {
-          result.errors.forEach((error) => UI.error(`Task ${error.id}: ${error.error}`));
+          result.errors.forEach((error) =>
+            UI.error(`Task ${error.id}: ${error.error}`)
+          );
           return result.errors.map((error) => error.id);
         }
         return [];

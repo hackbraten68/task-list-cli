@@ -33,20 +33,20 @@
     "id": "4",
     "description": "🧘 Morning Meditation",
     "details": "20 minutes of mindfulness to start the day right.",
-    "status": "done",
+    "status": "todo",
     "priority": "medium",
     "createdAt": "2026-01-18T19:05:51.038Z",
-    "updatedAt": "2026-01-18T19:05:51.038Z",
+    "updatedAt": "2026-01-18T22:08:09.376Z",
     "tags": []
   },
   {
     "id": "5",
     "description": "💻 Refactor API layer",
     "details": "Move to a more robust middleware pattern and add better error handling.",
-    "status": "in-progress",
+    "status": "todo",
     "priority": "high",
     "createdAt": "2026-01-18T19:05:51.038Z",
-    "updatedAt": "2026-01-18T19:05:51.038Z",
+    "updatedAt": "2026-01-18T22:08:09.376Z",
     "tags": []
   },
   {
