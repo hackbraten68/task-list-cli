@@ -4,10 +4,12 @@
     "description": "🍎 Buy organic groceries",
     "details": "Need kale, almond milk, and some seasonal fruits.",
     "status": "done",
-    "priority": "low",
+    "priority": "critical",
     "createdAt": "2026-01-16T10:08:52.329Z",
-    "updatedAt": "2026-01-18T17:31:33.319Z",
-    "tags": []
+    "updatedAt": "2026-01-18T18:15:39.397Z",
+    "tags": [
+      "test,options"
+    ]
   },
   {
     "id": 3,

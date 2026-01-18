@@ -36,18 +36,26 @@ function filterTasksBySearch(tasks: Task[], searchTerm: string): Task[] {
 async function showMainMenu(UI: any): Promise<void> {
   console.clear();
   UI.header();
+  console.log("╔════════════════════════════════════════════════════════════════╗");
+  console.log("║                        LazyTask Menu                          ║");
+  console.log("╠════════════════════════════════════════════════════════════════╣");
+  console.log("║                                                                ║");
+  console.log("║ 📊 [DATA] Data Management         Import/Export tasks          ║");
+  console.log("║ ⚙️  [SETTINGS] Settings               Theme & preferences        ║");
+  console.log("║ ❓ [HELP] Help & Info               Keyboard shortcuts           ║");
+  console.log("║ ⬅️  [BACK] Back to Dashboard       Return to main app           ║");
+  console.log("║                                                                ║");
+  console.log("╚════════════════════════════════════════════════════════════════╝");
+  console.log("");
 
-  const choice = await UI.showModal({
-    title: "LazyTask Menu",
-    content: [""], // Minimal content to ensure modal renders
-    actions: [
-      { label: "📊 Data Management", action: () => "data" },
-      { label: "⚙️ Settings", action: () => "settings" },
-      { label: "❓ Help & Info", action: () => "help" },
-      { label: "⬅️ Back to Dashboard", action: () => "back" },
+  const choice = await Select.prompt({
+    message: "Choose an option:",
+    options: [
+      { name: "📊 Data Management - Import/Export tasks", value: "data" },
+      { name: "⚙️ Settings - Theme & preferences", value: "settings" },
+      { name: "❓ Help & Info - Keyboard shortcuts", value: "help" },
+      { name: "⬅️ Back to Dashboard - Return to main app", value: "back" },
     ],
-    width: 45,
-    height: 12,
   });
 
   switch (choice) {
@@ -1113,8 +1121,8 @@ export async function dashboardCommand() {
                   }
                 } else if (result.errors.length > 0) {
                   UI.error(`Delete failed: ${result.errors[0].error}`);
-                }
-              }
+  }
+}
             }
           }
           break;
@@ -1155,6 +1163,9 @@ export async function dashboardCommand() {
             break;
           }
           // Enter exact search mode
+          fuzzyMode = false;
+          await performSearch();
+          break;
         case "r":
           if (editMode === "add" || editMode === "update") {
             // Append 'r' to current field in add/update mode
@@ -1187,12 +1198,7 @@ export async function dashboardCommand() {
             appendToCurrentField("h");
             break;
           }
-          cleanup();
-          await showMainMenu(UI);
-          Deno.stdin.setRaw(true);
-          break;
-          fuzzyMode = false;
-          await performSearch();
+          // 'h' in view mode is handled by the main menu case below
           break;
         case "?":
           if (editMode === "add" || editMode === "update") {
