@@ -37,26 +37,17 @@ async function showMainMenu(UI: any): Promise<void> {
   console.clear();
   UI.header();
 
-  console.log("╔════════════════════════════════════════════════════════════════╗");
-  console.log("║                        LazyTask Menu                          ║");
-  console.log("╠════════════════════════════════════════════════════════════════╣");
-  console.log("║                                                                ║");
-  console.log("║ 📊 [DATA] Data Management         Import/Export tasks          ║");
-  console.log("║ ⚙️  [SETTINGS] Settings               Theme & preferences        ║");
-  console.log("║ ❓ [HELP] Help & Info               Keyboard shortcuts           ║");
-  console.log("║ ⬅️  [BACK] Back to Dashboard       Return to main app           ║");
-  console.log("║                                                                ║");
-  console.log("╚════════════════════════════════════════════════════════════════╝");
-  console.log("");
-
-  const choice = await Select.prompt({
-    message: "Choose an option:",
-    options: [
-      { name: "📊 Data Management - Import/Export tasks", value: "data" },
-      { name: "⚙️  Settings - Theme & preferences", value: "settings" },
-      { name: "❓ Help & Info - Keyboard shortcuts", value: "help" },
-      { name: "⬅️  Back to Dashboard - Return to main app", value: "back" },
+  const choice = await UI.showModal({
+    title: "LazyTask Menu",
+    content: [""], // Minimal content to ensure modal renders
+    actions: [
+      { label: "📊 Data Management", action: () => "data" },
+      { label: "⚙️ Settings", action: () => "settings" },
+      { label: "❓ Help & Info", action: () => "help" },
+      { label: "⬅️ Back to Dashboard", action: () => "back" },
     ],
+    width: 45,
+    height: 12,
   });
 
   switch (choice) {
@@ -810,13 +801,6 @@ export async function dashboardCommand() {
     let lastTerminalSize = Deno.consoleSize();
 
     while (running) {
-      // Skip normal processing if modal is active
-      if (UI.isModalActive && UI.isModalActive()) {
-        // Modal is handling input, wait a bit and continue
-        await new Promise(resolve => setTimeout(resolve, 50));
-        continue;
-      }
-
       let tasks = await loadTasks();
 
       // Check for terminal resize
@@ -861,8 +845,15 @@ export async function dashboardCommand() {
       // Calculate stats for footer status bar (use original tasks for stats)
       const stats = calculateStats(tasks);
 
-      // Re-render if size changed or first iteration
+      // Always render (including when modals are active)
       await render(processedTasks, undefined, stats);
+
+      // Skip normal input processing if modal is active
+      if (UI.isModalActive && UI.isModalActive()) {
+        // Modal is handling input, wait a bit and continue
+        await new Promise(resolve => setTimeout(resolve, 50));
+        continue;
+      }
 
       const reader = Deno.stdin.readable.getReader();
       const { value, done } = await reader.read();
