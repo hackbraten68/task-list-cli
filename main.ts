@@ -16,12 +16,14 @@ import { importCommand } from "./src/commands/import.ts";
 if (import.meta.main) {
   await new Command()
     .name("lazytask")
-    .version("0.7.2")
+    .version("0.8.0")
     .description("LazyTask - A lazydocker-inspired Task Management TUI")
-    .default("dashboard")
+    .action(async () => {
+      await dashboardCommand("cliffy");
+    })
     .command("dashboard", "Open the TUI dashboard")
     .action(async () => {
-      await dashboardCommand();
+      await dashboardCommand("tui");
     })
     .command("list", "List tasks")
     .option("-s, --status <status:string>", "Filter by status")

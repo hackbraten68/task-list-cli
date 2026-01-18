@@ -9,14 +9,22 @@ import {
   loadTasks,
   saveTasks,
 } from "../storage.ts";
-import { UI } from "../ui.ts";
+import { createUI, getUIImplementation } from "../ui/factory.ts";
+import { ResizeHandler } from "../ui/resize-handler.ts";
+import { ResponsiveLayout } from "../ui/layout.ts";
 import { calculateStats, TaskStats } from "../stats.ts";
 import { addCommand } from "./add.ts";
 import { updateCommand } from "./update.ts";
 import { deleteCommand } from "./delete.ts";
 import { markCommand } from "./mark.ts";
 import { sortTasks } from "./list.ts";
-import { ExportOptions, ImportOptions, Task, TaskPriority } from "../types.ts";
+import {
+  ExportOptions,
+  ImportOptions,
+  Task,
+  TaskPriority,
+  TaskStatus,
+} from "../types.ts";
 import { getTaskSummaries } from "../utils/task-selection.ts";
 import { FuzzySearchOptions, fuzzySearchTasks } from "../utils/fuzzy-search.ts";
 
@@ -32,29 +40,60 @@ function filterTasksBySearch(tasks: Task[], searchTerm: string): Task[] {
 }
 
 // Menu system functions
-async function showMainMenu(): Promise<void> {
+async function showMainMenu(UI: any): Promise<void> {
   console.clear();
   UI.header();
+  console.log(
+    "╔════════════════════════════════════════════════════════════════╗",
+  );
+  console.log(
+    "║                        LazyTask Menu                          ║",
+  );
+  console.log(
+    "╠════════════════════════════════════════════════════════════════╣",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ 📊 [DATA] Data Management         Import/Export tasks          ║",
+  );
+  console.log(
+    "║ ⚙️  [SETTINGS] Settings               Theme & preferences        ║",
+  );
+  console.log(
+    "║ ❓ [HELP] Help & Info               Keyboard shortcuts           ║",
+  );
+  console.log(
+    "║ ⬅️  [BACK] Back to Dashboard       Return to main app           ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "╚════════════════════════════════════════════════════════════════╝",
+  );
+  console.log("");
 
   const choice = await Select.prompt({
-    message: "LazyTask Menu:",
+    message: "Choose an option:",
     options: [
-      { name: "[DATA] Data Management", value: "data" },
-      { name: "[SETTINGS] Settings", value: "settings" },
-      { name: "[HELP] Help & Info", value: "help" },
-      { name: "[BACK] Back to Dashboard", value: "back" },
+      { name: "📊 Data Management - Import/Export tasks", value: "data" },
+      { name: "⚙️ Settings - Theme & preferences", value: "settings" },
+      { name: "❓ Help & Info - Keyboard shortcuts", value: "help" },
+      { name: "⬅️ Back to Dashboard - Return to main app", value: "back" },
     ],
   });
 
   switch (choice) {
     case "data":
-      await showDataManagementMenu();
+      await showDataManagementMenu(UI);
       break;
     case "settings":
-      await showSettingsMenu();
+      await showSettingsMenu(UI);
       break;
     case "help":
-      await showHelpMenu();
+      await showHelpMenu(UI);
       break;
     case "back":
       // Just return to dashboard
@@ -62,7 +101,7 @@ async function showMainMenu(): Promise<void> {
   }
 }
 
-async function showDataManagementMenu(): Promise<void> {
+async function showDataManagementMenu(UI: any): Promise<void> {
   const choice = await Select.prompt({
     message: "Data Management:",
     options: [
@@ -76,61 +115,284 @@ async function showDataManagementMenu(): Promise<void> {
 
   switch (choice) {
     case "export":
-      await handleExport();
+      await handleExport(UI);
       break;
     case "import":
-      await handleImport();
+      await handleImport(UI);
       break;
     case "backup":
-      await handleBackup();
+      await handleBackup(UI);
       break;
     case "clear":
-      await handleClearAllTasks();
+      await handleClearAllTasks(UI);
       break;
     case "back":
-      await showMainMenu();
+      await showMainMenu(UI);
       break;
   }
 }
 
-async function showSettingsMenu(): Promise<void> {
-  // Future: Theme selection, UI preferences, etc.
+async function showSettingsMenu(UI: any): Promise<void> {
   console.clear();
   UI.header();
-  UI.info("Settings menu coming soon!");
-  console.log("Future features:");
-  console.log("- Theme selection");
-  console.log("- UI preferences");
-  console.log("- Keyboard shortcuts");
+
+  console.log(
+    "╔════════════════════════════════════════════════════════════════╗",
+  );
+  console.log(
+    "║                       Settings Menu                           ║",
+  );
+  console.log(
+    "╠════════════════════════════════════════════════════════════════╣",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ 🎨 [THEME] Theme Selection         Light/Dark mode             ║",
+  );
+  console.log(
+    "║ 📊 [STATS] Progress Display         Completion bar style       ║",
+  );
+  console.log(
+    "║ 🔤 [SORT] Default Sort Order       ID/Date/Priority            ║",
+  );
+  console.log(
+    "║ ⚠️  [CONFIRM] Confirmations         Delete/archive warnings     ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ ⚙️  Advanced Settings (Coming Soon):                           ║",
+  );
+  console.log(
+    "║     • Custom key bindings                                     ║",
+  );
+  console.log(
+    "║     • Auto-save preferences                                   ║",
+  );
+  console.log(
+    "║     • Notification settings                                   ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "╚════════════════════════════════════════════════════════════════╝",
+  );
+  console.log("");
+
+  const choice = await Select.prompt({
+    message: "Choose a setting to configure:",
+    options: [
+      {
+        name: "🎨 Theme Selection - Choose light or dark mode",
+        value: "theme",
+      },
+      {
+        name: "📊 Progress Display - Completion bar appearance",
+        value: "progress",
+      },
+      { name: "🔤 Default Sort Order - Initial task sorting", value: "sort" },
+      { name: "⚠️  Confirmations - Warning preferences", value: "confirm" },
+      { name: "⬅️  Back to Main Menu", value: "back" },
+    ],
+  });
+
+  switch (choice) {
+    case "theme":
+      console.clear();
+      UI.header();
+      console.log("🎨 Theme Selection");
+      console.log("==================");
+      console.log("");
+      console.log("Available themes:");
+      console.log("• Light - Clean, bright interface");
+      console.log("• Dark - Easy on the eyes (default)");
+      console.log("");
+      UI.info("Theme selection will be implemented in a future update!");
+      await Input.prompt("Press Enter to continue...");
+      await showSettingsMenu(UI);
+      break;
+    case "progress":
+      console.clear();
+      UI.header();
+      console.log("📊 Progress Display");
+      console.log("===================");
+      console.log("");
+      console.log("Progress bar styles:");
+      console.log("• Classic - ███████░░░░░ 75%");
+      console.log("• Minimal - ██████████ (no percentage)");
+      console.log("• Detailed - ████████░░ 4/5 tasks");
+      console.log("");
+      UI.info("Progress display customization coming soon!");
+      await Input.prompt("Press Enter to continue...");
+      await showSettingsMenu(UI);
+      break;
+    case "sort":
+      console.clear();
+      UI.header();
+      console.log("🔤 Default Sort Order");
+      console.log("=====================");
+      console.log("");
+      console.log("Available sort options:");
+      console.log("• ID - Creation order (default)");
+      console.log("• Due Date - Urgent tasks first");
+      console.log("• Priority - High priority first");
+      console.log("• Status - Completed tasks last");
+      console.log("");
+      UI.info("Default sort order settings will be available soon!");
+      await Input.prompt("Press Enter to continue...");
+      await showSettingsMenu(UI);
+      break;
+    case "confirm":
+      console.clear();
+      UI.header();
+      console.log("⚠️  Confirmation Settings");
+      console.log("========================");
+      console.log("");
+      console.log("Confirmation preferences:");
+      console.log("• Delete tasks - Show warning before deletion");
+      console.log("• Bulk operations - Confirm before processing");
+      console.log("• Archive tasks - Prompt before archiving");
+      console.log("");
+      UI.info("Confirmation settings will be configurable soon!");
+      await Input.prompt("Press Enter to continue...");
+      await showSettingsMenu(UI);
+      break;
+    case "back":
+      await showMainMenu(UI);
+      break;
+  }
+}
+
+async function showHelpMenu(UI: any): Promise<void> {
+  console.clear();
+  UI.header();
+  console.log(
+    "╔════════════════════════════════════════════════════════════════╗",
+  );
+  console.log(
+    "║ LazyTask Help & Keyboard Shortcuts                           ║",
+  );
+  console.log(
+    "╠════════════════════════════════════════════════════════════════╣",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ 📍 Navigation & Selection                                     ║",
+  );
+  console.log(
+    "║ ──────────────────────                                        ║",
+  );
+  console.log(
+    "║ j/k or ↑/↓     Navigate tasks                                ║",
+  );
+  console.log(
+    "║ Tab            Toggle multi-select mode                      ║",
+  );
+  console.log(
+    "║ Space          Select/deselect (multi-select)                ║",
+  );
+  console.log(
+    "║ Enter          Update task / Bulk actions                    ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ 🛠️  Task Management                                           ║",
+  );
+  console.log(
+    "║ ────────────────────                                          ║",
+  );
+  console.log(
+    "║ a              Add new task                                   ║",
+  );
+  console.log(
+    "║ u              Update selected task                           ║",
+  );
+  console.log(
+    "║ d              Delete selected task                           ║",
+  );
+  console.log(
+    "║ m              Change task status                             ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ 🔍 View & Search                                              ║",
+  );
+  console.log(
+    "║ ───────────────                                               ║",
+  );
+  console.log(
+    "║ s              Toggle stats/tasks view                        ║",
+  );
+  console.log(
+    "║ /              Search tasks (exact match)                     ║",
+  );
+  console.log(
+    "║ ?              Fuzzy search tasks                             ║",
+  );
+  console.log(
+    "║ o              Cycle sort field                               ║",
+  );
+  console.log(
+    "║ r              Reverse sort order                             ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ ✏️  Add/Edit Mode                                              ║",
+  );
+  console.log(
+    "║ ───────────────                                               ║",
+  );
+  console.log(
+    "║ ↑↓/Tab         Navigate between fields                        ║",
+  );
+  console.log(
+    "║ ←→            Cycle values or navigate fields                 ║",
+  );
+  console.log(
+    "║ Enter          Save changes                                   ║",
+  );
+  console.log(
+    "║ Esc            Cancel changes                                 ║",
+  );
+  console.log(
+    "║                                                                ║",
+  );
+  console.log(
+    "║ 🌐 Global                                                      ║",
+  );
+  console.log(
+    "║ ──────                                                        ║",
+  );
+  console.log(
+    "║ h              Show this help                                 ║",
+  );
+  console.log(
+    "║ q/Ctrl+C       Quit application                               ║",
+  );
+  console.log(
+    "╚════════════════════════════════════════════════════════════════╝",
+  );
+  console.log("");
+  console.log(
+    "💡 Tip: Multi-select example - Tab → Space (select) → Enter → Choose action",
+  );
+  console.log("");
   await Input.prompt("Press Enter to continue...");
 }
 
-async function showHelpMenu(): Promise<void> {
-  console.clear();
-  UI.header();
-  console.log("Help & Info");
-  console.log("===========");
-  console.log("");
-  console.log("Keyboard Shortcuts:");
-  console.log("j/k or ↑/↓    - Navigate tasks");
-  console.log("Tab           - Multi-select mode");
-  console.log("Space         - Select/deselect task (multi-select)");
-  console.log("Enter         - Update task / Bulk actions");
-  console.log("d             - Delete task");
-  console.log("m             - Mark task status");
-  console.log("a             - Add new task");
-  console.log("u             - Update selected task");
-  console.log("d             - Delete selected task");
-  console.log("m             - Mark task status");
-  console.log("o             - Cycle sort field");
-  console.log("r             - Reverse sort order");
-  console.log("h             - Help & Settings menu");
-  console.log("q or Ctrl+C   - Quit");
-  console.log("");
-  await Input.prompt("Press Enter to continue...");
-}
-
-async function handleExport(): Promise<void> {
+async function handleExport(UI: any): Promise<void> {
   console.clear();
   UI.header();
 
@@ -165,7 +427,7 @@ async function handleExport(): Promise<void> {
   await Input.prompt("Press Enter to continue...");
 }
 
-async function handleImport(): Promise<void> {
+async function handleImport(UI: any): Promise<void> {
   console.clear();
   UI.header();
 
@@ -220,7 +482,7 @@ async function handleImport(): Promise<void> {
   await Input.prompt("Press Enter to continue...");
 }
 
-async function handleBackup(): Promise<void> {
+async function handleBackup(UI: any): Promise<void> {
   console.clear();
   UI.header();
 
@@ -242,7 +504,7 @@ async function handleBackup(): Promise<void> {
   await Input.prompt("Press Enter to continue...");
 }
 
-async function handleClearAllTasks(): Promise<void> {
+async function handleClearAllTasks(UI: any): Promise<void> {
   console.clear();
   UI.header();
 
@@ -272,7 +534,21 @@ async function handleClearAllTasks(): Promise<void> {
   // Return to dashboard (don't call showDataManagementMenu)
 }
 
-export async function dashboardCommand() {
+export async function dashboardCommand(uiImplementation?: "cliffy" | "tui") {
+  const UI = createUI(uiImplementation || getUIImplementation());
+
+  // Set up resize handling for responsive UI
+  let resizeHandler: ResizeHandler | null = null;
+  if (UI.constructor.name === "TuiUI") {
+    // Create a mock layout for resize handling (will be improved)
+    const mockLayout = {
+      updateSize: () => {},
+      getCurrentSize: () => Deno.consoleSize(),
+    };
+    resizeHandler = new ResizeHandler(mockLayout as any);
+    resizeHandler.startListening();
+  }
+
   let selectedIndex = 0;
   let selectedTasks = new Set<number>(); // Multi-selection state
   let multiSelectMode = false;
@@ -280,40 +556,106 @@ export async function dashboardCommand() {
   let searchTerm = ""; // Current search term
   let searchMode = false; // Whether search is active
   let fuzzyMode = false; // Whether fuzzy search is active
-   let currentSortField = "id"; // Current sort field
-   let currentSortOrder: "asc" | "desc" = "asc"; // Current sort order
-   let editMode: "view" | "add" | "update" | "delete" = "view"; // Current edit mode
-   let editData: Partial<Task> = {}; // Data for editing/adding
-   let currentField: keyof Pick<Task, "description" | "priority" | "details" | "dueDate" | "tags"> = "description"; // Current form field
-   let running = true;
+  let currentSortField = "id"; // Current sort field
+  let currentSortOrder: "asc" | "desc" = "asc"; // Current sort order
+  let editMode: "view" | "add" | "update" = "view"; // Current edit mode
+  let editData: Partial<Task> = {}; // Data for editing/adding
+  let currentField: keyof Pick<
+    Task,
+    "description" | "priority" | "status" | "details" | "dueDate" | "tags"
+  > = "description"; // Current form field
+  let running = true;
+
+  // Helper function to strip ANSI codes from text
+  function stripAnsi(text: string): string {
+    return text.replace(/\u001b\[[0-9;]*m/g, "");
+  }
+
+  // Helper function to wrap text at word boundaries
+  function wrapText(
+    text: string,
+    maxWidth: number,
+    indentLength: number = 0,
+  ): string[] {
+    const lines: string[] = [];
+    let remaining = text;
+
+    while (remaining.length > 0) {
+      // Strip ANSI codes for length calculations
+      const visibleRemaining = stripAnsi(remaining);
+
+      // If the remaining text fits, add it and we're done
+      if (visibleRemaining.length <= maxWidth) {
+        lines.push(remaining);
+        break;
+      }
+
+      // Find the best place to break (last space within maxWidth of visible text)
+      let breakPoint = maxWidth;
+      let charCount = 0;
+      let actualBreakPoint = 0;
+
+      // Count through the text, tracking visible characters
+      for (let i = 0; i < remaining.length && charCount < maxWidth; i++) {
+        if (remaining[i] === "\u001b") {
+          // Skip ANSI escape sequence
+          while (i < remaining.length && remaining[i] !== "m") {
+            i++;
+          }
+        } else {
+          charCount++;
+          actualBreakPoint = i + 1;
+        }
+      }
+
+      // Look for the last space before our break point
+      const lastSpace = remaining.lastIndexOf(" ", actualBreakPoint);
+      if (
+        lastSpace > 0 &&
+        stripAnsi(remaining.substring(0, lastSpace)).length > indentLength
+      ) {
+        actualBreakPoint = lastSpace;
+      }
+
+      // Extract the line and add it
+      const line = remaining.substring(0, actualBreakPoint);
+      lines.push(line);
+
+      // Prepare remaining text with proper indentation
+      const remainingText = remaining.substring(actualBreakPoint).trim();
+      remaining = " ".repeat(indentLength) + remainingText;
+    }
+
+    return lines;
+  }
 
   // Set stdin to raw mode
   Deno.stdin.setRaw(true);
 
-    const cleanup = () => {
-        try {
-            Deno.stdin.setRaw(false);
-        } catch {
-            // Ignore cleanup errors
-        }
-    };
+  const cleanup = () => {
+    try {
+      Deno.stdin.setRaw(false);
+    } catch {
+      // Ignore cleanup errors
+    }
+  };
 
-    const appendToCurrentField = (char: string) => {
-      if (editMode === "add") {
-        if (currentField === "description") {
-          editData.description = (editData.description || "") + char;
-        } else if (currentField === "details") {
-          editData.details = (editData.details || "") + char;
-        } else if (currentField === "dueDate") {
-          editData.dueDate = (editData.dueDate || "") + char;
-        } else if (currentField === "tags") {
-          // For tags, append to first tag
-          const currentTags = editData.tags || [];
-          const currentTag = currentTags[0] || "";
-          editData.tags = [currentTag + char];
-        }
+  const appendToCurrentField = (char: string) => {
+    if (editMode === "add" || editMode === "update") {
+      if (currentField === "description") {
+        editData.description = (editData.description || "") + char;
+      } else if (currentField === "details") {
+        editData.details = (editData.details || "") + char;
+      } else if (currentField === "dueDate") {
+        editData.dueDate = (editData.dueDate || "") + char;
+      } else if (currentField === "tags") {
+        // For tags, append to first tag
+        const currentTags = editData.tags || [];
+        const currentTag = currentTags[0] || "";
+        editData.tags = [currentTag + char];
       }
-    };
+    }
+  };
 
   async function performSearch() {
     // Enter search mode with footer replacement
@@ -358,8 +700,192 @@ export async function dashboardCommand() {
   // Cleanup on exit/crash
   Deno.addSignalListener("SIGINT", () => {
     cleanup();
-    Deno.exit();
   });
+
+  // Hacker-style stats sidebar rendering
+  function renderStatsSidebar(stats: TaskStats, width: number): string[] {
+    const lines: string[] = [];
+    const isMinimal = width < 20;
+
+    // Helper function for safe text padding
+    const padText = (text: string, targetLength: number): string => {
+      const cleanText = text.replace(/\u001b\[[0-9;]*m/g, ""); // Strip ANSI codes
+      if (cleanText.length > targetLength) {
+        return cleanText.slice(0, targetLength - 3) + "...";
+      }
+      return cleanText +
+        " ".repeat(Math.max(0, targetLength - cleanText.length));
+    };
+
+    if (isMinimal) {
+      // Minimal mode for narrow terminals
+      lines.push(`┌─ STATS ─${"─".repeat(Math.max(0, width - 9))}┐`);
+      lines.push(`│ 🤖 CPU: ${Math.floor(Math.random() * 100)}% │`);
+      const completion = stats.total > 0
+        ? Math.round((stats.byStatus.done / stats.total) * 100)
+        : 0;
+      const progressBar = "█".repeat(Math.floor(completion / 12.5)) +
+        "░".repeat(8 - Math.floor(completion / 12.5));
+      lines.push(`│ 📊 ${progressBar.slice(0, 8)} ${completion}% │`);
+      lines.push(
+        `│ 🎯 ACT: ${stats.byStatus.todo + stats.byStatus["in-progress"]} │`,
+      );
+      if (stats.overdue > 0) {
+        lines.push(`│ ⚠️  OVD: ${stats.overdue} │`);
+      }
+      const velocity = Math.round(stats.recentActivity / 7 * 10) / 10;
+      lines.push(`│ ↗ +${velocity}/day │`);
+      lines.push(`└${"─".repeat(width)}┘`);
+    } else {
+      // Full hacker mode with proper bounds checking
+      const headerText = " STATISTICAL ANALYSIS ENGINE v2.1 ";
+      const headerPadding = Math.max(0, width - headerText.length - 2);
+      lines.push(`┌${headerText}${"─".repeat(headerPadding)}┐`);
+
+      // System status bar - ensure it fits exactly
+      const statusBar =
+        `│ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │`;
+      lines.push(statusBar.slice(0, width + 1) + "│");
+
+      // Processing animations with proper padding
+      lines.push(`│ 🤖 ${padText("PROCESSING TASK DATA...", width - 4)}│`);
+      lines.push(
+        `│ ⚙️  ${padText("CALCULATING EFFICIENCY METRICS...", width - 5)}│`,
+      );
+      lines.push(
+        `│ 🖥️  ${padText("ANALYZING PRIORITY DISTRIBUTIONS...", width - 5)}│`,
+      );
+      lines.push(`│ ${" ".repeat(Math.max(0, width))}│`);
+
+      // Core metrics with safe formatting
+      const completion = stats.total > 0
+        ? Math.round((stats.byStatus.done / stats.total) * 100)
+        : 0;
+      const progressBar = "█".repeat(Math.floor(completion / 8)) +
+        "░".repeat(12 - Math.floor(completion / 8));
+      const completionText = `📊 COMPLETION RATE: ${
+        progressBar.slice(0, 12)
+      } ${completion}%`;
+      lines.push(`│ ${padText(completionText, width)}│`);
+
+      // Activity summary with dynamic layout
+      const activeTasks = stats.byStatus.todo + stats.byStatus["in-progress"];
+      const completedTasks = stats.byStatus.done;
+      const activityText =
+        `🎯 ACTIVE: ${activeTasks} | DONE: ${completedTasks} | TOTAL: ${stats.total}`;
+      lines.push(`│ ${padText(activityText, width)}│`);
+
+      // Priority heatmap with safe calculations
+      const maxPriority = Math.max(
+        stats.byPriority.critical,
+        stats.byPriority.high,
+        stats.byPriority.medium,
+        stats.byPriority.low,
+      ) || 1;
+      const createBar = (count: number) =>
+        "█".repeat(Math.floor((count / maxPriority) * 8)) +
+        "░".repeat(8 - Math.floor((count / maxPriority) * 8));
+
+      const critBar = createBar(stats.byPriority.critical);
+      const highBar = createBar(stats.byPriority.high);
+      const medBar = createBar(stats.byPriority.medium);
+      const lowBar = createBar(stats.byPriority.low);
+
+      lines.push(
+        `│ 🔴 ${
+          padText(
+            `CRITICAL: ${critBar.slice(0, 8)} ${stats.byPriority.critical}`,
+            width - 1,
+          )
+        }│`,
+      );
+      lines.push(
+        `│ 🟠 ${
+          padText(
+            `HIGH:     ${highBar.slice(0, 8)} ${stats.byPriority.high}`,
+            width - 1,
+          )
+        }│`,
+      );
+      lines.push(
+        `│ 🟡 ${
+          padText(
+            `MEDIUM:   ${medBar.slice(0, 8)} ${stats.byPriority.medium}`,
+            width - 1,
+          )
+        }│`,
+      );
+      lines.push(
+        `│ 🟢 ${
+          padText(
+            `LOW:      ${lowBar.slice(0, 8)} ${stats.byPriority.low}`,
+            width - 1,
+          )
+        }│`,
+      );
+
+      lines.push(`│ ${" ".repeat(width)}│`);
+
+      // Alerts
+      if (stats.overdue > 0) {
+        lines.push(
+          `│ ⚠️  OVERDUE TASKS: ${stats.overdue}${
+            (" ").repeat(Math.max(0, width - 18))
+          }│`,
+        );
+      }
+      lines.push(`│ 🚨 BLOCKERS: 0${(" ").repeat(Math.max(0, width - 15))}│`);
+
+      lines.push(`│ ${" ".repeat(width)}│`);
+
+      // Trend analysis
+      const velocity = Math.round(stats.recentActivity / 7 * 10) / 10;
+      const trend = stats.recentActivity > 5
+        ? "↗↗"
+        : stats.recentActivity > 2
+        ? "↗"
+        : "→";
+      lines.push(
+        `│ ↗ WEEKLY VELOCITY: +${velocity}/day | TREND: ${trend}${
+          (" ").repeat(Math.max(0, width - 35))
+        }│`,
+      );
+
+      // AI insight (fake)
+      const insights = [
+        "Productivity peaking - maintain momentum!",
+        "Consider prioritizing critical tasks",
+        "Good work-life balance detected",
+        "Efficiency optimal - keep it up!",
+        "Task completion rate above average",
+      ];
+      const insight = insights[Math.floor(Math.random() * insights.length)];
+      lines.push(
+        `│ 🧠 AI INSIGHT: "${insight.slice(0, width - 17)}"${
+          (" ").repeat(Math.max(0, width - 17 - insight.length - 2))
+        }│`,
+      );
+
+      lines.push(`│ ${" ".repeat(width)}│`);
+
+      // System status
+      const cpu = Math.floor(Math.random() * 100);
+      const mem = Math.floor(Math.random() * 100);
+      const uptime = Math.floor(Math.random() * 24 * 7) / 10;
+      lines.push(
+        `│ [STATUS: NOMINAL] [CPU: ${cpu}%] [MEM: ${mem}%] [UPTIME: ${uptime}hrs]${
+          (" ").repeat(Math.max(0, width - 45))
+        }│`,
+      );
+
+      lines.push(`└${"─".repeat(width)}┘`);
+    }
+
+    return lines;
+  }
+
+  // Stats sidebar state - persists during session
+  let statsSidebarVisible = false;
 
   async function render(
     tasks: Task[],
@@ -385,11 +911,10 @@ export async function dashboardCommand() {
     const height = Math.max(10, rows - 12);
     const isDimmed = !!modal;
 
-    // Create sidebar
-    const sidebarWidth = editMode === "add" ? Math.floor(terminalWidth * 0.2) : Math.floor(terminalWidth * 0.35);
+    // Create sidebar - consistent width with efficient padding
+    const sidebarWidth = Math.floor(terminalWidth * 0.35); // 35% for all modes (consistent)
     let sidebarTitle: string;
     let sidebarLines: string[];
-    let mainPanelTitle: string;
     let detailLines: string[];
 
     if (statsViewMode) {
@@ -404,11 +929,11 @@ export async function dashboardCommand() {
         const isCurrent = i === selectedIndex;
         const isMultiSelected = selectedTasks.has(t.id);
 
-        let prefix = "  ";
+        let prefix = "";
         if (isCurrent && multiSelectMode) {
-          prefix = colors.bold.magenta("❯ ");
+          prefix = colors.bold.magenta("❯");
         } else if (isCurrent) {
-          prefix = colors.bold.cyan("❯ ");
+          prefix = colors.bold.cyan("❯");
         }
 
         const statusIcon = t.status === "done"
@@ -417,12 +942,12 @@ export async function dashboardCommand() {
           ? colors.yellow("●")
           : colors.red("●");
 
-        // Add selection indicator for multi-selected tasks
-        const selectIndicator = isMultiSelected
-          ? colors.bold.blue("[✓] ")
-          : "    ";
-        const line =
-          `${selectIndicator}${prefix}${statusIcon} ${t.description}`;
+        // Add selection indicator for multi-selected tasks (compact)
+        const selectIndicator = isMultiSelected ? colors.bold.blue("✓") : " ";
+
+        const line = `${selectIndicator}${
+          selectIndicator.trim() ? " " : ""
+        }${prefix}${prefix ? " " : ""}${statusIcon} ${t.description}`;
 
         // Highlight current selection or multi-selected tasks
         if (isCurrent && !multiSelectMode) {
@@ -477,7 +1002,6 @@ export async function dashboardCommand() {
       detailLines.push(
         `  ${colors.dim("Press Tab to exit multi-select mode")}`,
       );
-      mainPanelTitle = "Details";
     } else if (selectedTask) {
       // Show single task details
       detailLines.push("");
@@ -522,13 +1046,20 @@ export async function dashboardCommand() {
       );
       detailLines.push("");
       detailLines.push(`  ${colors.bold.white("Details:")}`);
-      detailLines.push(
-        `  ${selectedTask.details || colors.dim("No details provided.")}`,
-      );
-      mainPanelTitle = "Details";
+
+      // Wrap long details text to fit panel width
+      const detailsText = selectedTask.details ||
+        colors.dim("No details provided.");
+      const detailsContent = `  ${detailsText}`;
+      const panelWidth = terminalWidth - sidebarWidth - 2; // Calculate panel width
+      if (detailsContent.length <= panelWidth) {
+        detailLines.push(detailsContent);
+      } else {
+        const wrappedLines = wrapText(detailsContent, panelWidth, 2); // 2 spaces indent
+        detailLines.push(...wrappedLines);
+      }
     } else {
       detailLines.push("\n  No tasks available.");
-      mainPanelTitle = "Details";
     }
 
     let panels: string[][];
@@ -538,33 +1069,97 @@ export async function dashboardCommand() {
       const mainWidth = terminalWidth - sidebarWidth - 2;
 
       // Build stacked detail lines: form on top, preview on bottom
-      const halfHeight = Math.floor(height / 2);
       const formLines: string[] = [];
       formLines.push("");
       formLines.push(`  ${colors.bold.cyan("Add New Task")}`);
       formLines.push("");
-      formLines.push(`${currentField === "description" ? colors.bold.yellow("➜") : "  "} Description: ${editData.description || colors.dim("(required)")}`);
-      formLines.push(`${currentField === "priority" ? colors.bold.yellow("➜") : "  "} Priority:    ${editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("medium")}`);
-      formLines.push(`${currentField === "details" ? colors.bold.yellow("➜") : "  "} Details:     ${editData.details || colors.dim("(optional)")}`);
-      formLines.push(`${currentField === "dueDate" ? colors.bold.yellow("➜") : "  "} Due Date:   ${editData.dueDate || colors.dim("(optional)")}`);
-      formLines.push(`${currentField === "tags" ? colors.bold.yellow("➜") : "  "} Tags:        ${editData.tags ? editData.tags.join(", ") : colors.dim("(optional)")}`);
+      formLines.push(
+        `${
+          currentField === "description" ? colors.bold.yellow("➜") : "  "
+        } Description: ${editData.description || colors.dim("(required)")}`,
+      );
+      formLines.push(
+        `${
+          currentField === "priority" ? colors.bold.yellow("➜") : "  "
+        } Priority:    ${
+          editData.priority
+            ? UI.priorityPipe(editData.priority)
+            : colors.dim("medium")
+        }`,
+      );
+
+      // Handle details field with word wrapping
+      const detailsLabel = `${
+        currentField === "details" ? colors.bold.yellow("➜") : "  "
+      } Details:     `;
+      const detailsValue = editData.details || colors.dim("(optional)");
+      const detailsContent = detailsLabel + detailsValue;
+      if (detailsContent.length <= mainWidth) {
+        // Fits on one line
+        formLines.push(detailsContent);
+      } else {
+        // Wrap to multiple lines
+        const wrappedLines = wrapText(
+          detailsContent,
+          mainWidth,
+          detailsLabel.length,
+        );
+        formLines.push(...wrappedLines);
+      }
+      formLines.push(
+        `${
+          currentField === "dueDate" ? colors.bold.yellow("➜") : "  "
+        } Due Date:   ${editData.dueDate || colors.dim("(optional)")}`,
+      );
+      formLines.push(
+        `${
+          currentField === "tags" ? colors.bold.yellow("➜") : "  "
+        } Tags:        ${
+          editData.tags ? editData.tags.join(", ") : colors.dim("(optional)")
+        }`,
+      );
       formLines.push("");
-      formLines.push(`  ${colors.dim("Tab: Next • Enter: Save • Esc: Cancel")}`);
+      formLines.push(
+        `  ${
+          colors.dim("↑↓/Tab: Navigate • ←→: Cycle • Enter: Save • Esc: Cancel")
+        }`,
+      );
 
       const previewLines: string[] = [];
       previewLines.push("");
       previewLines.push(`  ${colors.bold.white("Preview")}`);
       previewLines.push("");
-      previewLines.push(`  ${colors.bold.white("Title:")} ${editData.description || colors.dim("...")}`);
-      previewLines.push(`  ${colors.bold.white("Priority:")} ${editData.priority ? UI.priorityPipe(editData.priority) : colors.dim("Medium")}`);
+      previewLines.push(
+        `  ${colors.bold.white("Title:")} ${
+          editData.description || colors.dim("...")
+        }`,
+      );
+      previewLines.push(
+        `  ${colors.bold.white("Priority:")} ${
+          editData.priority
+            ? UI.priorityPipe(editData.priority)
+            : colors.dim("Medium")
+        }`,
+      );
       if (editData.details) {
-        previewLines.push(`  ${colors.bold.white("Details:")} ${editData.details}`);
+        // Handle details with word wrapping in preview
+        const previewDetailsContent = `  ${
+          colors.bold.white("Details:")
+        } ${editData.details}`;
+        if (previewDetailsContent.length <= mainWidth) {
+          previewLines.push(previewDetailsContent);
+        } else {
+          const wrappedLines = wrapText(previewDetailsContent, mainWidth, 13); // "  Details: " is 13 chars
+          previewLines.push(...wrappedLines);
+        }
       }
       if (editData.dueDate) {
         previewLines.push(`  ${colors.bold.white("Due:")} ${editData.dueDate}`);
       }
       if (editData.tags && editData.tags.length > 0) {
-        previewLines.push(`  ${colors.bold.white("Tags:")} ${editData.tags.join(", ")}`);
+        previewLines.push(
+          `  ${colors.bold.white("Tags:")} ${editData.tags.join(", ")}`,
+        );
       }
 
       // Combine form and preview with separator
@@ -587,12 +1182,176 @@ export async function dashboardCommand() {
         isDimmed,
       );
       panels = [sidebar, mainPanel];
-    } else {
-      // Two-panel layout: sidebar, details
+    } else if (editMode === "update") {
+      // Two-panel layout with stacked form/preview in main
       const mainWidth = terminalWidth - sidebarWidth - 2;
+
+      // Build stacked detail lines: form on top, preview on bottom
+      const formLines: string[] = [];
+      formLines.push("");
+      formLines.push(`  ${colors.bold.cyan("Update Task")}`);
+      formLines.push("");
+      formLines.push(
+        `${
+          currentField === "description" ? colors.bold.yellow("➜") : "  "
+        } Description: ${editData.description || colors.dim("(required)")}`,
+      );
+      formLines.push(
+        `${
+          currentField === "priority" ? colors.bold.yellow("➜") : "  "
+        } Priority:    ${
+          editData.priority
+            ? UI.priorityPipe(editData.priority)
+            : colors.dim("medium")
+        }`,
+      );
+      formLines.push(
+        `${
+          currentField === "status" ? colors.bold.yellow("➜") : "  "
+        } Status:      ${
+          editData.status ? UI.statusPipe(editData.status) : colors.dim("todo")
+        }`,
+      );
+
+      // Handle details field with word wrapping
+      const detailsLabel = `${
+        currentField === "details" ? colors.bold.yellow("➜") : "  "
+      } Details:     `;
+      const detailsValue = editData.details || colors.dim("(optional)");
+      const detailsContent = detailsLabel + detailsValue;
+      if (detailsContent.length <= mainWidth) {
+        // Fits on one line
+        formLines.push(detailsContent);
+      } else {
+        // Wrap to multiple lines
+        const wrappedLines = wrapText(
+          detailsContent,
+          mainWidth,
+          detailsLabel.length,
+        );
+        formLines.push(...wrappedLines);
+      }
+      formLines.push(
+        `${
+          currentField === "dueDate" ? colors.bold.yellow("➜") : "  "
+        } Due Date:   ${editData.dueDate || colors.dim("(optional)")}`,
+      );
+      formLines.push(
+        `${
+          currentField === "tags" ? colors.bold.yellow("➜") : "  "
+        } Tags:        ${
+          editData.tags ? editData.tags.join(", ") : colors.dim("(optional)")
+        }`,
+      );
+      formLines.push("");
+      formLines.push(
+        `  ${
+          colors.dim("↑↓/Tab: Navigate • ←→: Cycle • Enter: Save • Esc: Cancel")
+        }`,
+      );
+
+      const previewLines: string[] = [];
+      previewLines.push("");
+      previewLines.push(`  ${colors.bold.white("Preview")}`);
+      previewLines.push("");
+      previewLines.push(
+        `  ${colors.bold.white("Title:")} ${
+          editData.description || colors.dim("...")
+        }`,
+      );
+      previewLines.push(
+        `  ${colors.bold.white("Priority:")} ${
+          editData.priority
+            ? UI.priorityPipe(editData.priority)
+            : colors.dim("Medium")
+        }`,
+      );
+      previewLines.push(
+        `  ${colors.bold.white("Status:")} ${
+          editData.status ? UI.statusPipe(editData.status) : colors.dim("Todo")
+        }`,
+      );
+      if (editData.details) {
+        // Handle details with word wrapping in preview
+        const previewDetailsContent = `  ${
+          colors.bold.white("Details:")
+        } ${editData.details}`;
+        if (previewDetailsContent.length <= mainWidth) {
+          previewLines.push(previewDetailsContent);
+        } else {
+          const wrappedLines = wrapText(previewDetailsContent, mainWidth, 13); // "  Details: " is 13 chars
+          previewLines.push(...wrappedLines);
+        }
+      }
+      if (editData.dueDate) {
+        previewLines.push(`  ${colors.bold.white("Due:")} ${editData.dueDate}`);
+      }
+      if (editData.tags && editData.tags.length > 0) {
+        previewLines.push(
+          `  ${colors.bold.white("Tags:")} ${editData.tags.join(", ")}`,
+        );
+      }
+
+      // Combine form and preview with separator
+      const detailLines: string[] = [];
+      detailLines.push(...formLines);
+      detailLines.push(`  ${colors.dim("─".repeat(mainWidth - 4))}`); // Separator
+      detailLines.push(...previewLines);
+
+      // Fill to height
+      while (detailLines.length < height - 2) {
+        detailLines.push("");
+      }
+
       const mainPanel = UI.box(
-        mainPanelTitle,
+        "Update Task",
         detailLines,
+        mainWidth,
+        height,
+        false,
+        isDimmed,
+      );
+      panels = [sidebar, mainPanel];
+    } else {
+      // Two-panel layout: sidebar, details or statistics
+      const mainWidth = terminalWidth - sidebarWidth - 2;
+      const panelTitle = statsSidebarVisible ? "Statistics" : "Details";
+
+      let mainPanelLines: string[];
+      if (statsSidebarVisible) {
+        // Show statistics instead of task details
+        const stats = calculateStats(tasks);
+        const completionRate = stats.total > 0
+          ? Math.round((stats.byStatus.done / stats.total) * 100)
+          : 0;
+        const progressBar = "█".repeat(Math.floor(completionRate / 10)) +
+          "░".repeat(10 - Math.floor(completionRate / 10));
+
+        mainPanelLines = [
+          `  Total Tasks:  ${stats.total}`,
+          `  Completed:    ${stats.byStatus.done}`,
+          `  In Progress:  ${stats.byStatus["in-progress"]}`,
+          `  Todo:         ${stats.byStatus.todo}`,
+          `  Overdue:      ${stats.overdue}`,
+          `  Completion:   ${completionRate}% ${progressBar}`,
+          `  Critical:     ${stats.byPriority.critical}`,
+          `  High:         ${stats.byPriority.high}`,
+          `  Medium:       ${stats.byPriority.medium}`,
+          `  Low:          ${stats.byPriority.low}`,
+        ];
+
+        // Fill to match height
+        while (mainPanelLines.length < height - 2) {
+          mainPanelLines.push("");
+        }
+      } else {
+        // Show task details as before
+        mainPanelLines = detailLines;
+      }
+
+      const mainPanel = UI.box(
+        panelTitle,
+        mainPanelLines,
         mainWidth,
         height,
         false,
@@ -603,18 +1362,32 @@ export async function dashboardCommand() {
 
     UI.renderLayout(panels, modal);
     UI.footer(
-      multiSelectMode,
+      multiSelectMode && !statsSidebarVisible, // Disable multi-select indicator in stats mode
       selectedTasks.size,
       statsViewMode,
       stats?.completionRate,
       stats?.overdue,
       searchMode,
+      editMode,
+      statsSidebarVisible,
     );
   }
 
   try {
+    let lastTerminalSize = Deno.consoleSize();
+
     while (running) {
       let tasks = await loadTasks();
+
+      // Check for terminal resize
+      const currentSize = Deno.consoleSize();
+      const sizeChanged = currentSize.columns !== lastTerminalSize.columns ||
+        currentSize.rows !== lastTerminalSize.rows;
+
+      if (sizeChanged && resizeHandler) {
+        resizeHandler.triggerResize();
+        lastTerminalSize = currentSize;
+      }
 
       // Apply search filter if active
       let processedTasks: Task[];
@@ -648,7 +1421,15 @@ export async function dashboardCommand() {
       // Calculate stats for footer status bar (use original tasks for stats)
       const stats = calculateStats(tasks);
 
+      // Always render (including when modals are active)
       await render(processedTasks, undefined, stats);
+
+      // Skip normal input processing if modal is active
+      if (UI.isModalActive && UI.isModalActive()) {
+        // Modal is handling input, wait a bit and continue
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        continue;
+      }
 
       const reader = Deno.stdin.readable.getReader();
       const { value, done } = await reader.read();
@@ -658,81 +1439,223 @@ export async function dashboardCommand() {
 
       const keys = new TextDecoder().decode(value);
 
-            switch (keys) {
-                case "j":
-                    if (editMode === "add") {
-                        // Append 'j' to current field in add mode
-                        appendToCurrentField("j");
-                    } else {
-                        selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
-                    }
-                    break;
-                case "\u001b[B": // Down arrow
-                    if (editMode === "add") {
-                        if (currentField === "priority") {
-                            // Cycle priority down
-                            const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
-                            const currentIndex = priorities.indexOf(editData.priority || "medium");
-                            editData.priority = priorities[(currentIndex + 1) % priorities.length];
-                        }
-                        // Ignore other navigation in add mode
-                    } else {
-                        selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
-                    }
-                    break;
-                case "k":
-                    if (editMode === "add") {
-                        // Append 'k' to current field in add mode
-                        appendToCurrentField("k");
-                    } else {
-                        selectedIndex = Math.max(0, selectedIndex - 1);
-                    }
-                    break;
-                case "\u001b[A": // Up arrow
-                    if (editMode === "add") {
-                        if (currentField === "priority") {
-                            // Cycle priority up
-                            const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
-                            const currentIndex = priorities.indexOf(editData.priority || "medium");
-                            editData.priority = priorities[(currentIndex - 1 + priorities.length) % priorities.length];
-                        }
-                        // Ignore other navigation in add mode
-                    } else {
-                        selectedIndex = Math.max(0, selectedIndex - 1);
-                    }
-                    break;
+      // Handle modal input first
+      if (UI.handleModalKey && UI.handleModalKey(keys)) {
+        continue; // Modal handled the key, skip normal processing
+      }
+
+      switch (keys) {
+        case "j":
+          if (editMode === "add" || editMode === "update") {
+            // Append 'j' to current field in add/update mode
+            appendToCurrentField("j");
+          } else {
+            selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
+          }
+          break;
+
+        case "k":
+          if (editMode === "add" || editMode === "update") {
+            // Append 'k' to current field in add/update mode
+            appendToCurrentField("k");
+          } else {
+            selectedIndex = Math.max(0, selectedIndex - 1);
+          }
+          break;
+        case "\u001b[A": // Up arrow - Navigate to previous field
+          if (editMode === "add" || editMode === "update") {
+            const fields: (keyof Pick<
+              Task,
+              | "description"
+              | "priority"
+              | "status"
+              | "details"
+              | "dueDate"
+              | "tags"
+            >)[] = [
+              "description",
+              "priority",
+              "status",
+              "details",
+              "dueDate",
+              "tags",
+            ];
+            const currentIndex = fields.indexOf(currentField);
+            currentField =
+              fields[(currentIndex - 1 + fields.length) % fields.length];
+          } else {
+            selectedIndex = Math.max(0, selectedIndex - 1);
+          }
+          break;
+        case "\u001b[B": // Down arrow - Navigate to next field
+          if (editMode === "add" || editMode === "update") {
+            const fields: (keyof Pick<
+              Task,
+              | "description"
+              | "priority"
+              | "status"
+              | "details"
+              | "dueDate"
+              | "tags"
+            >)[] = [
+              "description",
+              "priority",
+              "status",
+              "details",
+              "dueDate",
+              "tags",
+            ];
+            const currentIndex = fields.indexOf(currentField);
+            currentField = fields[(currentIndex + 1) % fields.length];
+          } else {
+            selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
+          }
+          break;
+        case "\u001b[D": // Left arrow - Cycle value down or navigate to previous field
+          if (editMode === "add" || editMode === "update") {
+            if (currentField === "priority") {
+              // Cycle priority down
+              const priorities: TaskPriority[] = [
+                "low",
+                "medium",
+                "high",
+                "critical",
+              ];
+              const currentIndex = priorities.indexOf(
+                editData.priority || "medium",
+              );
+              editData.priority = priorities[
+                (currentIndex - 1 + priorities.length) % priorities.length
+              ];
+            } else if (currentField === "status") {
+              // Cycle status down
+              const statuses: TaskStatus[] = ["todo", "in-progress", "done"];
+              const currentIndex = statuses.indexOf(editData.status || "todo");
+              editData.status = statuses[
+                (currentIndex - 1 + statuses.length) % statuses.length
+              ];
+            } else {
+              // Navigate to previous field for non-cycling fields
+              const fields: (keyof Pick<
+                Task,
+                | "description"
+                | "priority"
+                | "status"
+                | "details"
+                | "dueDate"
+                | "tags"
+              >)[] = [
+                "description",
+                "priority",
+                "status",
+                "details",
+                "dueDate",
+                "tags",
+              ];
+              const currentIndex = fields.indexOf(currentField);
+              currentField =
+                fields[(currentIndex - 1 + fields.length) % fields.length];
+            }
+          }
+          break;
+        case "\u001b[C": // Right arrow - Cycle value up or navigate to next field
+          if (editMode === "add" || editMode === "update") {
+            if (currentField === "priority") {
+              // Cycle priority up
+              const priorities: TaskPriority[] = [
+                "low",
+                "medium",
+                "high",
+                "critical",
+              ];
+              const currentIndex = priorities.indexOf(
+                editData.priority || "medium",
+              );
+              editData.priority =
+                priorities[(currentIndex + 1) % priorities.length];
+            } else if (currentField === "status") {
+              // Cycle status up
+              const statuses: TaskStatus[] = ["todo", "in-progress", "done"];
+              const currentIndex = statuses.indexOf(editData.status || "todo");
+              editData.status = statuses[(currentIndex + 1) % statuses.length];
+            } else {
+              // Navigate to next field for non-cycling fields
+              const fields: (keyof Pick<
+                Task,
+                | "description"
+                | "priority"
+                | "status"
+                | "details"
+                | "dueDate"
+                | "tags"
+              >)[] = [
+                "description",
+                "priority",
+                "status",
+                "details",
+                "dueDate",
+                "tags",
+              ];
+              const currentIndex = fields.indexOf(currentField);
+              currentField = fields[(currentIndex + 1) % fields.length];
+            }
+          }
+          break;
         case "a":
-          if (editMode === "view") {
-            // Enter add mode
+          if (editMode === "add" || editMode === "update") {
+            // Append 'a' to current field in add/update mode
+            appendToCurrentField("a");
+          } else if (editMode === "view" && !multiSelectMode) {
+            // Enter add mode (disabled in multi-select mode)
             editMode = "add";
+            statsSidebarVisible = false; // Disable stats sidebar when entering edit mode
             editData = {
               description: "",
               priority: "medium",
+              status: "todo",
               details: "",
               dueDate: "",
               tags: [],
             };
             currentField = "description";
-          } else if (editMode === "add") {
-            // Append 'a' to current field in add mode
-            appendToCurrentField("a");
           }
           break;
-        case "\t": // Tab - navigate to next field or toggle multi-select
-          if (editMode === "add") {
-            const fields: (keyof Pick<Task, "description" | "priority" | "details" | "dueDate" | "tags">)[] = ["description", "priority", "details", "dueDate", "tags"];
+        case "\t": // Tab - navigate to next field or toggle multi-select (disabled in stats mode)
+          if (editMode === "add" || editMode === "update") {
+            const fields: (keyof Pick<
+              Task,
+              | "description"
+              | "priority"
+              | "status"
+              | "details"
+              | "dueDate"
+              | "tags"
+            >)[] = [
+              "description",
+              "priority",
+              "status",
+              "details",
+              "dueDate",
+              "tags",
+            ];
             const currentIndex = fields.indexOf(currentField);
             currentField = fields[(currentIndex + 1) % fields.length];
-          } else {
-            // Original Tab behavior for multi-select
+          } else if (!statsSidebarVisible) {
+            // Multi-select only available when stats are not visible
             multiSelectMode = !multiSelectMode;
             if (!multiSelectMode) {
               selectedTasks.clear(); // Clear selections when exiting multi-select
             }
           }
           break;
-        case " ": // Space - Select/deselect current task (multi-select mode)
-          if (multiSelectMode && tasks[selectedIndex]) {
+        case " ": // Space - Select/deselect current task (multi-select mode, disabled in stats mode) or text input (edit mode)
+          if (editMode === "add" || editMode === "update") {
+            // Append space to current field in add/update mode
+            appendToCurrentField(" ");
+          } else if (
+            multiSelectMode && !statsSidebarVisible && tasks[selectedIndex]
+          ) {
+            // Multi-select only available when stats are not visible
             const taskId = tasks[selectedIndex].id;
             if (selectedTasks.has(taskId)) {
               selectedTasks.delete(taskId);
@@ -741,40 +1664,36 @@ export async function dashboardCommand() {
             }
           }
           break;
+
         case "u":
-          if (editMode === "add") {
-            // Append 'u' to current field in add mode
+          if (editMode === "add" || editMode === "update") {
+            // Append 'u' to current field in add/update mode
             appendToCurrentField("u");
             break;
           }
-          if (multiSelectMode && selectedTasks.size > 0) {
-            // Show bulk actions menu
-            cleanup();
-            const updatedSelection = await showBulkActionsMenu(
-              tasks,
-              Array.from(selectedTasks),
-            );
-            // Update the selectedTasks set with the returned selection
-            selectedTasks.clear();
-            updatedSelection.forEach((id) => selectedTasks.add(id));
-            Deno.stdin.setRaw(true);
-          } else if (!multiSelectMode && tasks[selectedIndex]) {
-            cleanup();
-            await updateCommand(tasks[selectedIndex].id, {
-              modal: true,
-              renderBackground: () =>
-                render(tasks, { lines: [], width: 60, height: 8 }),
-            });
-            Deno.stdin.setRaw(true);
+          if (editMode === "view" && !multiSelectMode && tasks[selectedIndex]) {
+            // Single task update (not in multi-select mode)
+            editMode = "update";
+            statsSidebarVisible = false; // Disable stats sidebar when entering edit mode
+            editData = {
+              description: tasks[selectedIndex].description,
+              priority: tasks[selectedIndex].priority,
+              status: tasks[selectedIndex].status,
+              details: tasks[selectedIndex].details || "",
+              dueDate: tasks[selectedIndex].dueDate || "",
+              tags: tasks[selectedIndex].tags || [],
+            };
+            currentField = "description";
           }
           break;
-        case "\r": // Enter
+        case "\r": // Enter (CR)
+        case "\n": // Enter (LF)
           if (editMode === "add") {
             // Save the task
             if (editData.description && editData.description.trim()) {
               const tasks = await loadTasks();
               const newTask: Task = {
-                id: Math.max(0, ...tasks.map(t => t.id)) + 1,
+                id: Math.max(0, ...tasks.map((t) => t.id)) + 1,
                 description: editData.description.trim(),
                 details: editData.details?.trim() || "",
                 priority: editData.priority || "medium",
@@ -792,27 +1711,91 @@ export async function dashboardCommand() {
             }
             editMode = "view";
             editData = {};
+          } else if (editMode === "update") {
+            // Update the task
+            if (editData.description && editData.description.trim()) {
+              const taskId = tasks[selectedIndex].id;
+              const changes: Partial<Task> = {
+                description: editData.description.trim(),
+                priority: editData.priority,
+                status: editData.status,
+                details: editData.details?.trim() || undefined,
+                dueDate: editData.dueDate?.trim() || undefined,
+                tags: editData.tags,
+              };
+
+              const result = await bulkUpdateTasks([taskId], changes);
+              if (result.successCount > 0) {
+                UI.success(`Task updated successfully! (ID: ${taskId})`);
+              } else if (result.errors.length > 0) {
+                UI.error(`Update failed: ${result.errors[0].error}`);
+              }
+            } else {
+              UI.error("Description is required");
+            }
+            editMode = "view";
+            editData = {};
+          } else if (
+            editMode === "view" && multiSelectMode && selectedTasks.size > 0
+          ) {
+            // Use the original working modal system
+            const modalPromise = showBulkActionsMenu(
+              tasks,
+              Array.from(selectedTasks),
+              UI,
+              render,
+            );
+            // Render immediately to show the modal
+            await render(processedTasks, undefined, stats);
+            const updatedSelection = await modalPromise;
+            selectedTasks.clear();
+            updatedSelection.forEach((id) => selectedTasks.add(id));
+            // Re-render to clear the modal from screen
+            await render(processedTasks, undefined, stats);
           }
           break;
         case "d":
-          if (editMode === "add") {
-            // Append 'd' to current field in add mode
+          if (editMode === "add" || editMode === "update") {
+            // Append 'd' to current field in add/update mode
             appendToCurrentField("d");
             break;
           }
-          if (tasks[selectedIndex]) {
-            cleanup();
-            await deleteCommand(tasks[selectedIndex].id, {
-              modal: true,
-              renderBackground: () =>
-                render(tasks, { lines: [], width: 60, height: 6 }),
-            });
-            Deno.stdin.setRaw(true);
+          if (editMode === "view") {
+            if (multiSelectMode && selectedTasks.size > 0) {
+              UI.info("Quick bulk delete triggered");
+              // Quick bulk delete without confirmation
+              const selectedIds = Array.from(selectedTasks);
+              const result = await bulkDeleteTasks(selectedIds);
+              UI.info(`Bulk delete result: success=${result.successCount}`);
+              if (result.successCount > 0) {
+                UI.success(`Quick deleted ${result.successCount} tasks!`);
+              }
+              if (result.errors.length > 0) {
+                UI.error(`Failed to delete ${result.errors.length} tasks`);
+              }
+              selectedTasks.clear();
+              multiSelectMode = false;
+            } else if (!multiSelectMode && tasks[selectedIndex]) {
+              // Single task delete
+              const task = tasks[selectedIndex];
+              UI.info(`Single delete: ${task.description} (ID: ${task.id})`);
+              // For now, delete directly without confirmation
+              const result = await bulkDeleteTasks([task.id]);
+              if (result.successCount > 0) {
+                UI.success(`Task deleted successfully! (ID: ${task.id})`);
+                // Adjust selection after deletion
+                if (selectedIndex >= tasks.length - 1) {
+                  selectedIndex = Math.max(0, tasks.length - 2);
+                }
+              } else if (result.errors.length > 0) {
+                UI.error(`Delete failed: ${result.errors[0].error}`);
+              }
+            }
           }
           break;
         case "m":
-          if (editMode === "add") {
-            // Append 'm' to current field in add mode
+          if (editMode === "add" || editMode === "update") {
+            // Append 'm' to current field in add/update mode
             appendToCurrentField("m");
             break;
           }
@@ -827,37 +1810,35 @@ export async function dashboardCommand() {
           }
           break;
         case "s":
-          if (editMode === "add") {
-            // Append 's' to current field in add mode
+          if (editMode === "add" || editMode === "update") {
+            // Append 's' to current field in add/update mode
             appendToCurrentField("s");
             break;
           }
-          statsViewMode = !statsViewMode;
-          // Reset selection when switching to stats mode
-          if (statsViewMode) {
-            selectedIndex = 0;
-            selectedTasks.clear();
-            multiSelectMode = false;
-          }
+          // Toggle stats sidebar visibility (persists during session)
+          statsSidebarVisible = !statsSidebarVisible;
           break;
         case "/":
-          if (editMode === "add") {
-            // Append '/' to current field in add mode
+          if (editMode === "add" || editMode === "update") {
+            // Append '/' to current field in add/update mode
             appendToCurrentField("/");
             break;
           }
           // Enter exact search mode
+          fuzzyMode = false;
+          await performSearch();
+          break;
         case "r":
-          if (editMode === "add") {
-            // Append 'r' to current field in add mode
+          if (editMode === "add" || editMode === "update") {
+            // Append 'r' to current field in add/update mode
             appendToCurrentField("r");
             break;
           }
           currentSortOrder = currentSortOrder === "asc" ? "desc" : "asc";
           break;
         case "o":
-          if (editMode === "add") {
-            // Append 'o' to current field in add mode
+          if (editMode === "add" || editMode === "update") {
+            // Append 'o' to current field in add/update mode
             appendToCurrentField("o");
             break;
           }
@@ -874,21 +1855,19 @@ export async function dashboardCommand() {
           currentSortField = sortFields[(currentIndex + 1) % sortFields.length];
           break;
         case "h":
-          if (editMode === "add") {
-            // Append 'h' to current field in add mode
+          if (editMode === "add" || editMode === "update") {
+            // Append 'h' to current field in add/update mode
             appendToCurrentField("h");
             break;
           }
+          // 'h' in view mode - show main menu
           cleanup();
-          await showMainMenu();
+          await showMainMenu(UI);
           Deno.stdin.setRaw(true);
           break;
-          fuzzyMode = false;
-          await performSearch();
-          break;
         case "?":
-          if (editMode === "add") {
-            // Append '?' to current field in add mode
+          if (editMode === "add" || editMode === "update") {
+            // Append '?' to current field in add/update mode
             appendToCurrentField("?");
             break;
           }
@@ -897,25 +1876,13 @@ export async function dashboardCommand() {
           await performSearch();
           break;
         case "\u001b": // ESC key
-          if (editMode === "add") {
-            // Cancel add mode
+          if (editMode === "add" || editMode === "update") {
+            // Cancel add/update/delete mode
             editMode = "view";
             editData = {};
-          } else if (searchMode) {
-            // Clear search
-            searchTerm = "";
-            searchMode = false;
-            fuzzyMode = false;
-            selectedIndex = 0;
-            selectedTasks.clear();
-            multiSelectMode = false;
           }
           break;
-        case "h": // Help/Settings menu
-          cleanup();
-          await showMainMenu();
-          Deno.stdin.setRaw(true);
-          break;
+
         case "o": { // Cycle sort field
           const sortFields = [
             "id",
@@ -935,47 +1902,62 @@ export async function dashboardCommand() {
           break;
         }
 
-
-                case "\u007f": // Backspace
-                    if (editMode === "add") {
-                        if (currentField === "description" && editData.description) {
-                            editData.description = editData.description.slice(0, -1);
-                        } else if (currentField === "details" && editData.details) {
-                            editData.details = editData.details.slice(0, -1);
-                        } else if (currentField === "dueDate" && editData.dueDate) {
-                            editData.dueDate = editData.dueDate.slice(0, -1);
-                        } else if (currentField === "tags" && editData.tags && editData.tags[0]) {
-                            const currentTag = editData.tags[0];
-                            editData.tags = [currentTag.slice(0, -1)];
-                        }
-                    }
-                    break;
-
-                case "q":
-                case "\u0003": // Ctrl+C
-                    running = false;
-                    break;
-                default:
-                    // Handle text input when in add mode
-                    if (editMode === "add" && keys && keys.length === 1 && keys >= ' ' && keys <= '~') {
-                        if (currentField === "description") {
-                            editData.description = (editData.description || "") + keys;
-                        } else if (currentField === "details") {
-                            editData.details = (editData.details || "") + keys;
-                        } else if (currentField === "dueDate") {
-                            editData.dueDate = (editData.dueDate || "") + keys;
-                        } else if (currentField === "tags") {
-                            // Simple tag input - append to first tag
-                            const currentTags = editData.tags || [];
-                            const currentTag = currentTags[0] || "";
-                            editData.tags = [currentTag + keys];
-                        }
-                    }
-                    break;
+        case "\u007f": // Backspace
+          if (editMode === "add" || editMode === "update") {
+            if (currentField === "description" && editData.description) {
+              editData.description = editData.description.slice(0, -1);
+            } else if (currentField === "details" && editData.details) {
+              editData.details = editData.details.slice(0, -1);
+            } else if (currentField === "dueDate" && editData.dueDate) {
+              editData.dueDate = editData.dueDate.slice(0, -1);
+            } else if (
+              currentField === "tags" && editData.tags && editData.tags[0]
+            ) {
+              const currentTag = editData.tags[0];
+              editData.tags = [currentTag.slice(0, -1)];
             }
+          }
+          break;
+
+        case "q":
+        case "\u0003": // Ctrl+C
+          running = false;
+          break;
+        default:
+          // Debug: log unhandled keys
+          if (keys && keys.length > 0) {
+            UI.info(
+              `Unhandled key: ${JSON.stringify(keys)} (code: ${
+                keys.charCodeAt(0)
+              })`,
+            );
+          }
+          // Handle text input when in add mode
+          if (
+            (editMode === "add" || editMode === "update") && keys &&
+            keys.length === 1 && keys >= " " && keys <= "~"
+          ) {
+            if (currentField === "description") {
+              editData.description = (editData.description || "") + keys;
+            } else if (currentField === "details") {
+              editData.details = (editData.details || "") + keys;
+            } else if (currentField === "dueDate") {
+              editData.dueDate = (editData.dueDate || "") + keys;
+            } else if (currentField === "tags") {
+              // Simple tag input - append to first tag
+              const currentTags = editData.tags || [];
+              const currentTag = currentTags[0] || "";
+              editData.tags = [currentTag + keys];
+            }
+          }
+          break;
+      }
     }
   } finally {
     cleanup();
+    if (resizeHandler) {
+      resizeHandler.stopListening();
+    }
   }
 
   UI.clearScreen();
@@ -989,153 +1971,207 @@ export async function dashboardCommand() {
 async function showBulkActionsMenu(
   tasks: Task[],
   selectedIds: number[],
+  UI: any,
+  render: (tasks: Task[], modal?: any, stats?: any) => Promise<void>,
 ): Promise<number[]> {
   const taskSummaries = getTaskSummaries(tasks, selectedIds);
 
-  console.clear();
-  UI.header();
-
-  console.log(`  ${colors.bold.magenta("Bulk Actions Menu")}`);
-  console.log(`  ${colors.dim("Selected tasks:")}`);
-  taskSummaries.forEach((summary) => console.log(`    ${summary}`));
-  console.log("");
-
-  const action = await Select.prompt({
-    message: "Choose bulk action:",
-    options: [
-      { name: "Mark as...", value: "mark" },
-      { name: "Update properties", value: "update" },
-      { name: "Delete selected", value: "delete" },
-      { name: "Cancel", value: "cancel" },
-    ],
-  });
-
-  if (action === "cancel") {
-    return selectedIds; // Return unchanged selection
-  }
+  const content = [
+    `Selected tasks (${selectedIds.length}):`,
+    ...taskSummaries.map((s) => `  ${s}`),
+    "",
+    "Choose an action:",
+  ];
 
   try {
-    if (action === "mark") {
-      const statusOptions = ["todo", "in-progress", "done"];
-      const selectedStatus = await Select.prompt({
-        message: `Mark ${selectedIds.length} tasks as:`,
-        options: statusOptions,
-      });
+    const action = await UI.showModal({
+      title: "Bulk Actions",
+      content,
+      actions: [
+        { label: "Mark Status", action: () => "mark" },
+        { label: "Update Properties", action: () => "update" },
+        { label: "Delete Tasks", action: () => "delete" },
+      ],
+      width: 65,
+      height: 18,
+    });
 
-      const result = await bulkMarkTasks(selectedIds, selectedStatus);
-      console.log("");
+    if (action === "cancel") {
+      return selectedIds;
+    }
+
+    if (action === "mark") {
+      const statusModalPromise = UI.showModal({
+        title: "Mark Tasks As",
+        content: [`Mark ${selectedIds.length} tasks as:`],
+        actions: [
+          { label: "Todo", action: () => "todo" },
+          { label: "In Progress", action: () => "in-progress" },
+          { label: "Done", action: () => "done" },
+          { label: "Cancel", action: () => "cancel" },
+        ],
+        width: 40,
+        height: 10,
+      });
+      await render(tasks, undefined, {
+        byStatus: { todo: 0, "in-progress": 0, done: 0 },
+        byPriority: { low: 0, medium: 0, high: 0, critical: 0 },
+        total: selectedIds.length,
+        completed: 0,
+        overdue: 0,
+        recentActivity: 0,
+      });
+      const status = await statusModalPromise;
+
+      if (status === "cancel") return selectedIds;
+
+      UI.info("Processing bulk status update...");
+      const result = await bulkMarkTasks(selectedIds, status as TaskStatus);
       if (result.successCount > 0) {
-        UI.success(`${result.successCount} tasks marked as ${selectedStatus}.`);
+        UI.success(`${result.successCount} tasks marked as ${status}.`);
       }
       if (result.errors.length > 0) {
-        result.errors.forEach((error) => {
-          UI.error(`Task ${error.id}: ${error.error}`);
-        });
-        // Return only the failed task IDs to keep them selected
+        result.errors.forEach((error) =>
+          UI.error(`Task ${error.id}: ${error.error}`)
+        );
         return result.errors.map((error) => error.id);
       }
-      // All tasks marked successfully, return empty selection
       return [];
     } else if (action === "update") {
-      console.log("");
-      console.log("Update properties for selected tasks:");
-
       const changes: Partial<Task> = {};
 
-      // Priority update
-      const priorityOptions = ["skip", "low", "medium", "high", "critical"];
-      const prioritySelection = await Select.prompt({
-        message: "Update priority:",
-        options: [
-          { name: "Skip - keep current", value: "skip" },
-          { name: "Low", value: "low" },
-          { name: "Medium", value: "medium" },
-          { name: "High", value: "high" },
-          { name: "Critical", value: "critical" },
+      // Priority modal
+      const priorityModalPromise = UI.showModal({
+        title: "Update Priority",
+        content: [`Update priority for ${selectedIds.length} tasks:`],
+        actions: [
+          { label: "Skip (keep current)", action: () => "skip" },
+          { label: "Low", action: () => "low" },
+          { label: "Medium", action: () => "medium" },
+          { label: "High", action: () => "high" },
+          { label: "Critical", action: () => "critical" },
         ],
+        width: 40,
+        height: 12,
       });
+      await render(tasks, undefined, {
+        byStatus: { todo: 0, "in-progress": 0, done: 0 },
+        byPriority: { low: 0, medium: 0, high: 0, critical: 0 },
+        total: selectedIds.length,
+        completed: 0,
+        overdue: 0,
+        recentActivity: 0,
+      });
+      const priority = await priorityModalPromise;
 
-      if (prioritySelection !== "skip") {
-        changes.priority = prioritySelection as TaskPriority;
+      if (priority !== "skip") {
+        changes.priority = priority as TaskPriority;
       }
 
-      // Tags update (simplified for TUI)
-      const tagsOptions = ["skip", "clear", "urgent", "work", "personal"];
-      const tagsSelection = await Select.prompt({
-        message: "Update tags:",
-        options: [
-          { name: "Skip - keep current", value: "skip" },
-          { name: "Clear all tags", value: "clear" },
-          { name: "Add 'urgent' tag", value: "urgent" },
-          { name: "Add 'work' tag", value: "work" },
-          { name: "Add 'personal' tag", value: "personal" },
+      // Tags modal
+      const tagsModalPromise = UI.showModal({
+        title: "Update Tags",
+        content: [`Update tags for ${selectedIds.length} tasks:`],
+        actions: [
+          { label: "Skip (keep current)", action: () => "skip" },
+          { label: "Clear all tags", action: () => "clear" },
+          { label: "Add 'urgent'", action: () => "urgent" },
+          { label: "Add 'work'", action: () => "work" },
+          { label: "Add 'personal'", action: () => "personal" },
         ],
+        width: 40,
+        height: 12,
       });
+      await render(tasks, undefined, {
+        byStatus: { todo: 0, "in-progress": 0, done: 0 },
+        byPriority: { low: 0, medium: 0, high: 0, critical: 0 },
+        total: selectedIds.length,
+        completed: 0,
+        overdue: 0,
+        recentActivity: 0,
+      });
+      const tagsAction = await tagsModalPromise;
 
-      if (tagsSelection === "clear") {
+      if (tagsAction === "clear") {
         changes.tags = [];
-      } else if (tagsSelection !== "skip") {
-        changes.tags = [tagsSelection];
+      } else if (tagsAction !== "skip") {
+        changes.tags = [tagsAction as string];
       }
 
       if (Object.keys(changes).length > 0) {
+        UI.info("Processing bulk property updates...");
         const result = await bulkUpdateTasks(selectedIds, changes);
         if (result.successCount > 0) {
           UI.success(`${result.successCount} tasks updated.`);
         }
         if (result.errors.length > 0) {
-          result.errors.forEach((error) => {
-            UI.error(`Task ${error.id}: ${error.error}`);
-          });
-          // Return only the failed task IDs to keep them selected
+          result.errors.forEach((error) =>
+            UI.error(`Task ${error.id}: ${error.error}`)
+          );
           return result.errors.map((error) => error.id);
         }
-        // All tasks updated successfully, return empty selection
         return [];
       } else {
         UI.info("No changes made.");
-        return selectedIds; // No changes made, keep original selection
+        return selectedIds;
       }
     } else if (action === "delete") {
-      const confirmOptions = ["no", "yes"];
-      const confirmed = await Select.prompt({
-        message: `Delete ${selectedIds.length} selected tasks?`,
-        options: [
-          { name: "No, cancel", value: "no" },
-          { name: "Yes, delete them", value: "yes" },
+      // Show confirmation within a nested modal
+      const confirmModalPromise = UI.showModal({
+        title: "Confirm Bulk Delete",
+        content: [
+          `Delete ${selectedIds.length} selected tasks?`,
+          "This action cannot be undone!",
+          "",
+          "Selected tasks:",
+          ...selectedIds.slice(0, 5).map((id) => {
+            const task = tasks.find((t) => t.id === id);
+            return task ? `  ${id}: ${task.description}` : `  ${id}: not found`;
+          }),
+          ...(selectedIds.length > 5
+            ? [`  ... and ${selectedIds.length - 5} more`]
+            : []),
         ],
+        actions: [
+          { label: "DELETE ALL", action: () => "confirm" },
+          { label: "Cancel", action: () => "cancel" },
+        ],
+        width: 70,
+        height: 15,
       });
 
-      if (confirmed === "yes") {
+      // Render to show the confirmation modal
+      await render(tasks, undefined, {
+        byStatus: { todo: 0, "in-progress": 0, done: 0 },
+        byPriority: { low: 0, medium: 0, high: 0, critical: 0 },
+        total: selectedIds.length,
+        completed: 0,
+        overdue: 0,
+        recentActivity: 0,
+      });
+      const confirmAction = await confirmModalPromise;
+
+      if (confirmAction === "confirm") {
+        UI.info("Processing bulk deletion...");
         const result = await bulkDeleteTasks(selectedIds);
         if (result.successCount > 0) {
           UI.success(`${result.successCount} tasks deleted.`);
         }
         if (result.errors.length > 0) {
-          result.errors.forEach((error) => {
-            UI.error(`Task ${error.id}: ${error.error}`);
-          });
-          // Return only the failed task IDs to keep them selected
+          result.errors.forEach((error) =>
+            UI.error(`Task ${error.id}: ${error.error}`)
+          );
           return result.errors.map((error) => error.id);
         }
-        // All tasks deleted successfully, return empty selection
         return [];
       }
-      return selectedIds; // If not confirmed, keep original selection
+      return selectedIds;
     }
 
-    // Wait for user to see results
-    console.log("");
-    console.log("Press any key to continue...");
-    // Simple timeout for TUI - user can press any key to continue
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    return selectedIds; // Should not reach here
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     UI.error(`Bulk operation failed: ${message}`);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    return selectedIds; // On error, keep original selection
+    return selectedIds;
   }
-
-  // Fallback return (should not be reached)
-  return selectedIds;
 }

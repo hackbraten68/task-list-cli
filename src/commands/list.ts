@@ -1,5 +1,5 @@
 import { loadTasks } from "../storage.ts";
-import { UI } from "../ui.ts";
+import { createUI, getUIImplementation } from "../ui/factory.ts";
 import { Task, TaskPriority, TaskStatus } from "../types.ts";
 import { FuzzySearchOptions, fuzzySearchTasks } from "../utils/fuzzy-search.ts";
 
@@ -67,6 +67,7 @@ export async function listCommand(
     sortOrder?: string;
   },
 ) {
+  const UI = createUI(getUIImplementation());
   const tasks = await loadTasks();
 
   let filteredTasks = tasks;
