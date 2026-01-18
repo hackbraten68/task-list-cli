@@ -8,3 +8,8 @@ inquire.ts
 TODO.md
 development_session_summary.md
 AGENTS.md
+
+# Test artifacts
+test-*.json
+test-*.csv
+tasks.json
