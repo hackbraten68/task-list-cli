@@ -493,8 +493,103 @@ export async function dashboardCommand() {
   // Cleanup on exit/crash
   Deno.addSignalListener("SIGINT", () => {
     cleanup();
-    Deno.exit();
   });
+
+  // Hacker-style stats sidebar rendering
+  function renderStatsSidebar(stats: TaskStats, width: number): string[] {
+    const lines: string[] = [];
+    const isMinimal = width < 20;
+
+    if (isMinimal) {
+      // Minimal mode for narrow terminals
+      lines.push(`┌─ STATS ─${'─'.repeat(Math.max(0, width - 9))}┐`);
+      lines.push(`│ 🤖 CPU: ${Math.floor(Math.random() * 100)}% │`);
+      const completion = stats.total > 0 ? Math.round((stats.byStatus.done / stats.total) * 100) : 0;
+      const progressBar = '█'.repeat(Math.floor(completion / 12.5)) + '░'.repeat(8 - Math.floor(completion / 12.5));
+      lines.push(`│ 📊 ${progressBar.slice(0, 8)} ${completion}% │`);
+      lines.push(`│ 🎯 ACT: ${stats.byStatus.todo + stats.byStatus["in-progress"]} │`);
+      if (stats.overdue > 0) {
+        lines.push(`│ ⚠️  OVD: ${stats.overdue} │`);
+      }
+      const velocity = Math.round(stats.recentActivity / 7 * 10) / 10;
+      lines.push(`│ ↗ +${velocity}/day │`);
+      lines.push(`└${'─'.repeat(width)}┘`);
+    } else {
+      // Full hacker mode
+      const headerText = " STATISTICAL ANALYSIS ENGINE v2.1 ";
+      const headerPadding = Math.max(0, width - headerText.length - 2);
+      lines.push(`┌${headerText}${'─'.repeat(headerPadding)}┐`);
+
+      // System status bar
+      lines.push(`│ ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░ │`.slice(0, width + 1) + '│');
+
+      // Processing animations (fake)
+      lines.push(`│ 🤖 PROCESSING TASK DATA...${' '.repeat(Math.max(0, width - 27))}│`);
+      lines.push(`│ ⚙️  CALCULATING EFFICIENCY METRICS...${' '.repeat(Math.max(0, width - 37))}│`);
+      lines.push(`│ 🖥️  ANALYZING PRIORITY DISTRIBUTIONS...${' '.repeat(Math.max(0, width - 39))}│`);
+      lines.push(`│ ${' '.repeat(width)}│`);
+
+      // Core metrics
+      const completion = stats.total > 0 ? Math.round((stats.byStatus.done / stats.total) * 100) : 0;
+      const progressBar = '█'.repeat(Math.floor(completion / 8)) + '░'.repeat(12 - Math.floor(completion / 8));
+      lines.push(`│ 📊 COMPLETION RATE: ${progressBar.slice(0, 12)} ${completion}%${' '.repeat(Math.max(0, width - 30))}│`);
+
+      lines.push(`│ 🎯 ACTIVE TASKS: ${stats.byStatus.todo + stats.byStatus["in-progress"]} | COMPLETED: ${stats.byStatus.done} | TOTAL: ${stats.total}${' '.repeat(Math.max(0, width - 50))}│`);
+
+      // Priority heatmap
+      const maxPriority = Math.max(stats.byPriority.critical, stats.byPriority.high, stats.byPriority.medium, stats.byPriority.low);
+      const critBar = '█'.repeat(Math.floor((stats.byPriority.critical / maxPriority) * 8)) + '░'.repeat(8 - Math.floor((stats.byPriority.critical / maxPriority) * 8));
+      const highBar = '█'.repeat(Math.floor((stats.byPriority.high / maxPriority) * 8)) + '░'.repeat(8 - Math.floor((stats.byPriority.high / maxPriority) * 8));
+      const medBar = '█'.repeat(Math.floor((stats.byPriority.medium / maxPriority) * 8)) + '░'.repeat(8 - Math.floor((stats.byPriority.medium / maxPriority) * 8));
+      const lowBar = '█'.repeat(Math.floor((stats.byPriority.low / maxPriority) * 8)) + '░'.repeat(8 - Math.floor((stats.byPriority.low / maxPriority) * 8));
+
+      lines.push(`│ 🔴 CRITICAL: ${critBar.slice(0, 8)} ${stats.byPriority.critical}${(' ').repeat(Math.max(0, width - 20))}│`);
+      lines.push(`│ 🟠 HIGH:     ${highBar.slice(0, 8)} ${stats.byPriority.high}${(' ').repeat(Math.max(0, width - 20))}│`);
+      lines.push(`│ 🟡 MEDIUM:   ${medBar.slice(0, 8)} ${stats.byPriority.medium}${(' ').repeat(Math.max(0, width - 20))}│`);
+      lines.push(`│ 🟢 LOW:      ${lowBar.slice(0, 8)} ${stats.byPriority.low}${(' ').repeat(Math.max(0, width - 20))}│`);
+
+      lines.push(`│ ${' '.repeat(width)}│`);
+
+      // Alerts
+      if (stats.overdue > 0) {
+        lines.push(`│ ⚠️  OVERDUE TASKS: ${stats.overdue}${(' ').repeat(Math.max(0, width - 18))}│`);
+      }
+      lines.push(`│ 🚨 BLOCKERS: 0${(' ').repeat(Math.max(0, width - 15))}│`);
+
+      lines.push(`│ ${' '.repeat(width)}│`);
+
+      // Trend analysis
+      const velocity = Math.round(stats.recentActivity / 7 * 10) / 10;
+      const trend = stats.recentActivity > 5 ? '↗↗' : stats.recentActivity > 2 ? '↗' : '→';
+      lines.push(`│ ↗ WEEKLY VELOCITY: +${velocity}/day | TREND: ${trend}${(' ').repeat(Math.max(0, width - 35))}│`);
+
+      // AI insight (fake)
+      const insights = [
+        "Productivity peaking - maintain momentum!",
+        "Consider prioritizing critical tasks",
+        "Good work-life balance detected",
+        "Efficiency optimal - keep it up!",
+        "Task completion rate above average"
+      ];
+      const insight = insights[Math.floor(Math.random() * insights.length)];
+      lines.push(`│ 🧠 AI INSIGHT: "${insight.slice(0, width - 17)}"${(' ').repeat(Math.max(0, width - 17 - insight.length - 2))}│`);
+
+      lines.push(`│ ${' '.repeat(width)}│`);
+
+      // System status
+      const cpu = Math.floor(Math.random() * 100);
+      const mem = Math.floor(Math.random() * 100);
+      const uptime = Math.floor(Math.random() * 24 * 7) / 10;
+      lines.push(`│ [STATUS: NOMINAL] [CPU: ${cpu}%] [MEM: ${mem}%] [UPTIME: ${uptime}hrs]${(' ').repeat(Math.max(0, width - 45))}│`);
+
+      lines.push(`└${'─'.repeat(width)}┘`);
+    }
+
+    return lines;
+  }
+
+  // Stats sidebar state - persists during session
+  let statsSidebarVisible = false;
 
   async function render(
     tasks: Task[],
@@ -793,6 +888,67 @@ export async function dashboardCommand() {
       panels = [sidebar, mainPanel];
     }
 
+    // Override with stats sidebar layout if enabled
+    if (statsSidebarVisible) {
+      // Calculate dynamic sidebar width
+      const terminalWidth = Deno.consoleSize().columns;
+      const sidebarWidth = terminalWidth < 60 ? 15 : Math.max(25, Math.min(35, terminalWidth - 45));
+
+      // Task list takes remaining space
+      const taskListWidth = terminalWidth - sidebarWidth - 3;
+
+      // Build task list panel
+      const taskListLines: string[] = [];
+      const maxTasks = Math.min(tasks.length, height - 4);
+
+      for (let i = 0; i < maxTasks; i++) {
+        const t = tasks[i];
+        const isCurrent = i === selectedIndex;
+        const isMultiSelected = selectedTasks.has(t.id);
+        const selectIndicator = multiSelectMode ? (isMultiSelected ? "[✓] " : "[ ] ") : "";
+        const prefix = isCurrent ? ">" : " ";
+        const statusIcon = UI.statusPipe(t.status);
+
+        let line = `${selectIndicator}${prefix}${statusIcon} ${t.description}`;
+
+        // Highlight current selection or multi-selected tasks
+        if (isCurrent && !multiSelectMode) {
+          line = colors.bgRgb24(line, { r: 50, g: 50, b: 50 });
+        } else if (isMultiSelected) {
+          line = colors.bgRgb24(line, { r: 30, g: 30, b: 60 });
+        }
+
+        taskListLines.push(line);
+      }
+
+      // Fill remaining space
+      while (taskListLines.length < height - 2) {
+        taskListLines.push("");
+      }
+
+      const taskListPanel = UI.box(
+        "Tasks",
+        taskListLines,
+        taskListWidth,
+        height,
+        false,
+        false,
+      );
+
+      // Build stats sidebar
+      const statsSidebarLines = renderStatsSidebar(stats!, sidebarWidth);
+      const statsSidebarPanel = UI.box(
+        "",
+        statsSidebarLines,
+        sidebarWidth,
+        height,
+        false,
+        false,
+      );
+
+      panels = [taskListPanel, statsSidebarPanel];
+    }
+
     UI.renderLayout(panels, modal);
     UI.footer(
       multiSelectMode,
@@ -802,6 +958,7 @@ export async function dashboardCommand() {
       stats?.overdue,
       searchMode,
       editMode,
+      statsSidebarVisible,
     );
   }
 
@@ -1148,13 +1305,8 @@ export async function dashboardCommand() {
             appendToCurrentField("s");
             break;
           }
-          statsViewMode = !statsViewMode;
-          // Reset selection when switching to stats mode
-          if (statsViewMode) {
-            selectedIndex = 0;
-            selectedTasks.clear();
-            multiSelectMode = false;
-          }
+          // Toggle stats sidebar visibility (persists during session)
+          statsSidebarVisible = !statsSidebarVisible;
           break;
         case "/":
           if (editMode === "add" || editMode === "update") {

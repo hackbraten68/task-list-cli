@@ -24,7 +24,7 @@ export interface UIInterface {
   box(title: string, lines: string[], width: number, height: number, focused?: boolean, dimmed?: boolean): string[];
   drawModal(title: string, content: string[], width: number, height: number): string[];
   renderLayout(panels: string[][], modal?: { lines: string[]; width: number; height: number }): void;
-  footer(multiSelectMode?: boolean, selectedCount?: number, statsViewMode?: boolean, completionRate?: number, overdueCount?: number, searchMode?: boolean, editMode?: "view" | "add" | "update"): void;
+  footer(multiSelectMode?: boolean, selectedCount?: number, statsViewMode?: boolean, completionRate?: number, overdueCount?: number, searchMode?: boolean, editMode?: "view" | "add" | "update", statsSidebarVisible?: boolean): void;
   renderTasks(tasks: Task[]): void;
   progressBar(value: number, max: number, width?: number): string;
   miniProgressBar(percentage: number, width?: number): string;

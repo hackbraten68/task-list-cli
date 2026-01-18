@@ -252,7 +252,7 @@ export class TuiUI implements UIInterface {
     }
   }
 
-  footer(multiSelectMode?: boolean, selectedCount?: number, statsViewMode?: boolean, completionRate?: number, overdueCount?: number, searchMode?: boolean, editMode?: "view" | "add" | "update"): void {
+  footer(multiSelectMode?: boolean, selectedCount?: number, statsViewMode?: boolean, completionRate?: number, overdueCount?: number, searchMode?: boolean, editMode?: "view" | "add" | "update", statsSidebarVisible?: boolean): void {
     let footerStr = "  " + colors.bgWhite.black(" KEYS ") + " ";
 
     if (editMode === "add" || editMode === "update") {
@@ -261,6 +261,8 @@ export class TuiUI implements UIInterface {
       footerStr += colors.bold("s") + " Tasks View  " + colors.bold("q") + " Quit";
     } else if (searchMode) {
       footerStr += colors.bold("j/k/↑↓") + " Navigation  " + colors.bold("ESC") + " Clear Search  " + colors.bold("q") + " Quit";
+    } else if (statsSidebarVisible) {
+      footerStr += colors.bold("j/k/↑↓") + " Navigate  " + colors.bold("s") + " Hide Stats  " + colors.bold("a") + " Add  " + colors.bold("u") + " Update  " + colors.bold("d") + " Delete  " + colors.bold("q") + " Quit";
     } else if (multiSelectMode) {
       footerStr += colors.bold("j/k/↑↓") + " Navigate  " + colors.bold("Space") + " Select";
       if (selectedCount && selectedCount > 0) {
