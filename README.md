@@ -39,10 +39,11 @@ source ~/.bashrc
 
 ## 📋 Core Commands
 
-### Dashboard (TUI)
+### Dashboard Interfaces
 
 ```bash
-lazytask  # Interactive task management
+lazytask          # CLI dashboard (menus/prompts)
+lazytask dashboard  # TUI dashboard (interactive interface)
 ```
 
 **Key Bindings:**
