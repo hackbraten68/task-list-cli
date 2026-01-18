@@ -92,4 +92,9 @@ export class CliffyUI implements UIInterface {
     // CliffyUI doesn't support modals
     return false;
   }
+
+  isModalActive(): boolean {
+    // CliffyUI doesn't support modals
+    return false;
+  }
 }

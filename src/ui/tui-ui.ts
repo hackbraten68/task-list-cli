@@ -262,7 +262,7 @@ export class TuiUI implements UIInterface {
     } else if (multiSelectMode) {
       footerStr += colors.bold("j/k") + " Navigate  " + colors.bold("Space") + " Select";
       if (selectedCount && selectedCount > 0) {
-        footerStr += `  ${colors.bold("b/u")} Bulk Ops  ${colors.bold.magenta(`[${selectedCount} selected]`)}`;
+        footerStr += `  ${colors.bold.magenta(`[${selectedCount} selected]`)}`;
       }
       footerStr += "  " + colors.bold("q") + " Quit";
     } else {
@@ -371,6 +371,8 @@ export class TuiUI implements UIInterface {
     // Return a promise that resolves when modal is dismissed
     return new Promise((resolve) => {
       this.state.modalResolve.value = resolve;
+      // Start the modal input loop
+      this.startModalInputLoop();
     });
   }
 
@@ -394,7 +396,7 @@ export class TuiUI implements UIInterface {
     if (!this.state.modalActive.value) return false;
 
     // Handle ESC to cancel
-    if (key === "\u001b") {
+    if (key === 'escape' || key === '\u001b') {
       this.dismissModal("cancel");
       return true;
     }
@@ -402,10 +404,7 @@ export class TuiUI implements UIInterface {
     const actions = this.state.modalActions.value;
     const selectedIndex = parseInt(key) - 1;
 
-    console.log(`Modal key: "${key}", parsed index: ${selectedIndex}, actions: ${actions.length}`);
-
     if (selectedIndex >= 0 && selectedIndex < actions.length) {
-      console.log(`Executing action ${selectedIndex}`);
       // Execute the action and dismiss modal
       const result = actions[selectedIndex].action();
       this.dismissModal(result);
@@ -413,6 +412,10 @@ export class TuiUI implements UIInterface {
     }
 
     return false;
+  }
+
+  isModalActive(): boolean {
+    return this.state.modalActive.value;
   }
 
   private async dismissModal(result: unknown) {
@@ -428,8 +431,57 @@ export class TuiUI implements UIInterface {
     }
   }
 
+  private startModalInputLoop(): void {
+    const readModalInput = async () => {
+      if (!this.state.modalActive.value) return;
+
+      try {
+        const key = await this.readSingleKey();
+        if (this.handleModalKey(key)) {
+          return; // Modal handled and dismissed
+        }
+
+        // Continue polling if modal is still active
+        if (this.state.modalActive.value) {
+          setTimeout(readModalInput, 50);
+        }
+      } catch (error) {
+        console.error("Modal input error:", error);
+        // Dismiss modal on error
+        this.dismissModal("cancel");
+      }
+    };
+
+    readModalInput();
+  }
+
+  private async readSingleKey(): Promise<string> {
+    // Read single bytes in raw mode, handling escape sequences
+    const buffer = new Uint8Array(8);
+    const bytesRead = await Deno.stdin.read(buffer);
+    if (bytesRead === null || bytesRead === 0) return "";
+
+    const key = new TextDecoder().decode(buffer.slice(0, bytesRead));
+
+    // Handle escape sequences
+    if (key.startsWith('\u001b[')) {
+      // Arrow keys, function keys, etc.
+      if (key === '\u001b[A') return 'up';
+      if (key === '\u001b[B') return 'down';
+      if (key === '\u001b[C') return 'right';
+      if (key === '\u001b[D') return 'left';
+      return 'escape-sequence';
+    }
+
+    // Handle plain ESC
+    if (key === '\u001b') return 'escape';
+
+    // Return single character
+    return key.replace(/\u0000/g, '')[0] || '';
+  }
+
   private async readKey(): Promise<string> {
-    // Read single bytes in raw mode
+    // Read single bytes in raw mode (legacy method)
     const buffer = new Uint8Array(1);
     const bytesRead = await Deno.stdin.read(buffer);
     if (bytesRead === 0) return "";

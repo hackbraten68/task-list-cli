@@ -32,6 +32,7 @@ export interface UIInterface {
   showModal(options: ModalOptions): Promise<unknown>;
   confirm(message: string, title?: string): Promise<boolean>;
   handleModalKey(key: string): boolean;
+  isModalActive(): boolean;
 }
 
 import { Task, TaskPriority, TaskStatus } from "../types.ts";

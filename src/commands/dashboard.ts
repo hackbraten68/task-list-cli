@@ -488,7 +488,7 @@ export async function dashboardCommand() {
       }
 
       detailLines.push("");
-      detailLines.push(`  ${colors.dim("Press Enter for bulk actions")}`);
+      detailLines.push(`  ${colors.dim("Press Enter or b/u for bulk actions")}`);
       detailLines.push(
         `  ${colors.dim("Press Tab to exit multi-select mode")}`,
       );
@@ -688,12 +688,19 @@ export async function dashboardCommand() {
     let lastTerminalSize = Deno.consoleSize();
 
     while (running) {
+      // Skip normal processing if modal is active
+      if (UI.isModalActive && UI.isModalActive()) {
+        // Modal is handling input, wait a bit and continue
+        await new Promise(resolve => setTimeout(resolve, 50));
+        continue;
+      }
+
       let tasks = await loadTasks();
 
       // Check for terminal resize
       const currentSize = Deno.consoleSize();
       const sizeChanged = currentSize.columns !== lastTerminalSize.columns ||
-                         currentSize.rows !== lastTerminalSize.rows;
+                          currentSize.rows !== lastTerminalSize.rows;
 
       if (sizeChanged && resizeHandler) {
         resizeHandler.triggerResize();
@@ -745,7 +752,6 @@ export async function dashboardCommand() {
 
        // Handle modal input first
        if (UI.handleModalKey && UI.handleModalKey(keys)) {
-         console.log("Modal key handled");
          continue; // Modal handled the key, skip normal processing
        }
 
@@ -847,14 +853,13 @@ export async function dashboardCommand() {
           }
           break;
         case "b":
-          console.log("B KEY PRESSED");
           if (editMode === "view" && multiSelectMode && selectedTasks.size > 0) {
-            console.log("Conditions met, showing bulk modal");
             // Show bulk actions menu (alternative to 'u')
             const modalPromise = showBulkActionsMenu(
               tasks,
               Array.from(selectedTasks),
               UI,
+              render,
             );
             // Render immediately to show the modal
             await render(processedTasks, undefined, stats);
@@ -862,6 +867,8 @@ export async function dashboardCommand() {
             // Update the selectedTasks set with the returned selection
             selectedTasks.clear();
             updatedSelection.forEach((id) => selectedTasks.add(id));
+            // Re-render to clear the modal from screen
+            await render(processedTasks, undefined, stats);
           }
           break;
         case "u":
@@ -877,6 +884,7 @@ export async function dashboardCommand() {
                 tasks,
                 Array.from(selectedTasks),
                 UI,
+                render,
               );
               // Render immediately to show the modal
               await render(processedTasks, undefined, stats);
@@ -884,6 +892,8 @@ export async function dashboardCommand() {
               // Update the selectedTasks set with the returned selection
               selectedTasks.clear();
               updatedSelection.forEach((id) => selectedTasks.add(id));
+              // Re-render to clear the modal from screen
+              await render(processedTasks, undefined, stats);
             }
           }
           break;
@@ -935,6 +945,21 @@ export async function dashboardCommand() {
             }
             editMode = "view";
             editData = {};
+          } else if (editMode === "view" && multiSelectMode && selectedTasks.size > 0) {
+            // Show bulk actions menu for multi-select
+            const modalPromise = showBulkActionsMenu(
+              tasks,
+              Array.from(selectedTasks),
+              UI,
+              render,
+            );
+            // Render immediately to show the modal
+            await render(processedTasks, undefined, stats);
+            const updatedSelection = await modalPromise;
+            selectedTasks.clear();
+            updatedSelection.forEach((id) => selectedTasks.add(id));
+            // Re-render to clear the modal from screen
+            await render(processedTasks, undefined, stats);
           }
           break;
         case "d":
@@ -946,15 +971,19 @@ export async function dashboardCommand() {
           if (editMode === "view") {
             if (multiSelectMode && selectedTasks.size > 0) {
               // Show bulk actions menu for multi-select (preserve existing functionality)
-              cleanup();
-              const updatedSelection = await showBulkActionsMenu(
+              const modalPromise = showBulkActionsMenu(
                 tasks,
                 Array.from(selectedTasks),
                 UI,
+                render,
               );
+              // Render immediately to show the modal
+              await render(processedTasks, undefined, stats);
+              const updatedSelection = await modalPromise;
               selectedTasks.clear();
               updatedSelection.forEach((id) => selectedTasks.add(id));
-              Deno.stdin.setRaw(true);
+              // Re-render to clear the modal from screen
+              await render(processedTasks, undefined, stats);
             } else if (!multiSelectMode && tasks[selectedIndex]) {
               // Show delete confirmation modal
               const task = tasks[selectedIndex];
@@ -1161,6 +1190,7 @@ async function showBulkActionsMenu(
   tasks: Task[],
   selectedIds: number[],
   UI: any,
+  render: (tasks: Task[], modal?: any, stats?: any) => Promise<void>,
 ): Promise<number[]> {
   const taskSummaries = getTaskSummaries(tasks, selectedIds);
 
@@ -1190,7 +1220,7 @@ async function showBulkActionsMenu(
     }
 
     if (action === "mark") {
-      const status = await UI.showModal({
+      const statusModalPromise = UI.showModal({
         title: "Mark Tasks As",
         content: [`Mark ${selectedIds.length} tasks as:`],
         actions: [
@@ -1202,6 +1232,8 @@ async function showBulkActionsMenu(
         width: 40,
         height: 10,
       });
+      await render(tasks, undefined, { byStatus: { todo: 0, "in-progress": 0, done: 0 }, byPriority: { low: 0, medium: 0, high: 0, critical: 0 }, total: selectedIds.length, completed: 0, overdue: 0, recentActivity: 0 });
+      const status = await statusModalPromise;
 
       if (status === "cancel") return selectedIds;
 
@@ -1219,7 +1251,7 @@ async function showBulkActionsMenu(
       const changes: Partial<Task> = {};
 
       // Priority modal
-      const priority = await UI.showModal({
+      const priorityModalPromise = UI.showModal({
         title: "Update Priority",
         content: [`Update priority for ${selectedIds.length} tasks:`],
         actions: [
@@ -1232,13 +1264,15 @@ async function showBulkActionsMenu(
         width: 40,
         height: 12,
       });
+      await render(tasks, undefined, { byStatus: { todo: 0, "in-progress": 0, done: 0 }, byPriority: { low: 0, medium: 0, high: 0, critical: 0 }, total: selectedIds.length, completed: 0, overdue: 0, recentActivity: 0 });
+      const priority = await priorityModalPromise;
 
       if (priority !== "skip") {
         changes.priority = priority as TaskPriority;
       }
 
       // Tags modal
-      const tagsAction = await UI.showModal({
+      const tagsModalPromise = UI.showModal({
         title: "Update Tags",
         content: [`Update tags for ${selectedIds.length} tasks:`],
         actions: [
@@ -1251,6 +1285,8 @@ async function showBulkActionsMenu(
         width: 40,
         height: 12,
       });
+      await render(tasks, undefined, { byStatus: { todo: 0, "in-progress": 0, done: 0 }, byPriority: { low: 0, medium: 0, high: 0, critical: 0 }, total: selectedIds.length, completed: 0, overdue: 0, recentActivity: 0 });
+      const tagsAction = await tagsModalPromise;
 
       if (tagsAction === "clear") {
         changes.tags = [];

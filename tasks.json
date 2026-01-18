@@ -62,51 +62,36 @@
   {
     "id": 8,
     "description": "Buy groceries for the meeting",
-    "status": "todo",
+    "status": "in-progress",
     "priority": "medium",
     "tags": [
       "shopping",
       "urgent"
     ],
     "createdAt": "2026-01-16T10:08:52.329Z",
-    "updatedAt": "2026-01-16T10:08:52.329Z"
+    "updatedAt": "2026-01-18T16:04:59.884Z"
   },
   {
     "id": 9,
     "description": "Prepare presentation slides",
     "details": "Meeting with client tomorrow",
-    "status": "todo",
+    "status": "in-progress",
     "priority": "medium",
     "tags": [
       "work",
       "meeting"
     ],
     "createdAt": "2026-01-16T10:08:52.329Z",
-    "updatedAt": "2026-01-16T10:08:52.329Z"
-  },
-  {
-    "id": 10,
-    "description": "Review code changes",
-    "status": "todo",
-    "priority": "medium",
-    "tags": [
-      "work",
-      "urgent"
-    ],
-    "createdAt": "2026-01-16T10:08:52.329Z",
-    "updatedAt": "2026-01-16T10:08:52.329Z"
+    "updatedAt": "2026-01-18T16:04:59.884Z"
   },
   {
     "id": 11,
     "description": "Prepare meeting agenda",
     "details": "Discuss project timeline",
-    "status": "todo",
-    "priority": "medium",
-    "tags": [
-      "meeting",
-      "work"
-    ],
+    "status": "in-progress",
+    "priority": "low",
+    "tags": [],
     "createdAt": "2026-01-16T10:08:52.329Z",
-    "updatedAt": "2026-01-16T10:08:52.329Z"
+    "updatedAt": "2026-01-18T16:38:01.456Z"
   }
 ]
