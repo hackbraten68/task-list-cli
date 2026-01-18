@@ -42,9 +42,11 @@ source ~/.bashrc
 ### Dashboard Interfaces
 
 ```bash
-lazytask          # CLI dashboard (menus/prompts)
-lazytask dashboard  # TUI dashboard (interactive interface)
+lazytask dashboard  # TUI dashboard (recommended - interactive interface)
+lazytask           # CLI dashboard (backwards compatible, deprecated)
 ```
+
+> **Note:** The TUI dashboard (`lazytask dashboard`) is the primary interface with full features and active development focus. The CLI dashboard (`lazytask`) is maintained for backwards compatibility but will be deprecated in future versions.
 
 **Key Bindings:**
 
