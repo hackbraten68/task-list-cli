@@ -80,16 +80,16 @@ async function showDataManagementMenu(UI: any): Promise<void> {
 
   switch (choice) {
     case "export":
-      await handleExport();
+      await handleExport(UI);
       break;
     case "import":
-      await handleImport();
+      await handleImport(UI);
       break;
     case "backup":
-      await handleBackup();
+      await handleBackup(UI);
       break;
     case "clear":
-      await handleClearAllTasks();
+      await handleClearAllTasks(UI);
       break;
     case "back":
       await showMainMenu(UI);
@@ -243,7 +243,7 @@ async function showHelpMenu(UI: any): Promise<void> {
   await Input.prompt("Press Enter to continue...");
 }
 
-async function handleExport(): Promise<void> {
+async function handleExport(UI: any): Promise<void> {
   console.clear();
   UI.header();
 
@@ -278,7 +278,7 @@ async function handleExport(): Promise<void> {
   await Input.prompt("Press Enter to continue...");
 }
 
-async function handleImport(): Promise<void> {
+async function handleImport(UI: any): Promise<void> {
   console.clear();
   UI.header();
 
@@ -333,7 +333,7 @@ async function handleImport(): Promise<void> {
   await Input.prompt("Press Enter to continue...");
 }
 
-async function handleBackup(): Promise<void> {
+async function handleBackup(UI: any): Promise<void> {
   console.clear();
   UI.header();
 
@@ -355,7 +355,7 @@ async function handleBackup(): Promise<void> {
   await Input.prompt("Press Enter to continue...");
 }
 
-async function handleClearAllTasks(): Promise<void> {
+async function handleClearAllTasks(UI: any): Promise<void> {
   console.clear();
   UI.header();
 

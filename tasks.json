@@ -53,46 +53,46 @@
     "id": 7,
     "description": "📅 Quarterly Planning",
     "details": "Meet with the team to set goals for Q2.",
-    "status": "in-progress",
+    "status": "done",
     "priority": "medium",
     "createdAt": "2026-01-16T10:08:52.329Z",
-    "updatedAt": "2026-01-18T17:32:07.211Z",
+    "updatedAt": "2026-01-18T18:00:38.014Z",
     "tags": []
   },
   {
     "id": 8,
     "description": "Buy groceries for the meeting",
-    "status": "in-progress",
+    "status": "done",
     "priority": "medium",
     "tags": [
       "shopping",
       "urgent"
     ],
     "createdAt": "2026-01-16T10:08:52.329Z",
-    "updatedAt": "2026-01-18T17:32:07.211Z"
+    "updatedAt": "2026-01-18T18:00:38.014Z"
   },
   {
     "id": 9,
     "description": "Prepare presentation slides",
     "details": "Meeting with client tomorrow",
-    "status": "in-progress",
+    "status": "done",
     "priority": "critical",
     "tags": [
       "work"
     ],
     "createdAt": "2026-01-16T10:08:52.329Z",
-    "updatedAt": "2026-01-18T17:32:07.211Z"
+    "updatedAt": "2026-01-18T18:00:38.014Z"
   },
   {
     "id": 11,
     "description": "Prepare meeting agenda",
     "details": "Discuss project timeline",
-    "status": "in-progress",
+    "status": "done",
     "priority": "critical",
     "tags": [
       "work"
     ],
     "createdAt": "2026-01-16T10:08:52.329Z",
-    "updatedAt": "2026-01-18T17:32:07.211Z"
+    "updatedAt": "2026-01-18T18:00:38.014Z"
   }
 ]
