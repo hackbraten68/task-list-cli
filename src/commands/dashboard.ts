@@ -1198,7 +1198,10 @@ export async function dashboardCommand() {
             appendToCurrentField("h");
             break;
           }
-          // 'h' in view mode is handled by the main menu case below
+          // 'h' in view mode - show main menu
+          cleanup();
+          await showMainMenu(UI);
+          Deno.stdin.setRaw(true);
           break;
         case "?":
           if (editMode === "add" || editMode === "update") {
@@ -1225,11 +1228,7 @@ export async function dashboardCommand() {
             multiSelectMode = false;
           }
           break;
-        case "h": // Help/Settings menu
-          cleanup();
-          await showMainMenu(UI);
-          Deno.stdin.setRaw(true);
-          break;
+
         case "o": { // Cycle sort field
           const sortFields = [
             "id",
