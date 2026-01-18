@@ -231,11 +231,11 @@ export class TuiUI implements UIInterface {
         modalLines = this.drawModal(
           this.state.modalTitle.value,
           this.state.modalContent.value,
-          50, // default width
-          10  // default height
+          this.state.modalWidth.value,
+          this.state.modalHeight.value
         );
-        modalWidth = 50;
-        modalHeight = 10;
+        modalWidth = this.state.modalWidth.value;
+        modalHeight = this.state.modalHeight.value;
       }
 
       // Then overlay the modal on top
@@ -252,21 +252,23 @@ export class TuiUI implements UIInterface {
     }
   }
 
-  footer(multiSelectMode?: boolean, selectedCount?: number, statsViewMode?: boolean, completionRate?: number, overdueCount?: number, searchMode?: boolean): void {
+  footer(multiSelectMode?: boolean, selectedCount?: number, statsViewMode?: boolean, completionRate?: number, overdueCount?: number, searchMode?: boolean, editMode?: "view" | "add" | "update"): void {
     let footerStr = "  " + colors.bgWhite.black(" KEYS ") + " ";
 
-    if (statsViewMode) {
+    if (editMode === "add" || editMode === "update") {
+      footerStr += colors.bold("↑↓") + " Navigate Fields  " + colors.bold("←→") + " Cycle Values  " + colors.bold("Enter") + " Save  " + colors.bold("Esc") + " Cancel";
+    } else if (statsViewMode) {
       footerStr += colors.bold("s") + " Tasks View  " + colors.bold("q") + " Quit";
     } else if (searchMode) {
-      footerStr += colors.bold("j/k") + " Navigation  " + colors.bold("ESC") + " Clear Search  " + colors.bold("q") + " Quit";
+      footerStr += colors.bold("j/k/↑↓") + " Navigation  " + colors.bold("ESC") + " Clear Search  " + colors.bold("q") + " Quit";
     } else if (multiSelectMode) {
-      footerStr += colors.bold("j/k") + " Navigate  " + colors.bold("Space") + " Select";
+      footerStr += colors.bold("j/k/↑↓") + " Navigate  " + colors.bold("Space") + " Select";
       if (selectedCount && selectedCount > 0) {
         footerStr += `  ${colors.bold.magenta(`[${selectedCount} selected]`)}`;
       }
       footerStr += "  " + colors.bold("q") + " Quit";
     } else {
-      footerStr += colors.bold("j/k") + " Navigate  " + colors.bold("a") + " Add  " + colors.bold("u") + " Update  " + colors.bold("d") + " Delete  " + colors.bold("q") + " Quit";
+      footerStr += colors.bold("j/k/↑↓") + " Navigate  " + colors.bold("a") + " Add  " + colors.bold("u") + " Update  " + colors.bold("d") + " Delete  " + colors.bold("q") + " Quit";
     }
 
     // Completion status
@@ -366,6 +368,8 @@ export class TuiUI implements UIInterface {
     this.state.modalTitle.value = title;
     this.state.modalContent.value = modalContent;
     this.state.modalActions.value = actions;
+    this.state.modalWidth.value = width;
+    this.state.modalHeight.value = height;
     this.state.modalActive.value = true;
 
     // Return a promise that resolves when modal is dismissed
@@ -423,6 +427,8 @@ export class TuiUI implements UIInterface {
     this.state.modalTitle.value = "";
     this.state.modalContent.value = [];
     this.state.modalActions.value = [];
+    this.state.modalWidth.value = 50;
+    this.state.modalHeight.value = 10;
 
     const resolve = this.state.modalResolve.value;
     if (resolve) {

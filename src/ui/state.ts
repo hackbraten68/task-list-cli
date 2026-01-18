@@ -23,6 +23,8 @@ export class AppState {
   modalContent = new Signal<string[]>([]);
   modalActions = new Signal<ModalAction[]>([]);
   modalResolve = new Signal<((value: unknown) => void) | null>(null);
+  modalWidth = new Signal(50);
+  modalHeight = new Signal(10);
 
   // Computed values
   filteredTasks = new Computed(() => {

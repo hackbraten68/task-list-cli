@@ -488,7 +488,7 @@ export async function dashboardCommand() {
       }
 
       detailLines.push("");
-      detailLines.push(`  ${colors.dim("Press Enter or b/u for bulk actions")}`);
+       detailLines.push(`  ${colors.dim("Press Enter for bulk actions")}`);
       detailLines.push(
         `  ${colors.dim("Press Tab to exit multi-select mode")}`,
       );
@@ -564,7 +564,7 @@ export async function dashboardCommand() {
       formLines.push(`${currentField === "dueDate" ? colors.bold.yellow("➜") : "  "} Due Date:   ${editData.dueDate || colors.dim("(optional)")}`);
       formLines.push(`${currentField === "tags" ? colors.bold.yellow("➜") : "  "} Tags:        ${editData.tags ? editData.tags.join(", ") : colors.dim("(optional)")}`);
       formLines.push("");
-      formLines.push(`  ${colors.dim("Tab: Next • Enter: Save • Esc: Cancel")}`);
+      formLines.push(`  ${colors.dim("↑↓/Tab: Navigate • ←→: Cycle • Enter: Save • Esc: Cancel")}`);
 
       const previewLines: string[] = [];
       previewLines.push("");
@@ -619,7 +619,7 @@ export async function dashboardCommand() {
       formLines.push(`${currentField === "dueDate" ? colors.bold.yellow("➜") : "  "} Due Date:   ${editData.dueDate || colors.dim("(optional)")}`);
       formLines.push(`${currentField === "tags" ? colors.bold.yellow("➜") : "  "} Tags:        ${editData.tags ? editData.tags.join(", ") : colors.dim("(optional)")}`);
       formLines.push("");
-      formLines.push(`  ${colors.dim("Tab: Next • Enter: Save • Esc: Cancel")}`);
+      formLines.push(`  ${colors.dim("↑↓/Tab: Navigate • ←→: Cycle • Enter: Save • Esc: Cancel")}`);
 
       const previewLines: string[] = [];
       previewLines.push("");
@@ -681,6 +681,7 @@ export async function dashboardCommand() {
       stats?.completionRate,
       stats?.overdue,
       searchMode,
+      editMode,
     );
   }
 
@@ -764,24 +765,7 @@ export async function dashboardCommand() {
                         selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
                     }
                     break;
-                case "\u001b[B": // Down arrow
-                    if (editMode === "add" || editMode === "update") {
-                        if (currentField === "priority") {
-                            // Cycle priority down
-                            const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
-                            const currentIndex = priorities.indexOf(editData.priority || "medium");
-                            editData.priority = priorities[(currentIndex + 1) % priorities.length];
-                        } else if (currentField === "status") {
-                            // Cycle status down
-                            const statuses: TaskStatus[] = ["todo", "in-progress", "done"];
-                            const currentIndex = statuses.indexOf(editData.status || "todo");
-                            editData.status = statuses[(currentIndex + 1) % statuses.length];
-                        }
-                        // Ignore other navigation in add/update mode
-                    } else {
-                        selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
-                    }
-                    break;
+
                 case "k":
                     if (editMode === "add" || editMode === "update") {
                         // Append 'k' to current field in add/update mode
@@ -790,30 +774,70 @@ export async function dashboardCommand() {
                         selectedIndex = Math.max(0, selectedIndex - 1);
                     }
                     break;
-                case "\u001b[A": // Up arrow
-                    if (editMode === "add" || editMode === "update") {
-                        if (currentField === "priority") {
-                            // Cycle priority up
-                            const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
-                            const currentIndex = priorities.indexOf(editData.priority || "medium");
-                            editData.priority = priorities[(currentIndex - 1 + priorities.length) % priorities.length];
-                        } else if (currentField === "status") {
-                            // Cycle status up
-                            const statuses: TaskStatus[] = ["todo", "in-progress", "done"];
-                            const currentIndex = statuses.indexOf(editData.status || "todo");
-                            editData.status = statuses[(currentIndex - 1 + statuses.length) % statuses.length];
-                        }
-                        // Ignore other navigation in add/update mode
-                    } else {
-                        selectedIndex = Math.max(0, selectedIndex - 1);
-                    }
-                    break;
+                 case "\u001b[A": // Up arrow - Navigate to previous field
+                     if (editMode === "add" || editMode === "update") {
+                         const fields: (keyof Pick<Task, "description" | "priority" | "status" | "details" | "dueDate" | "tags">)[] = ["description", "priority", "status", "details", "dueDate", "tags"];
+                         const currentIndex = fields.indexOf(currentField);
+                         currentField = fields[(currentIndex - 1 + fields.length) % fields.length];
+                     } else {
+                         selectedIndex = Math.max(0, selectedIndex - 1);
+                     }
+                     break;
+                  case "\u001b[B": // Down arrow - Navigate to next field
+                      if (editMode === "add" || editMode === "update") {
+                          const fields: (keyof Pick<Task, "description" | "priority" | "status" | "details" | "dueDate" | "tags">)[] = ["description", "priority", "status", "details", "dueDate", "tags"];
+                          const currentIndex = fields.indexOf(currentField);
+                          currentField = fields[(currentIndex + 1) % fields.length];
+                      } else {
+                          selectedIndex = Math.min(tasks.length - 1, selectedIndex + 1);
+                      }
+                      break;
+                 case "\u001b[D": // Left arrow - Cycle value down or navigate to previous field
+                     if (editMode === "add" || editMode === "update") {
+                         if (currentField === "priority") {
+                             // Cycle priority down
+                             const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
+                             const currentIndex = priorities.indexOf(editData.priority || "medium");
+                             editData.priority = priorities[(currentIndex - 1 + priorities.length) % priorities.length];
+                         } else if (currentField === "status") {
+                             // Cycle status down
+                             const statuses: TaskStatus[] = ["todo", "in-progress", "done"];
+                             const currentIndex = statuses.indexOf(editData.status || "todo");
+                             editData.status = statuses[(currentIndex - 1 + statuses.length) % statuses.length];
+                         } else {
+                             // Navigate to previous field for non-cycling fields
+                             const fields: (keyof Pick<Task, "description" | "priority" | "status" | "details" | "dueDate" | "tags">)[] = ["description", "priority", "status", "details", "dueDate", "tags"];
+                             const currentIndex = fields.indexOf(currentField);
+                             currentField = fields[(currentIndex - 1 + fields.length) % fields.length];
+                         }
+                     }
+                     break;
+                 case "\u001b[C": // Right arrow - Cycle value up or navigate to next field
+                     if (editMode === "add" || editMode === "update") {
+                         if (currentField === "priority") {
+                             // Cycle priority up
+                             const priorities: TaskPriority[] = ["low", "medium", "high", "critical"];
+                             const currentIndex = priorities.indexOf(editData.priority || "medium");
+                             editData.priority = priorities[(currentIndex + 1) % priorities.length];
+                         } else if (currentField === "status") {
+                             // Cycle status up
+                             const statuses: TaskStatus[] = ["todo", "in-progress", "done"];
+                             const currentIndex = statuses.indexOf(editData.status || "todo");
+                             editData.status = statuses[(currentIndex + 1) % statuses.length];
+                         } else {
+                             // Navigate to next field for non-cycling fields
+                             const fields: (keyof Pick<Task, "description" | "priority" | "status" | "details" | "dueDate" | "tags">)[] = ["description", "priority", "status", "details", "dueDate", "tags"];
+                             const currentIndex = fields.indexOf(currentField);
+                             currentField = fields[(currentIndex + 1) % fields.length];
+                         }
+                     }
+                     break;
         case "a":
           if (editMode === "add" || editMode === "update") {
             // Append 'a' to current field in add/update mode
             appendToCurrentField("a");
-          } else if (editMode === "view") {
-            // Enter add mode
+          } else if (editMode === "view" && !multiSelectMode) {
+            // Enter add mode (disabled in multi-select mode)
             editMode = "add";
             editData = {
               description: "",
@@ -852,49 +876,25 @@ export async function dashboardCommand() {
             }
           }
           break;
-        case "b":
-          if (editMode === "view" && multiSelectMode && selectedTasks.size > 0) {
-            // Show bulk actions menu (alternative to 'u')
-            const modalPromise = showBulkActionsMenu(
-              tasks,
-              Array.from(selectedTasks),
-              UI,
-              render,
-            );
-            // Render immediately to show the modal
-            await render(processedTasks, undefined, stats);
-            const updatedSelection = await modalPromise;
-            // Update the selectedTasks set with the returned selection
-            selectedTasks.clear();
-            updatedSelection.forEach((id) => selectedTasks.add(id));
-            // Re-render to clear the modal from screen
-            await render(processedTasks, undefined, stats);
-          }
-          break;
+
         case "u":
           if (editMode === "add" || editMode === "update") {
             // Append 'u' to current field in add/update mode
             appendToCurrentField("u");
             break;
           }
-          if (editMode === "view") {
-            if (multiSelectMode && selectedTasks.size > 0) {
-              // Show bulk actions menu
-              const modalPromise = showBulkActionsMenu(
-                tasks,
-                Array.from(selectedTasks),
-                UI,
-                render,
-              );
-              // Render immediately to show the modal
-              await render(processedTasks, undefined, stats);
-              const updatedSelection = await modalPromise;
-              // Update the selectedTasks set with the returned selection
-              selectedTasks.clear();
-              updatedSelection.forEach((id) => selectedTasks.add(id));
-              // Re-render to clear the modal from screen
-              await render(processedTasks, undefined, stats);
-            }
+          if (editMode === "view" && !multiSelectMode && tasks[selectedIndex]) {
+            // Single task update (not in multi-select mode)
+            editMode = "update";
+            editData = {
+              description: tasks[selectedIndex].description,
+              priority: tasks[selectedIndex].priority,
+              status: tasks[selectedIndex].status,
+              details: tasks[selectedIndex].details || "",
+              dueDate: tasks[selectedIndex].dueDate || "",
+              tags: tasks[selectedIndex].tags || [],
+            };
+            currentField = "description";
           }
           break;
         case "\r": // Enter
@@ -1209,10 +1209,9 @@ async function showBulkActionsMenu(
         { label: "Mark Status", action: () => "mark" },
         { label: "Update Properties", action: () => "update" },
         { label: "Delete Tasks", action: () => "delete" },
-        { label: "Cancel", action: () => "cancel" },
       ],
-      width: 60,
-      height: 15,
+      width: 65,
+      height: 18,
     });
 
     if (action === "cancel") {
