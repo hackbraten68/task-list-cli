@@ -1,0 +1,12 @@
+id,description,details,status,priority,dueDate,tags,createdAt,updatedAt
+1,"🚀 Launch Rocket Project","Finalize the propulsion system and coordinate with ground control for T-minus 0.",in-progress,critical,2026-02-01,,2026-01-15T10:00:00.000Z,2026-01-15T19:33:23.959Z
+2,"🍎 Buy organic groceries","Need kale, almond milk, and some seasonal fruits.",todo,low,2026-01-16,,2026-01-15T12:30:00.000Z,2026-01-15T12:30:00.000Z
+3,"📦 Ship customer orders","Batch 402, 403, and 405 are ready for dispatch.",todo,high,2026-01-15,,2026-01-15T14:15:00.000Z,2026-01-15T19:11:15.122Z
+4,"🧘 Morning Meditation","20 minutes of mindfulness to start the day right.",done,medium,,,2026-01-15T06:00:00.000Z,2026-01-15T06:20:00.000Z
+5,"💻 Refactor API layer","Move to a more robust middleware pattern and add better error handling.",in-progress,high,,,2026-01-14T09:00:00.000Z,2026-01-15T15:45:00.000Z
+6,"🎸 Practice Guitar","Work on the solo for 'Sultans of Swing'.",todo,low,,,2026-01-15T18:00:00.000Z,2026-01-15T18:00:00.000Z
+7,"📅 Quarterly Planning","Meet with the team to set goals for Q2.",todo,medium,2026-01-20,,2026-01-15T11:00:00.000Z,2026-01-15T18:49:08.744Z
+8,"Buy groceries for the meeting",,todo,medium,,shopping;urgent,2026-01-15T23:44:19.432Z,2026-01-15T23:44:19.432Z
+9,"Prepare presentation slides","Meeting with client tomorrow",todo,medium,,work;meeting,2026-01-15T23:44:34.944Z,2026-01-15T23:44:34.944Z
+10,"Review code changes",,todo,medium,,work;urgent,2026-01-15T23:59:54.942Z,2026-01-15T23:59:54.943Z
+11,"Prepare meeting agenda","Discuss project timeline",todo,medium,,meeting;work,2026-01-16T00:00:17.974Z,2026-01-16T00:00:17.974Z
